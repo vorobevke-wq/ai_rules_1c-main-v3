@@ -29,7 +29,7 @@ OpenSpec artifacts (`proposal.md`, `design.md`, `tasks.md`, delta specs under `c
 Before any pre-author MCP call, classify the change. The evidence depth depends on the class — applying the full evidence set to a one-button change is the most common source of context bloat.
 
 - **quick-spec** — change touches **one** existing metadata object **plus**, optionally, 1-3 independent isolated additions (a new constant, a new data processor / settings form, a new independent information register with no module). No new documents / accumulation or accounting registers / roles / event subscriptions / scheduled jobs. No changes to existing transactional paths, RLS conditions, posting code, or public common-module signatures. Naming of new objects is the only architecturally novel decision.
-  *Evidence minimum:* targeted attribute check via `resolve_qualified_name` or `search_metadata` JSON template (see check 2 below) **plus** one `ssl_search` if the spec relies on a БСП subsystem **plus** `recall` only if the change keywords overlap with prior project work. `Context sources` block — one line.
+  *Evidence minimum:* targeted attribute check via `search_metadata` JSON template (see check 2 below) **plus** one `ssl_search` if the spec relies on a БСП subsystem **plus** `recall` only if the change keywords overlap with prior project work. `Context sources` block — one line.
 - **full-spec** — everything else: new transactional code paths, new registers / documents / roles, modifications to existing posting or write paths, public API signatures, БСП-subsystem integrations beyond a single known API, cross-module impact, performance NFRs, security / PII handling beyond a whitelist. Run the full `Mandatory pre-author checks` below.
 
 When in doubt — quick-spec wins until the second novel architectural decision shows up; then promote to full-spec.
@@ -42,9 +42,9 @@ Apply these to **full-spec** changes (the `Evidence minimum` of `quick-spec` is 
 
 1. **Project memory — `1c-templates-mcp` `recall`.** Run when the change keywords overlap with anything already touched in the project: existing object names (`НачислениеЗарплаты`, `ПродажиТовары`), known subsystems (`Документооборот`, `ИнтернетПоддержка`), recurring error messages, prior architectural decisions on the same domain. For genuinely greenfield topics — a domain the project has never touched — `recall` is optional; a single short note in `Context sources` ("`recall` skipped: greenfield topic") is enough. Catches existing project conventions, prompt templates, naming quirks, settled architectural choices.
 2. **Metadata facts — prefer targeted queries over full dossiers.** Choose the narrowest method that closes the gap:
-   - **Single attribute / tabular-section column existence and type** — `resolve_qualified_name "Документ.<Name>.Реквизит.<Attr>"` (one call, minimal output) or `search_metadata {"operation": "get_attribute_type", ...}`. Use this for "does object X have attribute Y of type T?" — by far the most common case.
+   - **Single attribute / tabular-section column existence and type** — `search_metadata {"operation": "get_attribute_type", ...}` or `search_metadata {"operation": "resolve_qn", ...}`. Use this for "does object X have attribute Y of type T?" — by far the most common case.
    - **List of attributes / tabular parts / dimensions / resources / forms** — `search_metadata` JSON templates: `list_attributes`, `list_tabular_parts`, `list_dimensions`, `list_resources`, `list_forms`, `list_enum_values`, `object_structure`, `list_attributes_with_type`. Deterministic, no LLM, much smaller payload than a dossier.
-   - **Structural passport across many facets** — `get_object_dossier object_name=... sections=["structure"]` (or `["structure","dependencies"]`, …). Use the `sections` filter to drop unused facets. Default (all sections) is a last resort for objects the session has never inspected.
+   - **Structural passport across many facets** — `search_metadata {"operation": "object_structure", ...}` plus only the facet templates actually needed (`list_forms`, `list_modules_of_owner`, rights, events, movement or call-graph operations). A broad all-facets lookup is a last resort for objects the session has never inspected.
    - **Fallback chain on empty / non-actionable results** — `1c-code-metadata-mcp` hybrid → `grep=true` retry → `Grep` (per `AGENTS.md → Tooling & Standards → A.4`).
    Do not invent attribute names from analogous documents or from memory.
 3. **Platform APIs — `1C-docs-mcp` (`docinfo`, `docsearch`) and ITS (`its_help` → `fetch_its`).** Every platform type, method, or behaviour the spec relies on (`HTTPСоединение`, `ЗащищённоеСоединениеOpenSSL`, `ЗаписатьJSON` / `ПрочитатьJSON`, `ДлительныеОперации`, async / `Ждать`, role permissions, etc.) — verify the exact name, signature, and version availability against the project's `CompatibilityMode` **when the spec is normative about that API**. Memory-written API signatures are not evidence. Skip for hrestomatic APIs whose shape is fixed across all supported versions and where the spec does not pin a specific signature.
@@ -55,11 +55,11 @@ Apply these to **full-spec** changes (the `Evidence minimum` of `quick-spec` is 
 
 ### Forbidden in OpenSpec artifacts
 
-- **TODO / "to be clarified" / "уточнить" for a fact one MCP call closes.** If you can answer it now via `recall` / `resolve_qualified_name` / `search_metadata` / `docinfo` / `ssl_search`, do it now. A TODO is allowed only for facts that genuinely depend on a human decision (business rule, naming preference, priority).
+- **TODO / "to be clarified" / "уточнить" for a fact one MCP call closes.** If you can answer it now via `recall` / `search_metadata` / `docinfo` / `ssl_search`, do it now. A TODO is allowed only for facts that genuinely depend on a human decision (business rule, naming preference, priority).
 - **Invented metadata or attribute names.** No `Документ.НачислениеЗарплаты.Реквизит` value without metadata confirmation. No tabular-section column name without confirmation.
 - **Platform-API signatures written from memory** when the spec is normative (design.md decisions, tasks.md acceptance criteria). Cite the verified source.
 - **Cross-version assumptions without `CompatibilityMode` check.** If the spec assumes 8.3.21+ behaviour (async HTTP, `Ждать`, OpenSSL secure connections, structured logging), confirm `openspec/project.md` / `.dev.env` actually targets that version, or scope the spec to the version that is in force.
-- **Defensive MCP calls without a concrete gap.** Calling `get_object_dossier` "for completeness" when a single `resolve_qualified_name` would close the only open question — same defect as a missing call.
+- **Defensive MCP calls without a concrete gap.** Calling a broad `object_structure` lookup "for completeness" when a single focused `search_metadata` template would close the only open question — same defect as a missing call.
 
 ### Context sources block — compact, evidence-only
 
@@ -111,7 +111,7 @@ The default "If context is critically unclear, ask the user — but prefer makin
 
 - **If the decision is architecturally meaningful and ambiguous — ask the user now.** Architecturally meaningful = the choice changes `design.md → ## Architecture decisions`, the shape of a delta spec requirement, the public signature of a common-module export, the placement (main configuration vs. extension), the storage of secrets / settings, the transactional boundaries, the error-handling pattern, the logging strategy, the БСП subsystem to integrate with, the platform-version target.
 - **If the decision is a default that the user is unlikely to care about — pin it in `design.md` with a one-line rationale, then proceed.** Examples: cache-eviction policy when no NFR exists, name of a private helper function, internal split between two service modules.
-- **If the decision depends on a 1C fact that one MCP call could close — make the call, do not ask.** The user is not a substitute for `resolve_qualified_name` / `search_metadata` / `ssl_search` / `recall`.
+- **If the decision depends on a 1C fact that one MCP call could close — make the call, do not ask.** The user is not a substitute for `search_metadata` / `ssl_search` / `recall`.
 
 When you must ask, use the `CONFUSION` format from `AGENTS.md → Development Procedure → 1. Think Before Coding`. List options with trade-offs; do not paraphrase the question into prose.
 
@@ -257,7 +257,7 @@ Each subagent owns specific OpenSpec artifacts. Use this table to decide where a
 
 | Subagent | Reads | Writes |
 |----------|-------|--------|
-| **1c-explorer** | `specs/`, current codebase, metadata graph | read-only findings for `proposal.md`, `design.md`, or `tasks.md` authors; no artifact writes |
+| **1c-explorer** | `specs/`, current codebase, Metacode / code-metadata indexes | read-only findings for `proposal.md`, `design.md`, or `tasks.md` authors; no artifact writes |
 | **1c-analytic** | existing `specs/` for context | `changes/<id>/proposal.md`, new entries under `specs/` (via deltas) |
 | **1c-planner** | `specs/`, `changes/<id>/proposal.md`, `design.md` | `changes/<id>/tasks.md` |
 | **1c-architect** | `specs/`, `changes/<id>/proposal.md` | `changes/<id>/design.md` |

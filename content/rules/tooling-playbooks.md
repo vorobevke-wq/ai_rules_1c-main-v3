@@ -6,7 +6,7 @@ category: tooling
 
 # Tool Usage by Task — Playbooks
 
-The MCP server catalog, fallback order (`graph → code-metadata → grep=true retry → Grep` for project-source search), and per-server tool descriptors live in the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`, `docs/<server>.md`). `AGENTS.md` only defines the short obligation rules and points here.
+The MCP server catalog, fallback order (`metacode → code-metadata → grep=true retry → Grep` for project-source search), and per-server tool descriptors live in the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`, `docs/<server>.md`). `AGENTS.md` only defines the short obligation rules and points here.
 
 ## Minimum Evidence Matrix
 
@@ -15,7 +15,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 | Task shape | Required before edit | Required after edit |
 |---|---|---|
 | **Quick-fix BSL** (single procedure, no metadata / transaction / public API impact) | Read the target module / procedure and any directly referenced helper needed to understand the bug | `syntaxcheck` on the touched module |
-| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / `codesearch` for local patterns; `get_object_dossier` / `metadatasearch` when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `syntaxcheck` → `check_1c_code` → `review_1c_code`; impact analysis when public surface or metadata usage changed |
+| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / `codesearch` for local patterns; `search_metadata` (`object_structure` / focused templates) or `metadatasearch` when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `syntaxcheck` → `check_1c_code` → `review_1c_code`; impact analysis when public surface or metadata usage changed |
 | **Metadata XML / forms** | Similar object/form examples, metadata lookup, `get_xsd_schema`; prefer `1c-metadata-manage` over hand edits | `verify_xml`; metadata validation / form compilation where applicable |
 | **Integrations / platform APIs** | Existing integrations, templates, relevant БСП APIs, platform docs for exact API names / version availability, security requirements | `syntaxcheck` → `check_1c_code` → `review_1c_code`; ITS check when relying on an ITS standard |
 | **Markdown / rules / docs** | Read affected docs and referenced files needed for consistency | Structural checks only: paths, links, anchors, duplicate / conflicting wording |
@@ -23,7 +23,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 ## Writing New Code
 
 1. **templatesearch** — find similar implementations.
-2. **get_object_dossier** — full passport of the target metadata object (structure, forms, dependencies, code, roles) in a single call.
+2. **search_metadata** — verify the target metadata object with focused templates (`object_structure`, forms, modules, rights, events as needed).
 3. **search_code** → **codesearch** — review existing patterns in the configuration.
 4. **search_function** — find an existing procedure/function by name for reuse.
 5. **get_module_structure** — overview of the module you intend to edit.
@@ -39,8 +39,8 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 ## Code Review
 
 1. **search_code** → **codesearch** — verify pattern compliance.
-2. **trace_impact** → **graph_dependencies** — impact analysis of the change.
-3. **trace_call_chain** → **get_method_call_hierarchy** — BSL call chains, callers/callees.
+2. **search_metadata** usage / movement / call-graph templates → **graph_dependencies** — impact analysis of the change.
+3. **search_metadata** call-graph templates → **get_method_call_hierarchy** — BSL call chains, callers/callees.
 4. **metadatasearch** / **get_metadata_details** — correct metadata usage.
 5. **docinfo** — verify method/property existence; **docsearch** — search by description.
 6. **review_1c_code** — style and ITS compliance.
@@ -49,12 +49,12 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 ## Architecture Design
 
-1. **get_object_dossier** — passport of key metadata objects.
+1. **search_metadata** — focused passports of key metadata objects (`object_structure` plus forms / rights / modules / events when needed).
 2. **metadatasearch** / **get_metadata_details** — existing metadata structure.
-3. **trace_impact** → **graph_dependencies** — dependency map across USED_IN, DO_MOVEMENTS_IN, CALLS.
-4. **find_objects_using_object** — find all objects referencing the given one.
+3. **search_metadata** usage / movement / call-graph templates → **graph_dependencies** — dependency map across USED_IN, DO_MOVEMENTS_IN, CALLS.
+4. **search_metadata** (`find_objects_using_object`) — find all objects referencing the given one.
 5. **search_code** → **codesearch** — existing architectural patterns.
-6. **trace_call_chain** → **get_method_call_hierarchy** — code coupling and call chains.
+6. **search_metadata** call-graph templates → **get_method_call_hierarchy** — code coupling and call chains.
 7. **templatesearch** — architectural templates.
 8. **ask_1c_ai** — architectural questions to 1С:Напарник (treat as a hint, not authority).
 9. **config_help** — pattern realization in specific configurations.
@@ -65,9 +65,9 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 2. **syntaxcheck** — syntax errors.
 3. **check_1c_code** — logic and performance issues.
 4. **search_function** — locate the failing procedure/function.
-5. **search_code** → **codesearch** — related patterns (`detail_level="L0"` for the full body of a specific routine).
+5. **search_code** → **codesearch** — related patterns; request the full routine body only when the live schema exposes a detail / source option.
 6. **get_module_structure** — module context around the error.
-7. **trace_call_chain** → **get_method_call_hierarchy** — how the error propagates through the call chain.
+7. **search_metadata** call-graph templates → **get_method_call_hierarchy** — how the error propagates through the call chain.
 8. **docinfo** — verify function/method names; **docsearch** — fallback by description.
 9. **metadatasearch** / **get_metadata_details** — verify metadata names and attributes.
 10. **validatequery** (`1c-data-mcp`, if available) — when the suspect path is a query string, parse-check it before deeper investigation.
@@ -78,8 +78,8 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 ## Performance Optimization
 
 1. **search_code** → **codesearch** — locate slow patterns (`semantic` mode: "медленный запрос", "цикл по выборке").
-2. **trace_call_chain** → **get_method_call_hierarchy** — identify hot call chains.
-3. **trace_impact** → **graph_dependencies** — objects that cause cascading issues (`relationship_types=["CALLS"]` for pure code paths).
+2. **search_metadata** call-graph templates → **get_method_call_hierarchy** — identify hot call chains.
+3. **search_metadata** call-graph / usage templates → **graph_dependencies** — objects that cause cascading issues.
 4. **metadatasearch** / **get_metadata_details** — verify indexes and metadata structure.
 5. **check_1c_code** — bottleneck analysis.
 6. **rewrite_1c_code** — AI optimization (`goal: optimize`); re-validate with `check_1c_code` and `syntaxcheck`.
@@ -89,12 +89,12 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 ## Refactoring
 
-1. **get_object_dossier** — passport of the object being refactored.
-2. **trace_impact** → **graph_dependencies** (`direction="downstream"`) — what breaks on change.
-3. **trace_call_chain** → **get_method_call_hierarchy** (`direction="callers"`) — all callers.
-4. **find_objects_using_object** / **find_usages_of_object** — every type reference before renaming/removing.
+1. **search_metadata** — passport of the object being refactored (`object_structure` plus focused facets).
+2. **search_metadata** usage / movement / call-graph templates → **graph_dependencies** (`direction="downstream"`) — what breaks on change.
+3. **search_metadata** (`list_callers_of_routine` / `call_graph_subtree`) → **get_method_call_hierarchy** (`direction="callers"`) — all callers.
+4. **search_metadata** (`find_objects_using_object` / `find_usages_of_object`) — every type reference before renaming/removing.
 5. **search_code** → **codesearch** — every code pattern related to the object.
-6. **search_code** (`detail_level="L3"`, high `top_k`) → **codesearch** — post-refactor verification that no old references remain.
+6. **search_code** → **codesearch** — post-refactor verification that no old references remain; use compact / high-limit modes only when the live schema exposes them.
 7. **check_1c_code** + **review_1c_code** — validate the result.
 
 ## Generating / Modifying Metadata XML

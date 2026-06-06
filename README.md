@@ -67,7 +67,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 ├── content/
 │   ├── rules/               # on-demand правила, подключаемые по задаче
 │   ├── agents/              # описания 13 специализированных субагентов
-│   ├── commands/            # слэш-команды (doctor, deploy-and-test, getconfigfiles, loadfrom1cbase, update1cbase, checkmcp, installmcp, updatemcp, update)
+│   ├── commands/            # слэш-команды (doctor, deploy-and-test, getconfigfiles, loadfrom1cbase, update1cbase, checkmcp, update)
 │   ├── skills/              # SKILL-пакеты (1c-metadata-manage, mermaid-diagrams и др.)
 │   ├── openspec-bundle/     # снапшот вывода `openspec init` для каждого инструмента
 │   └── mcp-servers.json     # каталог MCP-серверов экосистемы 1С
@@ -159,20 +159,15 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) (Docker-контейнеры, поднимаются локально по HTTP). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) и графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode) (Docker-контейнеры, поднимаются локально по HTTP). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
-### `1c-graph-metadata-mcp` — граф метаданных (Neo4j/Cypher)
+### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
-Основной инструмент для **глубокого анализа** конфигурации. Метаданные индексируются как граф связей, что даёт многоуровневый impact-анализ и понимание архитектуры в терминах бизнес-сущностей.
+Основной инструмент для **глубокого анализа** конфигурации. Метаданные и сигнатуры BSL индексируются как граф связей, что даёт анализ структуры, использований, прав, форм, подписок, движений регистров и графа вызовов. Сервер публикует три верхнеуровневых MCP-инструмента:
 
-- `get_object_dossier` — полное «досье» объекта одним вызовом: реквизиты, табличные части, измерения/ресурсы, формы, подписки, роли, зависимости (USED_IN, движения регистров), модули с сигнатурами процедур, бизнес-описание.
-- `trace_impact` — рекурсивный impact-анализ глубиной 1–10 по `USED_IN` / `DO_MOVEMENTS_IN` / `CALLS`. «Если изменю X — что ещё затронет?» Используется перед рефакторингом.
-- `trace_call_chain` — рекурсивный обход графа вызовов BSL (callees / callers, глубина 1–10), с дизамбигуацией одноимённых процедур по объекту-владельцу.
-- `search_code` — поиск по коду конфигурации: `fulltext` (Lucene), `semantic` (по смыслу), `hybrid`. Уровни детализации L0–L3 (от полного кода процедуры до минимальных карточек) для управления токенами.
-- `search_metadata` — JSON-шаблоны Cypher-запросов (детерминированные) или NL → Cypher: списки атрибутов, объектов категории, форм, значений перечислений, измерений и т.д.
-- `search_metadata_by_description` — Lucene-fulltext + опционально вектор по `Синоним` / `Комментарий` / `Описание` / `Справка`.
-- `business_search` / `answer_metadata_question` — семантический поиск по бизнес-описаниям и Q&A на естественном языке.
-- `find_objects_using_object` / `find_usages_of_object` / `find_register_movement_docs` / `resolve_qualified_name` / `find_by_guid` / `compare_base_and_extension` — точечные обходы графа.
+- `search_metadata` — структурные запросы по графу. Для детерминированных ответов используются JSON-шаблоны: `object_structure`, `list_attributes`, `list_tabular_parts`, `list_forms`, `find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`, `resolve_qn`, `find_by_guid` и другие операции.
+- `search_metadata_by_description` — поиск объектов по назначению, синонимам, комментариям, описаниям и справке.
+- `search_code` — поиск процедур и функций по описанию и получение исходного BSL-кода с контекстом.
 
 ### `1c-code-metadata-mcp` — поиск кода/метаданных, формы, XSD
 

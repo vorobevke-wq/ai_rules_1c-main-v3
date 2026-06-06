@@ -48,13 +48,13 @@ Skip this gate **only** when the change is fully internal:
 
 In every other case run impact analysis:
 
-- **`trace_impact`** on every changed export procedure / function (`direction="upstream"` to find callers, `direction="downstream"` to find what your change in turn touches).
-- Fallback to **`graph_dependencies`** if `trace_impact` is unavailable.
-- For metadata changes (new attribute, renamed object, removed attribute): **`find_objects_using_object`** + **`find_usages_of_object`** to list every metadata reference that needs to be reviewed.
+- **`search_metadata`** call-graph templates (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) on every changed export procedure / function to find callers and downstream calls.
+- Fallback to **`graph_dependencies`** / **`get_method_call_hierarchy`** when Metacode is unavailable or non-actionable.
+- For metadata changes (new attribute, renamed object, removed attribute): **`search_metadata`** with `find_objects_using_object` + `find_usages_of_object` template operations to list every metadata reference that needs to be reviewed.
 
 Pass criterion: every caller / dependent listed by impact analysis was either not affected by the change, or explicitly handled in the plan, or explicitly noted as a follow-up risk in the delivery summary. Silent breakage of downstream code is a defect.
 
-**Graceful degradation — when no impact-analysis tool is exposed.** If neither `trace_impact`, `graph_dependencies`, `find_objects_using_object`, nor `find_usages_of_object` is available in the current session (none of the relevant MCPs are running), do **not** silently skip the gate. Instead:
+**Graceful degradation — when no impact-analysis tool is exposed.** If neither Metacode `search_metadata` impact templates nor `graph_dependencies` / `get_method_call_hierarchy` are available in the current session (none of the relevant MCPs are running), do **not** silently skip the gate. Instead:
 
 1. State the fact explicitly in the Delivery summary under **Risks** as a fixed line: *"Impact analysis not run — no graph / code-metadata MCP exposed in this session; downstream callers and metadata references were not enumerated."*
 2. For metadata changes, perform a best-effort manual review based on what the agent already knows about the change (which forms / modules / queries touch the affected object) — list those callers as candidates that still need review, marked as such.

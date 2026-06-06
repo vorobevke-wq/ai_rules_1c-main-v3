@@ -443,7 +443,7 @@ The PowerShell scripts under `tools/1c-skd-{compile,edit,info,validate}/scripts/
 
 ## MCP Integration
 
-- **get_object_dossier** — Comprehensive structural passport of the object for DCS data set fields: attributes, tabular parts, dimensions, resources, and their types in one call.
+- **search_metadata** — Focused structural lookup of the object for DCS data set fields: attributes, tabular parts, dimensions, resources, and their types.
 - **metadatasearch** — Verify object and attribute names used in queries; cross-reference field names with actual metadata objects.
 - **get_metadata_details** — Get exact attribute types and tabular part structure for objects used in DCS data sets.
 - **search_code** — Find existing BSL code that builds DCS queries or modifies DCS programmatically (prefer over Grep; supports semantic/fulltext/hybrid search).

@@ -18,17 +18,17 @@ Refactoring is high-risk because the user-visible behaviour must stay identical 
 
 Run the full sequence from `tooling-playbooks.md → Refactoring` before touching the first line:
 
-- `get_object_dossier` — passport of the object being refactored.
-- `trace_impact` → fallback `graph_dependencies` (`direction="downstream"`) — what breaks on change.
-- `trace_call_chain` → fallback `get_method_call_hierarchy` (`direction="callers"`) — every caller of the routine.
-- `find_objects_using_object` / `find_usages_of_object` — every type reference before renaming / removing / changing structure.
-- For registers — `find_register_movement_docs` — every document that posts movements there.
+- `search_metadata` (`object_structure` plus focused facets) — passport of the object being refactored.
+- `search_metadata` usage / movement / call-graph templates → fallback `graph_dependencies` (`direction="downstream"`) — what breaks on change.
+- `search_metadata` (`list_callers_of_routine` / `call_graph_subtree`) → fallback `get_method_call_hierarchy` (`direction="callers"`) — every caller of the routine.
+- `search_metadata` (`find_objects_using_object` / `find_usages_of_object`) — every type reference before renaming / removing / changing structure.
+- For registers — `search_metadata` (`find_documents_making_movements_into_register`) — every document that posts movements there.
 
 If the impact-analysis MCPs are not exposed in the session, follow the graceful-degradation procedure from `verification-checklist.md → Gate 4` — do not refactor blind.
 
 ## Post-refactor verification
 
-- `search_code` (`detail_level="L3"`, high `top_k`) → fallback `codesearch` — confirm no remaining references to the old names / patterns.
+- `search_code` → fallback `codesearch` — confirm no remaining references to the old names / patterns; use compact / high-limit modes only when the live schema exposes them.
 - Full closing gate — `verification-checklist.md` (every gate, no skipping).
 - If the refactor is large enough to enter the subagent pipeline — `subagent-pipeline.md → Stage 3` (delegate to `1c-refactoring`).
 

@@ -129,13 +129,13 @@ The PowerShell scripts under `tools/1c-cf-manage/scripts/` were refreshed from [
 
 ## MCP Integration
 
-- **get_object_dossier** — Comprehensive structural passport of existing configuration objects (structure, forms, dependencies, code, roles) in one call.
+- **search_metadata** — Focused structural lookup of existing configuration objects (`object_structure`, forms, dependencies, modules, roles as needed).
 - **metadatasearch** — Explore existing configuration structure, verify object names.
 - **get_metadata_details** — Get full object structure for existing configuration objects.
 - **metadatasearch** (`names_only=true`) — Find similar configuration objects as XML reference examples.
 - **get_xsd_schema** — Get XSD schema for configuration XML. Use before generating Configuration.xml.
 - **verify_xml** — Validate generated configuration XML against XSD.
-- **compare_base_and_extension** — Compare configuration objects with their extension counterparts when working with configurations that have extensions.
+- **search_metadata** / **search_code** — Compare configuration objects with their extension counterparts when working with configurations that have extensions.
 - **docsearch** — Platform documentation on configuration properties.
 
 ## SDD Integration

@@ -33,11 +33,11 @@
       "required": false
     },
     {
-      "id": "1c-graph-metadata-mcp",
-      "description": "Graph-based metadata queries and impact analysis (Neo4j / Cypher)",
+      "id": "1c-mcp-metacode",
+      "description": "Graph-based metadata and BSL code search for 1C configurations (Neo4j, ROCTUP/1c-mcp-metacode)",
       "transport": "http",
-      "url": "http://localhost:8006/mcp",
-      "connectionId": "1c_graph_metadata_service_001",
+      "url": "http://localhost:6001/mcp",
+      "connectionId": "1c_metacode_service_001",
       "required": false
     },
     {

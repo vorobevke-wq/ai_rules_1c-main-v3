@@ -519,7 +519,7 @@ The PowerShell scripts under `tools/1c-meta-{compile,edit,info,remove,validate}/
 
 ## MCP Integration
 
-- **get_object_dossier** — Comprehensive structural passport in one call: structure, forms, subscriptions, roles, dependencies, code modules, business info. Use as the first step before creating/modifying/removing objects.
+- **search_metadata** — Focused structural lookup: `object_structure`, forms, subscriptions, roles, dependencies, code modules, and other facet templates as needed. Use as the first step before creating/modifying/removing objects.
 - **metadatasearch** — Verify object names don't conflict, find objects to remove and their relationships. Use `object_type` filter to narrow results.
 - **get_metadata_details** — Get full object structure: attribute types, tabular parts, synonyms, properties. Use for verifying attribute types and references.
 - **metadatasearch** (`names_only=true`) — Find similar metadata objects for XML reference before generating new XML.
@@ -527,13 +527,13 @@ The PowerShell scripts under `tools/1c-meta-{compile,edit,info,remove,validate}/
 - **verify_xml** — Validate generated or modified metadata XML against XSD before committing.
 - **search_code** — Find BSL code references to objects (prefer over `codesearch` and Grep; supports semantic/fulltext/hybrid search with detail levels L0–L3).
 - **codesearch** — Find code references in raw BSL files (fallback when `search_code` is not available).
-- **trace_impact** — Recursive multi-level impact analysis before removal or modification (preferred over `graph_dependencies` for deep dependency chains).
-- **find_objects_using_object** — Find all objects referencing the given object in their attributes/dimensions/resources before removal.
-- **find_usages_of_object** — Attribute-level reference analysis: which specific attributes reference the object.
+- **search_metadata** usage / movement / call-graph templates — Impact analysis before removal or modification.
+- **search_metadata** (`find_objects_using_object`) — Find all objects referencing the given object in their attributes/dimensions/resources before removal.
+- **search_metadata** (`find_usages_of_object`) — Attribute-level reference analysis: which specific attributes reference the object.
 - **graph_dependencies** — Flat dependency overview (who uses this / what it uses).
 - **docsearch** — Look up platform documentation for metadata type properties and valid property values when investigating validation errors.
-- **business_search** — Semantic search of related objects when creating configuration objects.
-- **answer_metadata_question** — Natural-language questions about object structure (meta-info provides more detailed structural analysis).
+- **search_metadata_by_description** — Semantic search of related objects when creating configuration objects.
+- **search_metadata** — Natural-language or template-based questions about object structure; verify important facts with deterministic template operations.
 - **check_1c_code** — Verify BSL code in object modules after fixing structural issues (syntax, logic, performance).
 - **review_1c_code** — Check code style and ITS standards compliance in object modules.
 

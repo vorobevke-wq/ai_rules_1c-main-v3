@@ -22,7 +22,7 @@ Use these tools **only** when the answer must come from the live infobase — i.
 - "Does this query return what I think it returns against current data?" → `vcexecutequery`.
 - "What error did the IB log for that failing scenario I just reproduced?" → `vcloggetlasterror`.
 
-For everything that can be answered from the configuration dump (object structure, attributes, module text, call graph, impact analysis, БСП API names, ITS standards, code templates) — use the read-only / index-based servers first (`1c-graph-metadata-mcp`, `1c-code-metadata-mcp`, `1C-docs-mcp`, `1c-ssl-mcp`, `1c-code-check-mcp`, `1c-templates-mcp`) and only escalate to `1c-data-mcp` when the question is specifically "what does this **running** IB do".
+For everything that can be answered from the configuration dump (object structure, attributes, module text, call graph, impact analysis, БСП API names, ITS standards, code templates) — use the read-only / index-based servers first (`1c-mcp-metacode`, `1c-code-metadata-mcp`, `1C-docs-mcp`, `1c-ssl-mcp`, `1c-code-check-mcp`, `1c-templates-mcp`) and only escalate to `1c-data-mcp` when the question is specifically "what does this **running** IB do".
 
 Do **not** use `1c-data-mcp` as a replacement for `syntaxcheck` / `check_1c_code` / `review_1c_code` — those tools cover style, logic and standards offline; `vcexecutecode` only confirms that the code did not throw on one execution.
 

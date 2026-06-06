@@ -62,7 +62,7 @@ Which gates from `verification-checklist.md` passed / failed / were skipped. Lat
 ## What To Load Next Session
 - **Subagents**: `1c-<name>` when the task matches their role (see `subagents.md`).
 - **On-demand rules**: `<name>.md` based on the task trigger (see `AGENTS.md → Additional rules`).
-- **MCP tools**: especially relevant tools (`get_object_dossier` for X, `trace_impact` before refactoring Y, `ssl_search` for topic Z).
+- **MCP tools**: especially relevant tools (`search_metadata` `object_structure` for X, Metacode impact templates before refactoring Y, `ssl_search` for topic Z).
 - **Slash commands**: `/opsx:apply` when there is an active OpenSpec proposal, `/getconfigfiles` for metadata re-export, etc.
 
 ## Links (DO NOT copy content)

@@ -15,7 +15,7 @@ Applies to every subagent except `1c-explorer`, which already encodes the same r
 ## Hard rule
 
 1. **Before any `Grep` / `Glob` call on project source**, you MUST first exhaust the project-index path:
-   1. `1c-graph-metadata-mcp` — `search_code`, `search_metadata`, `search_metadata_by_description`, `get_object_dossier`, `trace_impact`, `trace_call_chain`, `find_objects_using_object`, `find_usages_of_object`, `business_search` as applicable.
+   1. `1c-mcp-metacode` — `search_code`, `search_metadata`, `search_metadata_by_description` as applicable. Express structure, usage, impact, movements, and call-graph questions through `search_metadata` JSON template operations.
    2. `1c-code-metadata-mcp` — `codesearch`, `metadatasearch`, `search_function`, `search_forms`, `get_module_structure`, `get_metadata_details`, `get_method_call_hierarchy`, `graph_dependencies`, `bsl_scope_members`, `inspect_form_layout`.
    3. `1c-code-metadata-mcp` with `grep=true` — substring retry inside the MCP index, **only** after step 2 returned not enough, and only on tools that expose the parameter (`codesearch`, `metadatasearch`, `search_function`, `helpsearch`, `search_forms`). Typical triggers: exact identifier, fragment of a query, metadata path, event-handler name, error text, literal string.
 2. **Only then `Grep` / `Glob`** — and only when you can state, in one or two sentences inside the response, **which MCP attempts were tried and why they did not return what was needed**. Silent fallback to `Grep` / `Glob` is a defect.
@@ -30,15 +30,15 @@ External-knowledge servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1C-docs-mcp`, `1c
 
 | Need | First call (MCP) | If empty — next |
 |---|---|---|
-| Find BSL code by behaviour / description | `search_code` (`semantic`, `detail_level=L1`) | `search_code` (`hybrid`) → `codesearch` |
-| Find BSL code by exact identifier / literal | `search_code` (`fulltext`) | `codesearch(grep=true)` → only then `Grep` |
+| Find BSL code by behaviour / description | `search_code(query)` | Reformulate `search_code` query → `codesearch` |
+| Find BSL code by exact identifier / literal | `search_code(query)` | `codesearch(grep=true)` → only then `Grep` |
 | Find a routine by name | `search_function(name, exact=true)` | `search_function(grep=true)` → `Grep` |
-| Understand a metadata object | `get_object_dossier(name)` | `get_metadata_details` |
+| Understand a metadata object | `search_metadata` (`object_structure` plus focused facet templates) | `get_metadata_details` |
 | Metadata search by name / structure | `search_metadata` (JSON template) | `metadatasearch` (`names_only=true`) |
-| Metadata search by Russian description / synonym | `search_metadata_by_description` or `business_search` | `metadatasearch` |
-| Usages of an object | `find_usages_of_object` / `find_objects_using_object` | `graph_dependencies(direction="reverse")` |
-| Impact of a change | `trace_impact(direction="downstream", depth=3)` | `graph_dependencies` (single-level) |
-| Call graph (who calls / who is called) | `trace_call_chain(direction="callers" \| "callees", depth=3)` | `get_method_call_hierarchy` |
+| Metadata search by Russian description / synonym | `search_metadata_by_description` | `metadatasearch` |
+| Usages of an object | `search_metadata` (`find_usages_of_object` / `find_objects_using_object` template operations) | `graph_dependencies(direction="reverse")` |
+| Impact of a change | `search_metadata` usage / movement / call-graph templates (`find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `call_graph_subtree`) | `graph_dependencies` (single-level) |
+| Call graph (who calls / who is called) | `search_metadata` (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) | `get_method_call_hierarchy` |
 | Module structure overview | `get_module_structure(module_path)` | `inspect_form_layout` for forms |
 | Form layout | `inspect_form_layout(object_name)` | `search_forms` |
 | Canonical pattern / template | `templatesearch(query)` (+ `ssl_search` for БСП) | — |

@@ -18,7 +18,7 @@ This skill is the single source of truth for the project's MCP server catalog, t
 
 For these tools default parameters are usually suboptimal; consult the server's `docs/<server>.md` before the first call in the session and adjust the parameters to the task:
 
-- `1c-graph-metadata-mcp`: `search_code` (`search_type`, `detail_level`), `search_metadata` (JSON templates), `search_metadata_by_description` (`alpha`, `use_fuzzy`), `trace_impact` (`direction`, `depth`, `relationship_types`), `trace_call_chain` (`direction`, `depth`), `get_object_dossier` (`sections`), `business_search` (`include_structure`, `filter_type`).
+- `1c-mcp-metacode`: `search_metadata` (JSON template operations and natural-language mode), `search_metadata_by_description`, `search_code`. Use `docs/1c-mcp-metacode.md` to choose the right template operation before calling.
 - `1c-code-metadata-mcp`: `metadatasearch` (`object_type`, `names_only`), `get_method_call_hierarchy` (`direction`, `depth`), `graph_dependencies` (`direction`), `bsl_scope_members` (`member_type`).
 
 If `docs/<server>.md` conflicts with the descriptor exposed by the current environment, the environment descriptor wins.
@@ -36,7 +36,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 
 | Server (id) | Purpose | Details |
 |---|---|---|
-| **1c-graph-metadata-mcp** | Graph metadata (Neo4j / Cypher): structural object passport, impact analysis, call graph, usage search, business semantic search | [`docs/1c-graph-metadata-mcp.md`](docs/1c-graph-metadata-mcp.md) |
+| **1c-mcp-metacode** | Graph metadata and BSL code search (Neo4j): structure, usage, call graph, forms, rights, routines, semantic metadata/code search. Default id; per-project MCP keys may be suffixed when installing multiple Metacode project IDs, as long as the same tools are exposed. | [`docs/1c-mcp-metacode.md`](docs/1c-mcp-metacode.md) |
 | **1c-code-metadata-mcp** | Metadata and BSL code search, navigation (modules, procedures, functions, call hierarchy), forms, XSD schemas, validation | [`docs/1c-code-metadata-mcp.md`](docs/1c-code-metadata-mcp.md) |
 | **1c-templates-mcp** | Code template library + project vector memory (`remember` / `recall`) | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
 | **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
@@ -53,7 +53,7 @@ Use only the applicable branch; stop as soon as the collected evidence is suffic
 
 `Grep` / `rg` substitute only the project-indexing layer. Before falling back to them for 1C project-source search, exhaust:
 
-1. `1c-graph-metadata-mcp` — `search_code`, `search_metadata`, `search_metadata_by_description`, `get_object_dossier`, `trace_impact`, `trace_call_chain` as appropriate.
+1. `1c-mcp-metacode` — `search_code`, `search_metadata`, `search_metadata_by_description` as appropriate. Express structural, usage, impact, and call-graph questions through `search_metadata` JSON template operations whenever possible.
 2. `1c-code-metadata-mcp` — default indexed search / navigation (`codesearch`, `metadatasearch`, `search_function`, `search_forms`, `get_module_structure`, etc.).
 3. `1c-code-metadata-mcp` with `grep=true` — substring retry inside the MCP index **only after** indexed / semantic / exact search did not find enough and only for tools that expose the parameter: `codesearch`, `metadatasearch`, `search_function`, `helpsearch`, `search_forms`. Typical scenarios: exact identifier, fragment of a query, metadata path, event handler name, error text, or literal string where semantic search is likely to miss.
 4. Only then `Grep` / `rg` — with a mandatory short note in the response listing which project-index MCP attempts were tried and why they did not return what was needed.
@@ -71,14 +71,14 @@ These servers have no `Grep` / `rg` equivalent; call them only when their knowle
 
 ## Quick map: "task → MCP tool"
 
-| Task | First choice (graph) | Fallback (code-metadata) |
+| Task | First choice (metacode) | Fallback (code-metadata) |
 |---|---|---|
-| BSL code search | `search_code` (`fulltext` / `semantic` / `hybrid`, `detail_level` L0–L3) | `codesearch` |
-| Metadata object structure | `get_object_dossier` | `get_metadata_details` |
-| Impact analysis before refactoring | `trace_impact` (recursive, depth 1–10) | `graph_dependencies` (single-level) |
-| Call graph | `trace_call_chain` | `get_method_call_hierarchy` |
+| BSL code search | `search_code` | `codesearch` |
+| Metadata object structure | `search_metadata` (`object_structure` plus focused facet templates) | `get_metadata_details` |
+| Impact analysis before refactoring | `search_metadata` usage / movement / call-graph templates (`find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `call_graph_subtree`) | `graph_dependencies` (single-level) |
+| Call graph | `search_metadata` (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) | `get_method_call_hierarchy` |
 | Metadata search by name / structure | `search_metadata` (JSON templates) | `metadatasearch` |
-| Object usage search | `find_objects_using_object` / `find_usages_of_object` | `graph_dependencies` (`direction="reverse"`) |
+| Object usage search | `search_metadata` (`find_objects_using_object` / `find_usages_of_object` template operations) | `graph_dependencies` (`direction="reverse"`) |
 | Description / synonym / comment search | `search_metadata_by_description` | `metadatasearch` (`names_only=true`) |
 
 Step-by-step playbooks per task type (writing code, review, architecture, error fixing, performance, refactoring, metadata XML, forms, integrations, documentation, comparing platform versions) — `content/rules/tooling-playbooks.md`.

@@ -26,7 +26,7 @@ Before creating any documentation:
 - Use **metadatasearch** / **get_metadata_details** to map current metadata structure
 - Use **templatesearch** to find architectural examples
 - Use **helpsearch** to find information about 1C metadata objects
-- Use **answer_metadata_question** to get answers about how metadata objects work
+- Use **search_metadata** template operations to answer structural questions about how metadata objects work
 - Identify similar implementations for reference
 
 **Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
@@ -174,7 +174,7 @@ Evaluation of proposed or existing architecture:
 ## MCP Tool Usage
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
-Key tools: **metadatasearch**, **get_metadata_details**, **codesearch**, **graph_dependencies**, **templatesearch**, **helpsearch**, **business_search**, **answer_metadata_question**
+Key tools: **search_metadata**, **search_metadata_by_description**, **metadatasearch**, **get_metadata_details**, **codesearch**, **graph_dependencies**, **templatesearch**, **helpsearch**
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

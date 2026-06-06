@@ -101,7 +101,7 @@ Check MCP at two levels:
    - `ssl_search` for `1c-ssl-mcp`;
    - `docinfo`, `docsearch` for `1C-docs-mcp`;
    - `metadatasearch`, `codesearch`, `search_function`, `get_module_structure` for `1c-code-metadata-mcp`;
-   - `search_metadata`, `get_object_dossier`, `trace_impact`, `trace_call_chain` for `1c-graph-metadata-mcp`;
+   - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;
    - `check_1c_code`, `review_1c_code`, `its_help`, `fetch_its` for `1c-code-check-mcp`.
 2. **Transport fallback** — when tools are missing but MCP config lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action.
 

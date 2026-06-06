@@ -1098,7 +1098,7 @@ In addition to the form-compile / form-info / form-add / form-edit / form-remove
 
 ## MCP Integration
 
-- **get_object_dossier** — Comprehensive structural passport of the metadata object including all its forms, attributes, dependencies, and code in one call. Use as the first step before form design.
+- **search_metadata** — Focused structural lookup of the metadata object including forms, attributes, dependencies, and modules. Use as the first step before form design.
 - **search_forms** — Find similar existing forms in the configuration by object name, form name, or title. Use as a starting point for new form design.
 - **inspect_form_layout** — Get full form structure: element hierarchy with types and data bindings, form attributes, commands, event handlers, visibility, accessibility. Use to study existing forms before creating or modifying.
 - **metadatasearch** — Verify metadata object existence and structure before creating forms; verify object types, attribute names, and metadata types when defining attributes. Use `names_only=true` to get compact object lists.
