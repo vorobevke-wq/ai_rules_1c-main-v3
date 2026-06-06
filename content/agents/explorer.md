@@ -1,6 +1,6 @@
 ---
 name: 1c-explorer
-description: "Read-only 1C codebase exploration specialist. Quickly finds files, code patterns, metadata objects, dependencies, and answers questions about the configuration without modifying anything. Strictly follows the project's MCP fallback chain (metacode → code metadata → templates → SSL → docs → ITS → grep) and returns structured findings with file/line references and qualified 1C names. Supports thoroughness levels: quick, medium, thorough. Use PROACTIVELY when the parent needs to gather context across many files, locate code, map a subsystem, or answer 'where is X / how does Y work / who calls Z' questions before planning, coding, or refactoring."
+description: "Read-only 1C codebase exploration specialist. Quickly finds files, code patterns, metadata objects, dependencies, and answers questions about the configuration without modifying anything. Strictly follows the project's MCP fallback chain (metacode → rlm-tools-bsl → templates → SSL → docs → ITS → grep) and returns structured findings with file/line references and qualified 1C names. Supports thoroughness levels: quick, medium, thorough. Use PROACTIVELY when the parent needs to gather context across many files, locate code, map a subsystem, or answer 'where is X / how does Y work / who calls Z' questions before planning, coding, or refactoring."
 modelHint: gemini-3-pro
 tools: ["Read", "Grep", "Glob", "MCP"]
 allowParallel: true
@@ -34,8 +34,8 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
    - **`search_code`** — primary BSL code search and routine-body retrieval.
    - **`search_metadata_by_description`** — find objects by Russian business description, synonym, comment, description, or help text.
    - Natural-language `search_metadata` queries are allowed only when templates do not cover the question; verify important facts with deterministic template operations before reporting.
-2. **`1c-code-metadata-mcp`** (fallback when Metacode is unavailable or returns nothing)
-   - `codesearch`, `metadatasearch` (`names_only=true` for compact lists), `get_metadata_details`, `search_function`, `get_module_structure`, `get_method_call_hierarchy`, `graph_dependencies`, `bsl_scope_members`, `helpsearch`, `search_forms`, `inspect_form_layout`.
+2. **`rlm-tools-bsl`** (fallback when Metacode is unavailable or returns nothing)
+   - Start with `rlm_start`, call `rlm_help` for non-trivial exploration, then use batched `rlm_execute` helpers such as `search`, `search_objects`, `search_methods`, `find_module`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, `find_code_usages`, `git_search`, and `safe_grep`.
 3. **`1c-templates-mcp`** — `templatesearch` to find canonical implementation patterns; **`recall`** to retrieve earlier project-specific notes for the same topic.
 4. **`1c-ssl-mcp`** — `ssl_search` to check whether a standard SSL/БСП function already covers the need.
 5. **`1C-docs-mcp`** — `docinfo` for known names, `docsearch` for description-based lookup of platform APIs.
@@ -78,12 +78,12 @@ If the question is ambiguous and cannot be sharpened from context, ask **one** c
 | Need | First call |
 |------|-----------|
 | Understand a metadata object | `search_metadata({"operation": "object_structure", ...})` |
-| Find a routine by name | `search_function(name, exact=true)` → fallback `search_code(query)` |
+| Find a routine by name | `search_metadata({"operation": "find_routines_by_name", ...})` → fallback `rlm-tools-bsl` `search_methods(...)` |
 | Find code by behaviour / description | `search_code(query)` |
 | Find metadata by Russian description | `search_metadata_by_description(query)` |
 | List objects in a category | `search_metadata({"operation": "list_objects_by_category", ...})` |
-| Impact of a change | `search_metadata` usage / movement / call-graph templates, then fallback `graph_dependencies` |
-| Who calls a routine | `search_metadata({"operation": "list_callers_of_routine", ...})` or `get_method_call_hierarchy` |
+| Impact of a change | `search_metadata` usage / movement / call-graph templates, then fallback `rlm-tools-bsl` references / usages / movement helpers |
+| Who calls a routine | `search_metadata({"operation": "list_callers_of_routine", ...})` or `rlm-tools-bsl` `find_call_hierarchy(...)` |
 | Reuse check | `templatesearch(query)` + `ssl_search(query)` |
 | Platform API verification | `docinfo(name)` or `docsearch(query)` |
 | ITS standards lookup | `its_help(query)` → `fetch_its(id)` for every relevant article |

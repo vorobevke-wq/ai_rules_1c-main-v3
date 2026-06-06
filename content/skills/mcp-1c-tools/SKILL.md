@@ -19,14 +19,14 @@ This skill is the single source of truth for the project's MCP server catalog, t
 For these tools default parameters are usually suboptimal; consult the server's `docs/<server>.md` before the first call in the session and adjust the parameters to the task:
 
 - `1c-mcp-metacode`: `search_metadata` (JSON template operations and natural-language mode), `search_metadata_by_description`, `search_code`. Use `docs/1c-mcp-metacode.md` to choose the right template operation before calling.
-- `1c-code-metadata-mcp`: `metadatasearch` (`object_type`, `names_only`), `get_method_call_hierarchy` (`direction`, `depth`), `graph_dependencies` (`direction`), `bsl_scope_members` (`member_type`).
+- `rlm-tools-bsl`: `rlm_start`, `rlm_help`, `rlm_execute`, `rlm_index`; inside `rlm_execute`, tune helper choice and arguments (`search`, `search_objects`, `search_methods`, `git_search`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, etc.).
 
 If `docs/<server>.md` conflicts with the descriptor exposed by the current environment, the environment descriptor wins.
 
 ## When to use this skill
 
 - Before writing code / a query / metadata XML — pick the MCP tool that best fits the task (template search, metadata check, syntax validation, code review).
-- For impact analysis and code navigation — decide which server to use first (`graph` → `code-metadata` → `Grep` — see *Fallback chain* below).
+- For impact analysis and code navigation — decide which server to use first (`graph` → `rlm-tools-bsl` → `Grep` — see *Fallback chain* below).
 - For ITS standards (`its_help` → `fetch_its`) and platform documentation (`docinfo` / `docsearch`).
 - For code templates and project memory (`templatesearch`, `remember`, `recall`).
 
@@ -37,7 +37,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 | Server (id) | Purpose | Details |
 |---|---|---|
 | **1c-mcp-metacode** | Graph metadata and BSL code search (Neo4j): structure, usage, call graph, forms, rights, routines, semantic metadata/code search. Default id; per-project MCP keys may be suffixed when installing multiple Metacode project IDs, as long as the same tools are exposed. | [`docs/1c-mcp-metacode.md`](docs/1c-mcp-metacode.md) |
-| **1c-code-metadata-mcp** | Metadata and BSL code search, navigation (modules, procedures, functions, call hierarchy), forms, XSD schemas, validation | [`docs/1c-code-metadata-mcp.md`](docs/1c-code-metadata-mcp.md) |
+| **rlm-tools-bsl** | Token-efficient 1C BSL repository exploration through an RLM sandbox: project registry, optional SQLite index, metadata/code/form/usages/call-graph helpers | [`docs/rlm-tools-bsl.md`](docs/rlm-tools-bsl.md) |
 | **1c-templates-mcp** | Code template library + project vector memory (`remember` / `recall`) | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
 | **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
 | **1C-docs-mcp** | 1C platform documentation (search by description / by exact name) | [`docs/1C-docs-mcp.md`](docs/1C-docs-mcp.md) |
@@ -54,8 +54,8 @@ Use only the applicable branch; stop as soon as the collected evidence is suffic
 `Grep` / `rg` substitute only the project-indexing layer. Before falling back to them for 1C project-source search, exhaust:
 
 1. `1c-mcp-metacode` — `search_code`, `search_metadata`, `search_metadata_by_description` as appropriate. Express structural, usage, impact, and call-graph questions through `search_metadata` JSON template operations whenever possible.
-2. `1c-code-metadata-mcp` — default indexed search / navigation (`codesearch`, `metadatasearch`, `search_function`, `search_forms`, `get_module_structure`, etc.).
-3. `1c-code-metadata-mcp` with `grep=true` — substring retry inside the MCP index **only after** indexed / semantic / exact search did not find enough and only for tools that expose the parameter: `codesearch`, `metadatasearch`, `search_function`, `helpsearch`, `search_forms`. Typical scenarios: exact identifier, fragment of a query, metadata path, event handler name, error text, or literal string where semantic search is likely to miss.
+2. `rlm-tools-bsl` — session-based repository exploration. Start with `rlm_start`, consult `rlm_help` for non-trivial analysis, then batch helper calls inside `rlm_execute` (`search`, `search_objects`, `search_methods`, `find_module`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, etc.).
+3. Literal / substring retry inside `rlm-tools-bsl` — use `git_search` for repository-wide literal or regex search when the source tree is git-backed; use `safe_grep` or `grep_read` only on narrowed modules / paths. Typical scenarios: exact identifier, fragment of a query, metadata path, event handler name, error text, or literal string where semantic / indexed search is likely to miss.
 4. Only then `Grep` / `rg` — with a mandatory short note in the response listing which project-index MCP attempts were tried and why they did not return what was needed.
 
 ### External knowledge
@@ -71,14 +71,14 @@ These servers have no `Grep` / `rg` equivalent; call them only when their knowle
 
 ## Quick map: "task → MCP tool"
 
-| Task | First choice (metacode) | Fallback (code-metadata) |
+| Task | First choice (metacode) | Fallback (`rlm-tools-bsl`) |
 |---|---|---|
-| BSL code search | `search_code` | `codesearch` |
-| Metadata object structure | `search_metadata` (`object_structure` plus focused facet templates) | `get_metadata_details` |
-| Impact analysis before refactoring | `search_metadata` usage / movement / call-graph templates (`find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `call_graph_subtree`) | `graph_dependencies` (single-level) |
-| Call graph | `search_metadata` (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) | `get_method_call_hierarchy` |
-| Metadata search by name / structure | `search_metadata` (JSON templates) | `metadatasearch` |
-| Object usage search | `search_metadata` (`find_objects_using_object` / `find_usages_of_object` template operations) | `graph_dependencies` (`direction="reverse"`) |
-| Description / synonym / comment search | `search_metadata_by_description` | `metadatasearch` (`names_only=true`) |
+| BSL code search | `search_code` | `rlm_execute`: `search`, `search_methods`, `git_search`, `safe_grep` / `grep_read` on narrowed paths |
+| Metadata object structure | `search_metadata` (`object_structure` plus focused facet templates) | `rlm_execute`: `get_object_full_structure` or `parse_object_xml` |
+| Impact analysis before refactoring | `search_metadata` usage / movement / call-graph templates (`find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `call_graph_subtree`) | `rlm_execute`: `find_references_to_object`, `find_code_usages`, `find_register_movements`, `find_register_writers`, `analyze_document_flow` |
+| Call graph | `search_metadata` (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) | `rlm_execute`: `find_call_hierarchy` or `find_callers_context` |
+| Metadata search by name / structure | `search_metadata` (JSON templates) | `rlm_execute`: `search_objects`, `find_by_type`, `find_attributes`, `search(scope="objects"|"attributes")` |
+| Object usage search | `search_metadata` (`find_objects_using_object` / `find_usages_of_object` template operations) | `rlm_execute`: `find_references_to_object`, `find_code_usages` |
+| Description / synonym / comment search | `search_metadata_by_description` | `rlm_execute`: `search_objects`, `search`, `git_search` over raw XML/help text |
 
 Step-by-step playbooks per task type (writing code, review, architecture, error fixing, performance, refactoring, metadata XML, forms, integrations, documentation, comparing platform versions) — `content/rules/tooling-playbooks.md`.

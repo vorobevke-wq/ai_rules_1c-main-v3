@@ -145,7 +145,7 @@ Visual form editing in extensions — **minimize**. Changes — programmatically
 - On server — `ТекущаяДатаСеанса()` instead of `ТекущаяДата()`. See `platform-solutions.md §6 → "Time on the server"`.
 
 ### Queries — Authoritative Rules
-- Verify metadata attributes (existence, names, types) **before** writing a query — see `AGENTS.md → MCP Tool Calling` (rule #3 «verify before writing»; metadata-first via `search_metadata` template operations / `metadatasearch`).
+- Verify metadata attributes (existence, names, types) **before** writing a query — see `AGENTS.md → MCP Tool Calling` (rule #3 «verify before writing»; metadata-first via `search_metadata` template operations / `rlm-tools-bsl` helpers such as `get_object_full_structure` and `find_attributes`).
 - Look for existing query examples before writing complex queries (`templatesearch`, `search_code`).
 - Query text formatting — on a new line at the same indentation level as the variable declaration:
 

@@ -23,7 +23,7 @@ All paths and identifiers come from `.dev.env` placeholders. Only `INFOBASE_PATH
 
 ## Steps
 
-1. Build the object list in `repoobjects.txt` (one fully qualified metadata object name per line). Collect the list through `metadatasearch` / `search_metadata`.
+1. Build the object list in `repoobjects.txt` (one fully qualified metadata object name per line). Collect the list through `search_metadata` or `rlm-tools-bsl` helpers (`search_objects`, `find_by_type`).
 
 2. Choose the tool:
    - If `Test-Path '{PLATFORM_PATH}\bin\ibcmd.exe'` is true and `IBCMD_CONFIG` is filled, use **2a (`ibcmd`)**.

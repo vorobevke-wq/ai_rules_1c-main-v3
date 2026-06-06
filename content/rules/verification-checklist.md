@@ -49,14 +49,14 @@ Skip this gate **only** when the change is fully internal:
 In every other case run impact analysis:
 
 - **`search_metadata`** call-graph templates (`list_callers_of_routine`, `list_callees_of_routine`, `call_graph_subtree`) on every changed export procedure / function to find callers and downstream calls.
-- Fallback to **`graph_dependencies`** / **`get_method_call_hierarchy`** when Metacode is unavailable or non-actionable.
+- Fallback to **`rlm-tools-bsl`** helpers (`find_references_to_object`, `find_code_usages`, `find_call_hierarchy`, `find_callers_context`) when Metacode is unavailable or non-actionable.
 - For metadata changes (new attribute, renamed object, removed attribute): **`search_metadata`** with `find_objects_using_object` + `find_usages_of_object` template operations to list every metadata reference that needs to be reviewed.
 
 Pass criterion: every caller / dependent listed by impact analysis was either not affected by the change, or explicitly handled in the plan, or explicitly noted as a follow-up risk in the delivery summary. Silent breakage of downstream code is a defect.
 
-**Graceful degradation — when no impact-analysis tool is exposed.** If neither Metacode `search_metadata` impact templates nor `graph_dependencies` / `get_method_call_hierarchy` are available in the current session (none of the relevant MCPs are running), do **not** silently skip the gate. Instead:
+**Graceful degradation — when no impact-analysis tool is exposed.** If neither Metacode `search_metadata` impact templates nor `rlm-tools-bsl` impact helpers are available in the current session (none of the relevant MCPs are running), do **not** silently skip the gate. Instead:
 
-1. State the fact explicitly in the Delivery summary under **Risks** as a fixed line: *"Impact analysis not run — no graph / code-metadata MCP exposed in this session; downstream callers and metadata references were not enumerated."*
+1. State the fact explicitly in the Delivery summary under **Risks** as a fixed line: *"Impact analysis not run — no graph / rlm-tools-bsl MCP exposed in this session; downstream callers and metadata references were not enumerated."*
 2. For metadata changes, perform a best-effort manual review based on what the agent already knows about the change (which forms / modules / queries touch the affected object) — list those callers as candidates that still need review, marked as such.
 3. Do not promote a quick-fix to "verified" if a metadata or public-API change went through without impact analysis. If the change is risky and the user cannot accept the residual risk, hand off to a session that has the MCP exposed.
 
@@ -68,7 +68,7 @@ Skip this gate **only** when no metadata XML was touched.
 
 When XML was edited:
 
-- **`verify_xml`** on every modified XML file. Pass criterion: zero schema violations.
+- Relevant `1c-metadata-manage` validator on every modified XML file (`form-validate`, `meta-validate`, `role-validate`, `skd-validate`, `mxl-validate`, etc.). Pass criterion: zero validation errors.
 - For non-trivial metadata edits (new objects, attributes, tabular sections, forms): prefer the `1c-metadata-manage` skill over hand-edited XML. If hand edits were used, additionally cross-check `metadata-xml-workarounds.md` for the recurring traps (LineNumber, PagesGroupExtInfo, Page.enabled, UID uniqueness).
 - For `Form.xml` edits: also confirm the form opens in Configurator without warnings — schema validity is necessary but not sufficient.
 

@@ -100,7 +100,7 @@ Check MCP at two levels:
    - `templatesearch`, `remember`, `recall` for `1c-templates-mcp`;
    - `ssl_search` for `1c-ssl-mcp`;
    - `docinfo`, `docsearch` for `1C-docs-mcp`;
-   - `metadatasearch`, `codesearch`, `search_function`, `get_module_structure` for `1c-code-metadata-mcp`;
+   - `rlm_start`, `rlm_execute`, `rlm_end` for `rlm-tools-bsl` (`rlm_help`, `rlm_projects`, `rlm_index` when exposed by the server mode);
    - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;
    - `check_1c_code`, `review_1c_code`, `its_help`, `fetch_its` for `1c-code-check-mcp`.
 2. **Transport fallback** — when tools are missing but MCP config lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action.

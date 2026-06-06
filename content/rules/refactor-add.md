@@ -19,8 +19,8 @@ Refactoring is high-risk because the user-visible behaviour must stay identical 
 Run the full sequence from `tooling-playbooks.md → Refactoring` before touching the first line:
 
 - `search_metadata` (`object_structure` plus focused facets) — passport of the object being refactored.
-- `search_metadata` usage / movement / call-graph templates → fallback `graph_dependencies` (`direction="downstream"`) — what breaks on change.
-- `search_metadata` (`list_callers_of_routine` / `call_graph_subtree`) → fallback `get_method_call_hierarchy` (`direction="callers"`) — every caller of the routine.
+- `search_metadata` usage / movement / call-graph templates → fallback `rlm-tools-bsl` helpers (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — what breaks on change.
+- `search_metadata` (`list_callers_of_routine` / `call_graph_subtree`) → fallback `rlm-tools-bsl` helpers (`find_call_hierarchy`, `find_callers_context`) — every caller of the routine.
 - `search_metadata` (`find_objects_using_object` / `find_usages_of_object`) — every type reference before renaming / removing / changing structure.
 - For registers — `search_metadata` (`find_documents_making_movements_into_register`) — every document that posts movements there.
 
@@ -28,7 +28,7 @@ If the impact-analysis MCPs are not exposed in the session, follow the graceful-
 
 ## Post-refactor verification
 
-- `search_code` → fallback `codesearch` — confirm no remaining references to the old names / patterns; use compact / high-limit modes only when the live schema exposes them.
+- `search_code` → fallback `rlm-tools-bsl` helpers (`git_search`, `find_code_usages`) — confirm no remaining references to the old names / patterns.
 - Full closing gate — `verification-checklist.md` (every gate, no skipping).
 - If the refactor is large enough to enter the subagent pipeline — `subagent-pipeline.md → Stage 3` (delegate to `1c-refactoring`).
 

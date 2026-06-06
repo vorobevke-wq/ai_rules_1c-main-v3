@@ -33,9 +33,9 @@ Extract existing patterns, conventions, and architectural decisions:
 **Use MCP Tools:** See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for descriptions. Follow the `powershell-windows` skill for shell commands.
 
 **Development standards:** Follow `content/rules/dev-standards-core.md` (project parameters, naming, documentation) and `content/rules/dev-standards-architecture.md` (architecture patterns, extensions, platform standards).
-Key tools: **codesearch**, **metadatasearch**, **get_metadata_details**, **graph_dependencies**, **get_method_call_hierarchy**, **templatesearch**
+Key tools: **search_code**, **search_metadata**, **rlm-tools-bsl** (`search`, `search_objects`, `get_object_full_structure`, `find_references_to_object`, `find_call_hierarchy`), **templatesearch**
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

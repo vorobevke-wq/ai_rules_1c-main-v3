@@ -22,14 +22,14 @@ You are an expert 1C performance optimization specialist focused on identifying 
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Key tools for optimization:**
-- **codesearch** — find slow patterns in codebase
-- **get_method_call_hierarchy** — identify hot call paths and trace performance-critical chains
-- **graph_dependencies** — find objects causing cascading performance issues
-- **metadatasearch** / **get_metadata_details** — check indexes and metadata structure
-- **search_function** — find specific procedures for targeted optimization
+- **rlm-tools-bsl** `search` / `git_search` — find slow patterns in codebase
+- **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — identify hot call paths and trace performance-critical chains
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` / `find_register_movements` — find objects causing cascading performance issues
+- **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — check indexes and metadata structure
+- **rlm-tools-bsl** `search_methods` — find specific procedures for targeted optimization
 - **check_1c_code** — analyze code for performance and logic issues
 - **rewrite_1c_code** — get AI-optimized version of code (with `goal: optimize`)
 - **its_help** → **fetch_its** — find ITS performance standards and best practices

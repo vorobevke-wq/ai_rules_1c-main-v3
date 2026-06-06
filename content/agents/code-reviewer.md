@@ -53,14 +53,14 @@ Evaluate significant issues:
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` are not in this agent's toolset by design (see frontmatter) — request a search via the parent or `1c-explorer` if needed.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` are not in this agent's toolset by design (see frontmatter) — request a search via the parent or `1c-explorer` if needed.
 
 **Key tools for review:**
 - **docsearch** — verify method/property existence
-- **metadatasearch** / **get_metadata_details** — verify correct metadata usage and attribute types
-- **codesearch** — verify compliance with existing patterns
-- **graph_dependencies** — analyze impact of the code being reviewed
-- **get_method_call_hierarchy** — trace call chains, find affected callers
+- **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify correct metadata usage and attribute types
+- **rlm-tools-bsl** `search` / `search_methods` / `git_search` — verify compliance with existing patterns
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — analyze impact of the code being reviewed
+- **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — trace call chains, find affected callers
 - **check_1c_code** — analyze code for syntax, logic and performance issues
 - **review_1c_code** — check style, ITS standards, naming, structure compliance
 - **its_help** → **fetch_its** — verify code against ITS standards (always read full article by ID)

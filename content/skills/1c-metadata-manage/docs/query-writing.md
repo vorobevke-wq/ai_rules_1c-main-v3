@@ -17,8 +17,8 @@ For project-wide query rules (formatting, aliases, parameters, no queries in loo
 
 Before writing the first line of `ВЫБРАТЬ`:
 
-1. **Verify metadata** with `metadatasearch` / `get_metadata_details`: do the objects, attributes and tabular sections you assume actually exist? Right now? In the version installed in the project?
-2. **Find similar queries** with `codesearch` / `templatesearch`. Reuse a proven shape rather than inventing one.
+1. **Verify metadata** with `search_metadata` templates or `rlm-tools-bsl` helpers (`get_object_full_structure`, `find_attributes`): do the objects, attributes and tabular sections you assume actually exist? Right now? In the version installed in the project?
+2. **Find similar queries** with `search_code` / `rlm-tools-bsl` (`search`, `git_search`) / `templatesearch`. Reuse a proven shape rather than inventing one.
 3. **Pick the right source**:
    - Reference data → catalog (`Справочник`).
    - Business event → document (`Документ`); for analytics over many docs — accumulation register (`РегистрНакопления`) instead.

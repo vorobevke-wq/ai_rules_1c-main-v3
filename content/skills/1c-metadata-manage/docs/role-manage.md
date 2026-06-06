@@ -381,10 +381,9 @@ The PowerShell scripts under `tools/1c-role-{compile,info,validate}/scripts/` we
 
 ## MCP Integration
 
-- **metadatasearch** — Verify metadata object names when defining rights; verify objects referenced in role rights exist in the configuration.
-- **get_metadata_details** — Get full object structure to understand which attributes/tabular parts need specific access rights.
-- **get_xsd_schema** — Get XSD schema for role XML (`object_type="Роль"`). Use before generating role definitions.
-- **verify_xml** — Validate generated role XML against XSD.
+- **rlm-tools-bsl** `search_objects` — Verify metadata object names when defining rights; verify objects referenced in role rights exist in the configuration.
+- **rlm-tools-bsl** `get_object_full_structure` — Get full object structure to understand which attributes/tabular parts need specific access rights.
+- **role-validate** — Validate generated role XML.
 - **ssl_search** — Find SSL role patterns.
 
 ## SDD Integration

@@ -6,7 +6,7 @@ description: Check availability of 1C MCP servers and install/start the missing 
 
 This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "enabled": true }` — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file).
 
-The source of truth for images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server).
+The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>.
 
 ## Target server catalog
 
@@ -16,7 +16,7 @@ The source of truth for images, ports, and environment variables is [docs.onerpa
 | `1c-templates-mcp` | 8004 | `comol/1c_templates_mcp:latest` | Templates and project memory (`remember`/`recall`) | No |
 | `1c-ssl-mcp` | 8008 | `comol/mcp_ssl_server:latest` | BSP/SSL search | No (`SSL_VERSION`) |
 | `1C-docs-mcp` | 8003 | `comol/1c_help_mcp:latest` | 1C platform help (RAG) | Yes — platform `bin` folder |
-| `1c-code-metadata-mcp` | 8000 | `comol/1c_code_metadata_mcp:latest` | Metadata/code/forms/XSD | Yes — configuration dump |
+| `rlm-tools-bsl` | 9000 | native service / `rlm-tools-bsl` package | Token-efficient BSL source exploration (RLM sandbox, optional SQLite index) | Yes — 1C source directory or registered project |
 | `1c-mcp-metacode` | 6001 | `roctup/1c-mcp-metacode` | Graph metadata/code search (Neo4j) | Yes — configuration report + code dump + Neo4j |
 | `1c-code-check-mcp` | 8007 | `comol/1c_code_checker_mcp:latest` | 1C:Assistant, ITS | No (Assistant token) |
 | `1c-data-mcp` | 80 / project | — (HTTP service on the infobase, **not** docker) | 1C data management and analysis (HTTP service published on the infobase itself) | Yes — `INFOBASE_PUBLISH_URL` in `.dev.env` + `mcp` HTTP service published on the infobase **with anonymous access** |
@@ -52,7 +52,7 @@ The source of truth for images, ports, and environment variables is [docs.onerpa
 
 For each `id`, determine **TOOLS_OK** / **TOOLS_MISSING**:
 
-- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `syntaxcheck` for `1c-syntax-checker-mcp`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `docinfo`/`docsearch` for `1C-docs-mcp`, `metadatasearch`/`codesearch` for `1c-code-metadata-mcp`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`its_help` for `1c-code-check-mcp`).
+- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `syntaxcheck` for `1c-syntax-checker-mcp`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `docinfo`/`docsearch` for `1C-docs-mcp`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`its_help` for `1c-code-check-mcp`).
 - **TOOLS_MISSING** — no tools are visible in the schema.
 
 If status is **TOOLS_OK**, treat the server as working and do not check it further.
@@ -63,7 +63,7 @@ For servers with **TOOLS_MISSING**, call the HTTP endpoint. PowerShell (Windows)
 
 ```powershell
 $servers = @(
-    @{ Id = '1c-code-metadata-mcp';   Port = 8000 },
+    @{ Id = 'rlm-tools-bsl';          Port = 9000 },
     @{ Id = '1c-syntax-checker-mcp';  Port = 8002 },
     @{ Id = '1C-docs-mcp';            Port = 8003 },
     @{ Id = '1c-templates-mcp';       Port = 8004 },
@@ -83,7 +83,7 @@ foreach ($s in $servers) {
 }
 ```
 
-Any HTTP response (even `405`/`400`/`406`) means a container is listening on the port — status **HTTP_OK**. Full timeout / `Connection refused` means **HTTP_DOWN**.
+Any HTTP response (even `405`/`400`/`406`) means an MCP endpoint is listening on the port — status **HTTP_OK**. Full timeout / `Connection refused` means **HTTP_DOWN**.
 
 For `1c-data-mcp` (HTTP service on the infobase, no docker container), check the URL rendered by the installer into the active client's MCP config:
 
@@ -126,7 +126,7 @@ For `1c-data-mcp`:
 
 ### Step 4. Check Docker state
 
-If at least one server is **HTTP_DOWN**:
+If at least one Docker-based server is **HTTP_DOWN**:
 
 ```powershell
 docker version --format '{{.Server.Version}}'
@@ -142,18 +142,18 @@ Possible outcomes:
   docker start <container_name>
   ```
 
-  Default names: `1c_syntaxcheck_mcp`, `1c_templates_mcp`, `mcp_ssl_server`, `1c_help_mcp`, `1c_code_metadata_mcp`, `1c-metacode-<METACODE_PROJECT_ID>`, `1c_code_checker_mcp` (check the actual name in `docker ps -a`).
+  Default names: `1c_syntaxcheck_mcp`, `1c_templates_mcp`, `mcp_ssl_server`, `1c_help_mcp`, `1c-metacode-<METACODE_PROJECT_ID>`, `1c_code_checker_mcp` (check the actual name in `docker ps -a`). `rlm-tools-bsl` is usually a native Windows service / systemd service; check it through the upstream service scripts before assuming Docker is involved.
 
 - The container is absent from `docker ps -a` → **CONTAINER_MISSING**. The image may already be cached (`docker images`), but the container was not created. Create and start it — see Step 5.
 
 ### Step 5. Install missing server
 
-**Do not run `docker run` silently.** First ask the user for:
+**Do not install or start services silently.** For Docker-based servers, do not run `docker run` without user confirmation. For `rlm-tools-bsl`, do not download / run the upstream installer without user confirmation.
 
 - `LICENSE_KEY` — shared MCP server license key.
 - Local data paths for servers that need them:
   - `1C-docs-mcp` — platform `bin` folder path (for example, `C:\Program Files\1cv8\8.3.23.1997\bin`).
-  - `1c-code-metadata-mcp` — configuration dump directory (`DumpConfigToFiles`).
+  - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
   - `1c-code-check-mcp` — 1C:Assistant token, if it will be used.
@@ -187,12 +187,17 @@ docker run -d -p 8003:8003 --name 1c_help_mcp `
   -v "{DATA_ROOT}\mcp_docs:/app/chroma_db" `
   comol/1c_help_mcp:latest
 
-# 1c-code-metadata-mcp
-docker run -d -p 8000:8000 --name 1c_code_metadata_mcp `
-  -e LICENSE_KEY={LICENSE_KEY} `
-  -v "{EXPORT_PATH}:/app/configuration" `
-  -v "{DATA_ROOT}\mcp_code_metadata:/app/chroma_db" `
-  comol/1c_code_metadata_mcp:latest
+# rlm-tools-bsl — Windows PowerShell as Administrator
+irm https://raw.githubusercontent.com/Dach-Coin/rlm-tools-bsl/master/simple-install-from-pip.ps1 -OutFile simple-install-from-pip.ps1
+PowerShell -ExecutionPolicy Bypass -File .\simple-install-from-pip.ps1
+
+# After installation, add / verify the MCP config entry:
+# "rlm-tools-bsl": { "type": "http", "url": "http://127.0.0.1:9000/mcp" }
+
+# Linux
+curl -LO https://raw.githubusercontent.com/Dach-Coin/rlm-tools-bsl/master/simple-install-from-pip.sh
+chmod +x simple-install-from-pip.sh
+./simple-install-from-pip.sh
 
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs
 # https://github.com/ROCTUP/1c-mcp-metacode
@@ -206,7 +211,7 @@ docker run -d -p 8007:8007 --name 1c_code_checker_mcp `
 Exact current commands for each server are on the server-specific documentation page:
 
 - [HelpSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/help-search-server.md)
-- [CodeMetadataSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/code-metadata-search.md)
+- [rlm-tools-bsl](https://github.com/Dach-Coin/rlm-tools-bsl)
 - [Graph Metadata Search](https://docs.onerpa.ru/mcp-servery-1c/servery/graph-metadata-search.md)
 - [SSLSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/ssl-search-server.md)
 - [SyntaxCheckServer](https://docs.onerpa.ru/mcp-servery-1c/servery/syntax-check-server.md)
@@ -215,7 +220,7 @@ Exact current commands for each server are on the server-specific documentation 
 
 ### Step 6. After install/start
 
-1. Wait 5-15 seconds (the container needs warm-up; RAG-indexed servers may need tens of minutes or hours on first launch, monitor with `docker logs -f <name>`).
+1. Wait 5-15 seconds (Docker containers and native services need warm-up; indexed servers may need tens of minutes or hours on first indexing. For Docker, monitor `docker logs -f <name>`; for `rlm-tools-bsl`, use `rlm_index(action="info", project="...")` or the service log).
 2. Repeat Step 3 (HTTP check); all statuses should become **HTTP_OK**.
 3. If the server is absent from the active tool MCP config, add the entry (1c-rules installer should already have rendered it; if installation was not run, add it manually using `adapters/<tool>.yaml → mcp.schema`).
 4. Restart the client (Cursor / Claude Code / Codex / OpenCode / Kilo Code) so it reinitializes the MCP session.
@@ -229,10 +234,12 @@ Summary table for the user:
 |---|---|---|---|---|
 | `...` | OK / missing | OK / down | running / stopped / missing | none / `docker start` / `docker run` / reconnect client |
 
+For non-Docker servers (`rlm-tools-bsl`, `1c-data-mcp`), use `Service / endpoint` instead of `Container` and report the relevant service or web-publication action.
+
 Under the table, list clear next steps with copy-ready commands. Do not list items that already work.
 
 ## Limits
 
-- The command does not run `docker run` without user confirmation; it needs `LICENSE_KEY`, data paths, and consent to download images (several GB).
+- The command does not run `docker run` or upstream service installers without user confirmation. Docker servers need `LICENSE_KEY`, data paths, and consent to download images (several GB). `rlm-tools-bsl` does not use the shared `LICENSE_KEY`, but installing it still downloads and registers a local service.
 - Metacode MCP (`1c-mcp-metacode`) requires separate Neo4j setup and indexing. This is a multi-step process; execute it by the GitHub repository instructions, not from this command.
-- RAG-indexed servers (`1C-docs-mcp`, `1c-code-metadata-mcp`, `1c-mcp-metacode`, `1c-ssl-mcp`) may respond over HTTP before becoming useful while primary indexing is still running. This is normal; monitor progress with `docker logs -f <name>`.
+- Indexed servers (`1C-docs-mcp`, `1c-mcp-metacode`, `1c-ssl-mcp`, and `rlm-tools-bsl` when its SQLite index is building) may respond over HTTP before becoming useful while primary indexing is still running. This is normal; monitor Docker services with `docker logs -f <name>` and `rlm-tools-bsl` through `rlm_index(action="info", project="...")` / service logs.

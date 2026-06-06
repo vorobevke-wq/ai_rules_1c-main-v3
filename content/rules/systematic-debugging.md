@@ -42,7 +42,7 @@ Tools to use:
 - **`ЖурналРегистрации`** filter by date range / user / event / metadata to find the failing call. For high-volume errors prefer `ВыгрузитьЖурналРегистрации` to a `ТаблицаЗначений` for offline analysis.
 - **Technological log** (`logcfg.xml`) for platform-level events (DBMS errors, deadlocks, lock conflicts, timeouts) when the application log is not enough.
 - **`ОбработкаПроведения`** + the `Replay` mechanism for documents — re-post the failing document under the debugger.
-- **MCP**: `codesearch` / `search_code` to find the exact procedure that printed the error message, `search_function` to locate it by name, `get_module_structure` to get its surroundings.
+- **MCP**: `search_code` / `rlm-tools-bsl` `git_search` to find the exact procedure that printed the error message, `search_methods` to locate it by name, `find_module` + `extract_procedures` to get its surroundings.
 
 If you cannot reproduce, **stop**. Ask the user for missing input data, screenshots, the exact step sequence, or a copy of the infobase. Do not guess.
 
@@ -60,7 +60,7 @@ Tools to use:
 
 - **`search_metadata`** call-graph templates (`list_callers_of_routine`, `call_graph_subtree`) to map all the call paths that reach the failing routine.
 - **`search_metadata`** usage / movement / call-graph templates to map which objects the failing routine depends on (registers it reads, common modules it calls, metadata it touches).
-- **`get_method_call_hierarchy`** as a fallback when the graph server is unavailable.
+- **`rlm-tools-bsl` `find_call_hierarchy` / `find_callers_context`** as a fallback when the graph server is unavailable.
 - **`docinfo`** to verify that a built-in function actually does what you assume — many bugs are platform-version-dependent (`ТекущаяДатаСеанса` vs `ТекущаяДата`, `НайтиПоНаименованию` collation, `ПолучитьСтруктуруХраненияБазыДанных` differences across versions).
 - **`its_help` → `fetch_its`** to verify the documented behaviour of the platform mechanism you suspect.
 - **`ask_1c_ai`** as a hint generator (treat as a draft — do not let an AI hint replace the falsifying experiment).

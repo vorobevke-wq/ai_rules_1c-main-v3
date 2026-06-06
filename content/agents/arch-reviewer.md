@@ -22,13 +22,13 @@ You are an expert 1C architecture reviewer specializing in evaluating architectu
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` are not in this agent's toolset by design (see frontmatter) — request a search via the parent or `1c-explorer` if needed.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` are not in this agent's toolset by design (see frontmatter) — request a search via the parent or `1c-explorer` if needed.
 
 **Key tools for architecture review:**
-- **codesearch** — find existing patterns in codebase
-- **metadatasearch** / **get_metadata_details** — verify metadata structure and attribute types
-- **graph_dependencies** — map relationships between configuration objects
-- **get_method_call_hierarchy** — understand code coupling and call chains
+- **rlm-tools-bsl** `search` / `search_methods` / `git_search` — find existing patterns in codebase
+- **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify metadata structure and attribute types
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — map relationships between configuration objects
+- **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — understand code coupling and call chains
 - **templatesearch** — compare against established templates
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.

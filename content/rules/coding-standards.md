@@ -24,7 +24,7 @@ After any code edit, perform an internal review: style, readability, correctness
 
 ## Code Reuse
 
-Before writing new code — check common and manager modules for an existing export method that can be reused. Use `search_function`, `ssl_search`, `templatesearch`, and `codesearch` **before** writing.
+Before writing new code — check common and manager modules for an existing export method that can be reused. Use `rlm-tools-bsl` helpers (`search_methods`, `find_module`, `find_exports`), `ssl_search`, `templatesearch`, and `search_code` **before** writing.
 
 ## Module Regions
 
@@ -34,7 +34,7 @@ Canonical region names — Russian, БСП-style. Templates per module type (com
 
 Authoritative rules and the formatting template — `dev-standards-architecture.md §3 → "Queries"`. Headlines:
 
-- Verify metadata before writing a query (`metadatasearch` / `get_metadata_details`).
+- Verify metadata before writing a query (`search_metadata` templates or `rlm-tools-bsl` helpers such as `get_object_full_structure` and `find_attributes`).
 - No queries inside loops — use batch queries with temporary tables (`ВТ_*`).
 - Always parameterize (`Запрос.УстановитьПараметр()`), never concatenate strings.
 - Always use `КАК` aliases. Use `ПЕРВЫЕ N` when only a subset is needed.

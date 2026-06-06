@@ -30,9 +30,9 @@ You are an expert planning specialist focused on creating comprehensive, actiona
 - Consider 1C platform limitations
 
 **Use MCP Tools:** See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for descriptions. Follow the `powershell-windows` skill for shell commands.
-Key tools: **codesearch**, **metadatasearch**, **get_metadata_details**, **graph_dependencies**, **templatesearch**
+Key tools: **search_code**, **search_metadata**, **rlm-tools-bsl** (`search`, `search_objects`, `get_object_full_structure`, `find_references_to_object`, `find_call_hierarchy`), **templatesearch**
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Diagrams:** Follow the `mermaid-diagrams` skill for Mermaid compatibility rules and templates.
 

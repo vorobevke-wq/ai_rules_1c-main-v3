@@ -444,12 +444,11 @@ The PowerShell scripts under `tools/1c-skd-{compile,edit,info,validate}/scripts/
 ## MCP Integration
 
 - **search_metadata** — Focused structural lookup of the object for DCS data set fields: attributes, tabular parts, dimensions, resources, and their types.
-- **metadatasearch** — Verify object and attribute names used in queries; cross-reference field names with actual metadata objects.
-- **get_metadata_details** — Get exact attribute types and tabular part structure for objects used in DCS data sets.
+- **rlm-tools-bsl** `search_objects` / `find_attributes` — Verify object and attribute names used in queries; cross-reference field names with actual metadata objects.
+- **rlm-tools-bsl** `get_object_full_structure` — Get exact attribute types and tabular part structure for objects used in DCS data sets.
 - **search_code** — Find existing BSL code that builds DCS queries or modifies DCS programmatically (prefer over Grep; supports semantic/fulltext/hybrid search).
-- **metadatasearch** (`names_only=true`) — Find similar metadata objects for DCS schema XML reference.
-- **get_xsd_schema** — Get XSD schema for DCS XML (`object_type="СКД"`). Use before generating schema XML.
-- **verify_xml** — Validate generated DCS XML against XSD. Always validate before committing.
+- **rlm-tools-bsl** `search_objects` — Find similar metadata objects for DCS schema XML reference.
+- **skd-validate** — Validate generated DCS XML. Always validate before committing.
 - **templatesearch** — Find similar DCS patterns in the codebase.
 - **docsearch** — Look up valid DCS element types and properties when investigating validation errors; DCS platform documentation.
 

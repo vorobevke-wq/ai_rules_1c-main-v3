@@ -147,7 +147,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 
 ### Сопутствующие скиллы
 
-- **`mcp-1c-tools`** — диспетчер MCP-серверов экосистемы 1С: каталог серверов, маршрутизация задач, fallback-цепочка (`graph → code-metadata → grep=true retry → Grep`), параметрические подсказки. Подгружается до выбора любого 1С MCP-инструмента; per-server описания — в `docs/<server>.md`.
+- **`mcp-1c-tools`** — диспетчер MCP-серверов экосистемы 1С: каталог серверов, маршрутизация задач, fallback-цепочка (`graph → rlm-tools-bsl → RLM literal retry → Grep`), параметрические подсказки. Подгружается до выбора любого 1С MCP-инструмента; per-server описания — в `docs/<server>.md`.
 - **`caveman`** — стиль общения для разработческих задач: краткие рабочие ответы на русском, без лишнего объяснения. Включён для реализации, отладки и деплоя; выключен для ревью, анализа, аудита и пользовательской документации.
 - **`img-grid-analysis`** — наложение пронумерованной сетки на изображение для определения пропорций колонок. Используется при генерации MXL-макетов из скриншотов или сканов печатных форм; даёт коэффициенты ширины колонок для JSON-DSL компилятора.
 - **`mermaid-diagrams`** — практическое руководство по диаграммам Mermaid, совместимым с большинством рендереров (плюс ASCII-сайдкары для просмотра в чистом Markdown).
@@ -169,16 +169,15 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 - `search_metadata_by_description` — поиск объектов по назначению, синонимам, комментариям, описаниям и справке.
 - `search_code` — поиск процедур и функций по описанию и получение исходного BSL-кода с контекстом.
 
-### `1c-code-metadata-mcp` — поиск кода/метаданных, формы, XSD
+### `rlm-tools-bsl` — RLM-поиск кода/метаданных 1С
 
-Базовый «индекс» конфигурации (используется как fallback к графовому MCP).
+Fallback к графовому MCP и компактный способ исследовать большую выгрузку 1С без заливки сырых файлов в контекст. Сервер открывает сессию анализа (`rlm_start`), даёт справку по рецептам и хелперам (`rlm_help`), выполняет Python-код в песочнице (`rlm_execute`) и закрывает сессию (`rlm_end`). Для часто используемых исходников есть реестр проектов (`rlm_projects`) и опциональный SQLite-индекс (`rlm_index`).
 
-- **Метаданные**: `metadatasearch` (FTS/семантика, режим `names_only` для компактных списков), `get_metadata_details` (полная структура объекта по имени).
-- **Код**: `codesearch` (гибридный поиск), `search_function` (структурный FTS-индекс по процедурам/функциям с экзакт+fuzzy), `get_module_structure` (содержимое модуля), `get_method_call_hierarchy` (плоский call-граф), `graph_dependencies` (плоские зависимости forward/reverse), `bsl_scope_members` (доступные методы/свойства/события для BSL-контекста).
-- **Формы**: `search_forms` (поиск форм по элементам, реквизитам, командам), `inspect_form_layout` (полное дерево формы — иерархия элементов, привязки, обработчики).
-- **XSD и валидация**: `get_xsd_schema` (XSD под `Справочник`, `Документ`, `РегистрСведений` и пр., в т.ч. подобъекты `Форма` / `СКД` / `Макет`) и `verify_xml` (валидация XML-строки против XSD).
-- **Справка**: `helpsearch` (поиск по HTML-справке).
-- **Администрирование**: `reindex`, `stats`.
+- **Метаданные**: `search_objects`, `find_by_type`, `find_attributes`, `get_object_full_structure`, `parse_object_xml`, `find_references_to_object`, `find_code_usages`.
+- **Код**: `search`, `search_methods`, `find_module`, `extract_procedures`, `find_exports`, `read_procedure`, `git_search`, `safe_grep`, `code_metrics`.
+- **Связи и проведение**: `find_call_hierarchy`, `find_callers_context`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`.
+- **Формы и интеграции**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`.
+- **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для платформенной справки — `1C-docs-mcp` / `1c-code-check-mcp`.
 
 ### `1c-syntax-checker-mcp` — синтаксис BSL
 

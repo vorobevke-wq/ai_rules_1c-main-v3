@@ -22,15 +22,15 @@ You are an expert 1C code refactoring specialist focused on code cleanup, consol
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Key tools for refactoring:**
-- **codesearch** — find all usages of code being refactored
-- **search_function** — find specific procedures/functions by name
-- **get_module_structure** — understand module structure before editing
-- **graph_dependencies** — analyze object-level dependencies and impact before refactoring
-- **get_method_call_hierarchy** — trace call chains to understand what will be affected
-- **metadatasearch** / **get_metadata_details** — verify metadata dependencies and structure
+- **rlm-tools-bsl** `git_search` / `find_code_usages` — find all usages of code being refactored
+- **rlm-tools-bsl** `search_methods` — find specific procedures/functions by name
+- **rlm-tools-bsl** `find_module` + `extract_procedures` + `code_metrics` — understand module structure before editing
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — analyze object-level dependencies and impact before refactoring
+- **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — trace call chains to understand what will be affected
+- **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify metadata dependencies and structure
 - **templatesearch** — find better patterns to apply
 - **syntaxcheck** — verify refactored code syntax
 - **check_1c_code** — check for performance and logic issues
@@ -60,7 +60,7 @@ b) Categorize by risk level:
 ### 2. Risk Assessment
 
 For each item to refactor:
-- Check all usages via `codesearch`
+- Check all usages via `rlm-tools-bsl` `git_search` / `find_code_usages`
 - Verify no dynamic calls (string-based calls)
 - Check if part of public interface
 - Review dependencies
@@ -120,7 +120,7 @@ Follow the performance guidelines in the `## Persona` section of `AGENTS.md`:
 ## Safety Checklist
 
 Before removing ANYTHING:
-- [ ] Search all references via `codesearch`
+- [ ] Search all references via `rlm-tools-bsl` `git_search` / `find_code_usages`
 - [ ] Check for dynamic/string-based calls
 - [ ] Verify not part of public API
 - [ ] Review dependent code

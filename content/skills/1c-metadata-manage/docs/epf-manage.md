@@ -315,8 +315,8 @@ The PowerShell script `tools/1c-epf-validate/scripts/epf-validate.ps1` was refre
 
 ## MCP Integration
 
-- **metadatasearch** — Verify metadata object names and types when setting up the processor/report for integration with existing configuration objects.
-- **get_metadata_details** — Get full structure of target metadata objects for integration.
+- **rlm-tools-bsl** `search_objects` — Verify metadata object names and types when setting up the processor/report for integration with existing configuration objects.
+- **rlm-tools-bsl** `get_object_full_structure` — Get full structure of target metadata objects for integration.
 - **check_1c_code** — Verify BSL code for syntax, logic and performance issues before building; analyze code in extracted modules after dumping.
 - **review_1c_code** — Check code style and ITS standards compliance before building.
 - **syntaxcheck** — BSL syntax verification before building.

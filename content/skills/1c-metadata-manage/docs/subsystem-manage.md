@@ -138,10 +138,10 @@ The PowerShell scripts under `tools/1c-subsystem-manage/scripts/` were refreshed
 ## MCP Integration
 
 - **search_metadata** — Focused structural lookup of objects before inclusion (`object_structure`, forms, dependencies, subscriptions, roles as needed).
-- **metadatasearch** — Verify that objects referenced in subsystem content exist in the configuration.
-- **get_metadata_details** — Get structure of objects being included in the subsystem.
+- **rlm-tools-bsl** `search_objects` — Verify that objects referenced in subsystem content exist in the configuration.
+- **rlm-tools-bsl** `get_object_full_structure` — Get structure of objects being included in the subsystem.
 - **search_metadata** usage / movement / call-graph templates — Dependency analysis for subsystem composition: find objects that depend on or are depended upon by the objects being included.
-- **graph_dependencies** — Flat dependency overview between objects.
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — Dependency overview between objects.
 - **search_metadata_by_description** — Find related objects to include by natural language description.
 
 ## SDD Integration

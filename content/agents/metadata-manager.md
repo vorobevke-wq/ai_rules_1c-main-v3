@@ -64,18 +64,15 @@ After completing the task, provide:
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for MCP tool descriptions. Follow the `powershell-windows` skill for shell commands.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
-**Key tools for metadata work (1c-code-metadata-mcp):**
-- **metadatasearch** — verify metadata object existence and structure
-- **get_metadata_details** — get full object structure: attributes with types, tabular parts, synonyms
-- **search_forms** — find similar existing forms by object/form name
-- **inspect_form_layout** — get full form structure: elements, bindings, commands, events
-- **get_xsd_schema** — get XSD schema for metadata type before generating XML
-- **verify_xml** — validate generated XML against XSD after generation
-- **codesearch** — find existing module code patterns
-- **search_function** — find BSL procedures/functions by name
-- **graph_dependencies** — analyze object dependencies before modifications
+**Key tools for metadata work:**
+- **rlm-tools-bsl** `search_objects` / `find_by_type` — verify metadata object existence and find similar objects
+- **rlm-tools-bsl** `get_object_full_structure` / `parse_object_xml` — get full object structure: attributes with types, tabular parts, synonyms
+- **rlm-tools-bsl** `parse_form` — get form structure: elements, bindings, commands, events
+- **1c-metadata-manage validators** — validate generated XML after generation (`form-validate`, `meta-validate`, `role-validate`, `skd-validate`, etc.)
+- **rlm-tools-bsl** `search` / `search_methods` / `git_search` — find existing module code patterns and BSL procedures/functions by name
+- **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — analyze object dependencies before modifications
 
 **Other tools:**
 - **docsearch** — verify platform functions and XML element names

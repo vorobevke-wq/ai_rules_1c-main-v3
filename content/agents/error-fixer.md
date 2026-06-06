@@ -22,15 +22,15 @@ You are an expert 1C error resolution specialist focused on fixing syntax errors
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Key tools for error fixing:**
 - **syntaxcheck** — check code for syntax errors (limit: 1 per cycle by default, up to 3 only on substantive defects — see `AGENTS.md → MCP Tool Calling → B.1`)
 - **docsearch** — verify built-in function existence/syntax
-- **codesearch** — find correct usage patterns
-- **search_function** — find the problematic procedure/function by name
-- **get_module_structure** — understand module context around the error
-- **metadatasearch** / **get_metadata_details** — verify metadata object existence and structure
+- **rlm-tools-bsl** `search` / `git_search` — find correct usage patterns
+- **rlm-tools-bsl** `search_methods` — find the problematic procedure/function by name
+- **rlm-tools-bsl** `find_module` + `extract_procedures` — understand module context around the error
+- **rlm-tools-bsl** `search_objects` / `get_object_full_structure` — verify metadata object existence and structure
 
 **Note**: Follow tool usage rules from the `## Persona` section in `AGENTS.md`.
 
@@ -86,7 +86,7 @@ For each error:
 | Syntax error | Fix exact syntax issue |
 | Undefined variable | Add declaration or fix typo |
 | Unknown method | Verify via docsearch, fix name |
-| Unknown metadata | Verify via metadatasearch, fix name |
+| Unknown metadata | Verify via `search_metadata` / `rlm-tools-bsl` `search_objects`, fix name |
 | Type mismatch | Convert to correct type |
 | Missing parameter | Add required parameters |
 | Deprecated API | Replace with recommended alternative |
@@ -110,7 +110,7 @@ For each error:
 ```bsl
 // Typo in variable → Fix spelling
 // Typo in method → Verify via docsearch
-// Wrong metadata name → Verify via metadatasearch
+// Wrong metadata name → Verify via search_metadata / rlm-tools-bsl search_objects
 ```
 
 ### Type Errors

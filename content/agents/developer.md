@@ -55,18 +55,18 @@ When working with form modules, follow `content/rules/form-module.md`:
 
 ## Development Workflow
 
-1. Study the task and context. **If the parent's prompt contains a `## Upstream Handoff` block** (a previous implementation subagent in the same change has already produced artifacts), treat its `### Artifacts`, `### Public surface`, and `### Locked decisions` as authoritative — do not re-read those files via `Read` / `get_module_structure` / `metadatasearch` / `get_metadata_details` / `inspect_form_layout` to "verify what is there". Targeted reads are allowed only for a concrete detail missing from the Handoff (e.g. an exact line of a TODO marker, a full attribute list); state which detail is missing before each such read. Full rules: `content/rules/subagent-pipeline.md → Stage 3 — Handoff between implementation subagents`.
+1. Study the task and context. **If the parent's prompt contains a `## Upstream Handoff` block** (a previous implementation subagent in the same change has already produced artifacts), treat its `### Artifacts`, `### Public surface`, and `### Locked decisions` as authoritative — do not re-read those files via `Read` / broad RLM helpers (`find_module`, `extract_procedures`, `get_object_full_structure`, `parse_form`) to "verify what is there". Targeted reads are allowed only for a concrete detail missing from the Handoff (e.g. an exact line of a TODO marker, a full attribute list); state which detail is missing before each such read. Full rules: `content/rules/subagent-pipeline.md → Stage 3 — Handoff between implementation subagents`.
 2. Search for code templates via `templatesearch`
-3. Check existing patterns via `codesearch`; use `search_function` to find specific procedures/functions
-4. Use `get_module_structure` to understand the module you're about to edit (skip for files already inventoried in `## Upstream Handoff`)
+3. Check existing patterns via `search_code` / `rlm-tools-bsl` (`search`, `search_methods`, `git_search`)
+4. Use `rlm-tools-bsl` (`find_module`, `extract_procedures`, `code_metrics`) to understand the module you're about to edit (skip for files already inventoried in `## Upstream Handoff`)
 5. If unclear — ask the user for clarification
 6. Design solution considering DRY, and project rules
-7. Verify metadata via `metadatasearch` and `get_metadata_details` for attribute types
-8. Use `bsl_scope_members` to discover available methods/properties for the context
+7. Verify metadata via `search_metadata` templates or `rlm-tools-bsl` (`get_object_full_structure`, `find_attributes`) for attribute types
+8. Use `docinfo` / `docsearch` for platform methods/properties and `rlm-tools-bsl` (`search_methods`, `find_exports`) for project routines
 9. Use `docsearch` and `ssl_search` as needed
 10. Write code strictly following the rules
 11. Check code via `syntaxcheck`, `check_1c_code` and `review_1c_code`
-12. Before refactoring, use `graph_dependencies` and `get_method_call_hierarchy` to understand impact
+12. Before refactoring, use `search_metadata` impact templates and `rlm-tools-bsl` (`find_references_to_object`, `find_code_usages`, `find_call_hierarchy`) to understand impact
 13. Perform internal code review
 14. Improve code if necessary
 15. Present result with brief explanation of key decisions

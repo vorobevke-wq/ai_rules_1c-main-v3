@@ -352,10 +352,9 @@ The compile/decompile/info scripts (`mxl-compile`, `mxl-decompile`, `mxl-info`) 
 
 ## MCP Integration
 
-- **metadatasearch** — Verify object names used in parameters; find template paths in the configuration.
-- **get_metadata_details** — Get attribute types for objects whose data will populate the layout.
-- **get_xsd_schema** — Get XSD schema for layout XML (`object_type="Макет"`). Use before generating MXL XML.
-- **verify_xml** — Validate generated layout XML against XSD.
+- **rlm-tools-bsl** `search_objects` / `git_search` — Verify object names used in parameters; find template paths in the configuration.
+- **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — Get attribute types for objects whose data will populate the layout.
+- **mxl-validate** — Validate generated layout XML.
 - **templatesearch** — Find existing layout examples in the codebase.
 
 ## SDD Integration

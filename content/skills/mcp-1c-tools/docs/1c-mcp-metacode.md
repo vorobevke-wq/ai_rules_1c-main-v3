@@ -47,12 +47,12 @@ Documented operation groups:
 | Retired tool | Use with `1c-mcp-metacode` |
 |---|---|
 | `get_object_dossier` | `search_metadata` with `object_structure` plus focused facet templates (`list_forms`, `list_modules_of_owner`, `list_module_routines`, rights / event / layout operations as needed). |
-| `trace_impact` | `search_metadata` with usage and call-graph templates: `find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `list_callers_of_routine`, `call_graph_subtree`; fallback to `graph_dependencies` on `1c-code-metadata-mcp` for flat dependency overview. |
-| `trace_call_chain` | `search_metadata` with `list_callers_of_routine`, `list_callees_of_routine`, or `call_graph_subtree`; fallback to `get_method_call_hierarchy`. |
+| `trace_impact` | `search_metadata` with usage and call-graph templates: `find_objects_using_object`, `find_usages_of_object`, `find_documents_making_movements_into_register`, `list_callers_of_routine`, `call_graph_subtree`; fallback to `rlm-tools-bsl` helpers such as `find_references_to_object`, `find_code_usages`, `find_register_movements`, `find_register_writers`, and `analyze_document_flow`. |
+| `trace_call_chain` | `search_metadata` with `list_callers_of_routine`, `list_callees_of_routine`, or `call_graph_subtree`; fallback to `rlm-tools-bsl` `find_call_hierarchy` / `find_callers_context`. |
 | `find_register_movement_docs` | `search_metadata` with `find_documents_making_movements_into_register`. |
 | `resolve_qualified_name` | `search_metadata` with `resolve_qn`. |
 | `find_by_guid` | `search_metadata` with `find_by_guid`. |
 | `business_search` | `search_metadata_by_description`; use natural-language `search_metadata` only when a structural answer is needed and template operations are insufficient. |
 | `answer_metadata_question` | Natural-language `search_metadata` for structural questions, `search_metadata_by_description` for discovery, then verify important facts with template operations. |
-| `execute_metadata_cypher` / `get_metadata_prompt` | No documented direct replacement. Use documented templates first; if a needed query is not covered, rely on the live tool schema or fall back to `1c-code-metadata-mcp` / project source search per the fallback chain. |
+| `execute_metadata_cypher` / `get_metadata_prompt` | No documented direct replacement. Use documented templates first; if a needed query is not covered, rely on the live tool schema or fall back to `rlm-tools-bsl` / project source search per the fallback chain. |
 | `compare_base_and_extension` | No documented direct replacement. Compare focused `object_structure`, forms, modules, and routines through `search_metadata` / `search_code`, or use extension-specific project tools when available. |

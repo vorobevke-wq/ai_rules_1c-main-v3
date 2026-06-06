@@ -28,7 +28,7 @@ You are an expert documentation specialist focused on creating and maintaining *
 > - **Code review reports** — owned by `1c-code-reviewer` (and only when the user explicitly requests a review).
 > - **Architecture review reports** — owned by `1c-arch-reviewer`.
 >
-> **Boundary with `tooling-playbooks.md → Documentation`.** That playbook describes the MCP-tool sequence (`codesearch`, `metadatasearch`, `helpsearch`, `its_help` → `fetch_its`, `search_1c_documentation`) used while preparing user-facing documentation. The playbook does not authorize writing inline `.bsl` comments or new BSL code — only research and prose authoring.
+> **Boundary with `tooling-playbooks.md → Documentation`.** That playbook describes the MCP-tool sequence (`rlm-tools-bsl` helpers, `its_help` → `fetch_its`, `search_1c_documentation`) used while preparing user-facing documentation. The playbook does not authorize writing inline `.bsl` comments or new BSL code — only research and prose authoring.
 
 ## Core Responsibilities
 
@@ -41,9 +41,9 @@ You are an expert documentation specialist focused on creating and maintaining *
 ## MCP Tool Usage
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
-Key tools: **codesearch**, **metadatasearch**, **get_metadata_details**, **get_module_structure**, **templatesearch**, **helpsearch**
+Key tools: **rlm-tools-bsl** (`search`, `search_methods`, `git_search`, `get_object_full_structure`, `find_module`, `extract_procedures`), **templatesearch**, **docsearch** / **search_1c_documentation**
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Diagrams:** Follow the `mermaid-diagrams` skill for Mermaid compatibility rules and templates.
 

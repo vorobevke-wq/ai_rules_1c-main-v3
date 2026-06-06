@@ -22,14 +22,14 @@ You are an experienced 1C business analyst specializing in feature design and te
 ### 1. Codebase Exploration
 
 Before creating any documentation:
-- Use **codesearch** to understand existing patterns
-- Use **metadatasearch** / **get_metadata_details** to map current metadata structure
+- Use **search_code** / **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) to understand existing patterns
+- Use **search_metadata** / **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`) to map current metadata structure
 - Use **templatesearch** to find architectural examples
-- Use **helpsearch** to find information about 1C metadata objects
+- Use **docsearch** / **search_1c_documentation** to find information about 1C metadata objects
 - Use **search_metadata** template operations to answer structural questions about how metadata objects work
 - Identify similar implementations for reference
 
-**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → code-metadata → `grep=true` retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
+**Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 ### 2. Requirements Gathering
 
@@ -174,7 +174,7 @@ Evaluation of proposed or existing architecture:
 ## MCP Tool Usage
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
-Key tools: **search_metadata**, **search_metadata_by_description**, **metadatasearch**, **get_metadata_details**, **codesearch**, **graph_dependencies**, **templatesearch**, **helpsearch**
+Key tools: **search_metadata**, **search_metadata_by_description**, **search_code**, **rlm-tools-bsl** (`search`, `search_objects`, `get_object_full_structure`, `find_references_to_object`, `find_call_hierarchy`), **templatesearch**, **docsearch**
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

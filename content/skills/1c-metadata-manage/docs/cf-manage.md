@@ -130,11 +130,10 @@ The PowerShell scripts under `tools/1c-cf-manage/scripts/` were refreshed from [
 ## MCP Integration
 
 - **search_metadata** — Focused structural lookup of existing configuration objects (`object_structure`, forms, dependencies, modules, roles as needed).
-- **metadatasearch** — Explore existing configuration structure, verify object names.
-- **get_metadata_details** — Get full object structure for existing configuration objects.
-- **metadatasearch** (`names_only=true`) — Find similar configuration objects as XML reference examples.
-- **get_xsd_schema** — Get XSD schema for configuration XML. Use before generating Configuration.xml.
-- **verify_xml** — Validate generated configuration XML against XSD.
+- **rlm-tools-bsl** `search_objects` / `find_by_type` — Explore existing configuration structure, verify object names.
+- **rlm-tools-bsl** `get_object_full_structure` / `parse_object_xml` — Get full object structure for existing configuration objects.
+- **rlm-tools-bsl** `search_objects` — Find similar configuration objects as XML reference examples.
+- **cf-validate** — Validate generated configuration XML before committing.
 - **search_metadata** / **search_code** — Compare configuration objects with their extension counterparts when working with configurations that have extensions.
 - **docsearch** — Platform documentation on configuration properties.
 
