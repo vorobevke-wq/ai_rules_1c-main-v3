@@ -49,7 +49,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 - **Корневой свод правил** — `AGENTS.md`: исходный always-on контекст для ИИ-агента: персона, процедура разработки, принципы, перечень MCP-инструментов и их использование, стандарты кода, дисциплина вызовов инструментов. В этом репозитории он хранится в корне для удобного просмотра и поддерживается как читаемый документ без обязательных плейсхолдеров путей.
 - **Пользовательские правила** — `USER-RULES.md`: пустой по умолчанию файл для команды/проекта. Установщик его не перезаписывает.
 - **Память проекта** — `memory.md`: строгий долговременный слой для глобальных критичных правил проекта. Маршрутизация между `memory.md` и векторной памятью `remember` / `recall` описана в `AGENTS.md → Project memory`; это не общий блокнот.
-- **Параметры проекта** — `.dev.env`: единый источник правды для всех правил, on-demand-инструкций, слэш-команд и субагентов. Содержит и параметры генерации кода (`PREFIX`, `COMPANY`, `DEVELOPER`, `PLATFORM_VERSION`, шаблоны комментариев, `NEW_OBJECTS_IN`), и параметры подключения к ИБ для команд и тестов (`PLATFORM_PATH`, `INFOBASE_KIND`/`INFOBASE_PATH`, `IB_USER`/`IB_PASSWORD`, `EXTENSION_NAME`, `EXPORT_PATH`, `LOG_PATH`, `INFOBASE_PUBLISH_URL` для веб-тестов). Установщик создаёт `.dev.env` автоматически на `init`, заполняет автодетектом `PLATFORM_VERSION` (из `Configuration.xml`), `PLATFORM_PATH` (поиск в `C:\Program Files\1cv8\`) и `PREFIX` (из `NamePrefix` расширения), запрашивает остальное в интерактивном режиме. В `-NonInteractive` оставляет пустые поля с явным WARNING. Шаблон — `.dev.env.example`.
+- **Параметры проекта** — `.dev.env`: единый источник правды для всех правил, on-demand-инструкций, слэш-команд и субагентов. Содержит и параметры генерации кода (`PREFIX`, `COMPANY`, `DEVELOPER`, `PLATFORM_VERSION`, шаблоны комментариев, `NEW_OBJECTS_IN`), и параметры подключения к ИБ для команд и тестов (`PLATFORM_PATH`, `INFOBASE_KIND`/`INFOBASE_PATH`, `IB_USER`/`IB_PASSWORD`, `EXTENSION_NAME`, `EXPORT_PATH`, `LOG_PATH`, `INFOBASE_PUBLISH_URL` для веб-тестов), и `LSP_PROJECT_ID` для MCP-заголовка `x-project-id` сервера `1c-lsp-diagnostics`. Установщик создаёт `.dev.env` автоматически на `init`, заполняет автодетектом `PLATFORM_VERSION` (из `Configuration.xml`), `PLATFORM_PATH` (поиск в `C:\Program Files\1cv8\`) и `PREFIX` (из `NamePrefix` расширения), запрашивает остальное в интерактивном режиме. В `-NonInteractive` оставляет пустые поля с явным WARNING. Шаблон — `.dev.env.example`.
 - **Установщик** — `install.ps1`: PowerShell-инсталлятор (команды `init` / `update` / `add` / `remove` / `doctor` / `eject`).
 - **Спецификация установщика** — `AGENT-INSTALL.md`: что пишется/обновляется на диске, как происходит миграция и что принадлежит установщику.
 
@@ -159,7 +159,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) и графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode) (Docker-контейнеры, поднимаются локально по HTTP). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode) и LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -179,9 +179,15 @@ Fallback к графовому MCP и компактный способ иссл
 - **Формы и интеграции**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`.
 - **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для платформенной справки — `1C-docs-mcp` / `1c-code-check-mcp`.
 
-### `1c-syntax-checker-mcp` — синтаксис BSL
+### `1c-lsp-mcp-skill` — диагностика и навигация BSL
 
-`syntaxcheck` — проверка кода через BSL Language Server. Лимит — до 3 вызовов этого валидатора на цикл (одна логическая правка одного модуля). После лимита фиксируются содержательные ошибки, остальное — игнорируется.
+Пакет поднимает `lsp-skill-server`, который управляет `bsl-language-server` для одного или нескольких 1С-проектов. В MCP-конфиге используются два HTTP-сервера:
+
+- `1c-lsp-diagnostics` (`9011`) — инструмент `diagnostics(file_path)` для синтаксиса, предупреждений и замечаний анализатора по конкретному `.bsl` файлу.
+
+Сервер требует заголовок `x-project-id`. Установщик подставляет его из `LSP_PROJECT_ID` в `.dev.env`; если значение пустое, MCP-конфиг сохраняет плейсхолдер `{LSP_PROJECT_ID}` до повторного `install.ps1 update`.
+
+`diagnostics` принимает путь к `.bsl` файлу относительно `project_root_path`, а не текст кода. Лимит — до 3 вызовов этого валидатора на цикл (одна логическая правка одного модуля). После лимита фиксируются содержательные ошибки, остальное — игнорируется.
 
 ### `1c-templates-mcp` — шаблоны и долговременная память проекта
 
@@ -209,7 +215,7 @@ Fallback к графовому MCP и компактный способ иссл
 - **Анализ кода**: `check_1c_code` (синтаксис, логика, производительность), `review_1c_code` (стиль, стандарты ИТС, нейминг, структура), `rewrite_1c_code` / `modify_1c_code` (переписывание/целевые правки), `ask_1c_ai` (свободный диалог с сохранением контекста).
 - **Документация и база знаний**: `search_1c_documentation` (документация под конкретную версию платформы), `onec_help` (актуальная справка), `its_help` → `fetch_its` (поиск по ИТС-стандартам с обязательным дочитыванием полной статьи), `diff_1c_documentation_versions` (диффы между версиями платформы), `config_help` (документация по конкретным конфигурациям — ERP, БП, ЗУП, УТ).
 
-Лимит на `check_1c_code` / `review_1c_code` — до 3 вызовов каждого валидатора на цикл, как и у `syntaxcheck`. Output AI-инструментов всегда перепроверяется через `syntaxcheck` + `check_1c_code` + `review_1c_code` перед сдачей кода.
+Лимит на `check_1c_code` / `review_1c_code` — до 3 вызовов каждого валидатора на цикл, как и у `diagnostics`. Output AI-инструментов всегда перепроверяется через `diagnostics` + `check_1c_code` + `review_1c_code` перед сдачей кода.
 
 ## OpenSpec
 
@@ -219,6 +225,7 @@ Fallback к графовому MCP и компактный способ иссл
 
 - [vibecoding1c.ru](https://vibecoding1c.ru/) — портал по вайбкодингу для 1С: курсы, бенчмарк моделей, статьи, продукты для разработки 1С с ИИ.
 - [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) — пакет MCP-серверов для 1С, под который заточены правила и плейбуки этого репозитория.
+- [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) — LSP-мост для диагностики и навигации BSL через `bsl-language-server`.
 - [Telegram-канал «IT Does Matter»](https://t.me/comol_it_does_matter) — обсуждение вайбкодинга для 1С, MCP, ИИ-агентов, практик и обновлений.
 
 ## Лицензия

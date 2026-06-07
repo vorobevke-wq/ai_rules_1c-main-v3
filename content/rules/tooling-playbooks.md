@@ -14,10 +14,10 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 | Task shape | Required before edit | Required after edit |
 |---|---|---|
-| **Quick-fix BSL** (single procedure, no metadata / transaction / public API impact) | Read the target module / procedure and any directly referenced helper needed to understand the bug | `syntaxcheck` on the touched module |
-| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / RLM helpers (`search`, `search_methods`, `git_search`, `safe_grep`) for local patterns; `search_metadata` (`object_structure` / focused templates) or RLM helpers (`get_object_full_structure`, `find_attributes`) when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `syntaxcheck` → `check_1c_code` → `review_1c_code`; impact analysis when public surface or metadata usage changed |
+| **Quick-fix BSL** (single procedure, no metadata / transaction / public API impact) | Read the target module / procedure and any directly referenced helper needed to understand the bug | `diagnostics` on the touched `.bsl` file |
+| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / RLM helpers (`search`, `search_methods`, `git_search`, `safe_grep`) for local patterns; `search_metadata` (`object_structure` / focused templates) or RLM helpers (`get_object_full_structure`, `find_attributes`) when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `diagnostics` → `check_1c_code` → `review_1c_code`; impact analysis when public surface or metadata usage changed |
 | **Metadata XML / forms** | Similar object/form examples, metadata lookup through `search_metadata` / RLM helpers; prefer `1c-metadata-manage` over hand edits | Relevant `1c-metadata-manage` validator (`form-validate`, `meta-validate`, `role-validate`, `skd-validate`, etc.); metadata validation / form compilation where applicable |
-| **Integrations / platform APIs** | Existing integrations, templates, relevant БСП APIs, platform docs for exact API names / version availability, security requirements | `syntaxcheck` → `check_1c_code` → `review_1c_code`; ITS check when relying on an ITS standard |
+| **Integrations / platform APIs** | Existing integrations, templates, relevant БСП APIs, platform docs for exact API names / version availability, security requirements | `diagnostics` → `check_1c_code` → `review_1c_code`; ITS check when relying on an ITS standard |
 | **Markdown / rules / docs** | Read affected docs and referenced files needed for consistency | Structural checks only: paths, links, anchors, duplicate / conflicting wording |
 
 ## Writing New Code
@@ -31,7 +31,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 7. **docinfo / docsearch** for platform APIs; **rlm-tools-bsl** (`search_methods`, `find_exports`) for project routines.
 8. **docinfo** — verify built-in functions by exact name; **docsearch** — search by description.
 9. **ssl_search** — find reusable БСП functions.
-10. **syntaxcheck** — verify syntax after writing.
+10. **diagnostics** — verify touched `.bsl` files after writing.
 11. **check_1c_code** — find logic and performance defects.
 12. **review_1c_code** — verify style and ITS standards compliance.
 13. **validatequery** (`1c-data-mcp`, if available) — when the change introduces a new / non-trivial query string (module code, DCS data set, dynamic list), parse-check it against the live IB before delivery. Especially important after non-deterministic AI generation (`rewrite_1c_code` / `modify_1c_code` / `ask_1c_ai`).
@@ -62,7 +62,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 ## Error Fixing
 
 1. **vcloggetlasterror** (`1c-data-mcp`, if available) — fetch the exact text, timestamp and affected metadata of the last error from the live IB before forming hypotheses. Avoids guessing what the user "probably saw". Skip when the failing scenario is not yet reproduced in the connected IB.
-2. **syntaxcheck** — syntax errors.
+2. **diagnostics** — syntax and analyzer errors.
 3. **check_1c_code** — logic and performance issues.
 4. **rlm-tools-bsl** (`search_methods`; fallback `find_module` + `extract_procedures`) — locate the failing procedure/function.
 5. **search_code** → **rlm-tools-bsl** (`search`, `git_search`, `read_procedure`) — related patterns and the minimal routine body needed.
@@ -82,7 +82,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 3. **search_metadata** call-graph / usage templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — objects that cause cascading issues.
 4. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_register_movements`) — verify indexes and metadata structure.
 5. **check_1c_code** — bottleneck analysis.
-6. **rewrite_1c_code** — AI optimization (`goal: optimize`); re-validate with `check_1c_code` and `syntaxcheck`.
+6. **rewrite_1c_code** — AI optimization (`goal: optimize`); re-validate with `diagnostics` and `check_1c_code`.
 7. **templatesearch** — optimized templates.
 8. **its_help** → **fetch_its** — ITS performance standards.
 9. **validatequery** → **vcexecutequery** (`1c-data-mcp`, if available) — parse-check the rewritten query, then run it read-only against the live IB to compare row counts / spot Cartesian explosions / confirm a virtual-table state. Use only on a test or copy IB when production data volumes matter.
@@ -127,7 +127,7 @@ Use this playbook when writing HTTP services / clients, REST integrations, file 
 6. **1c-metadata-manage / XML validation tooling** — when the contract is XML with a known XSD.
 7. **its_help** → **fetch_its** — ITS articles on long-running operations, secure password storage, asynchronous external components.
 8. **rlm-tools-bsl** (`search_methods`, `find_module`, `extract_procedures`) — locate or extend the integration common module (typically `*HTTPClient`, `*Integration`, `*Exchange`).
-9. After implementation: **syntaxcheck** → **check_1c_code** → **review_1c_code**.
+9. After implementation: **diagnostics** → **check_1c_code** → **review_1c_code**.
 
 ## Documentation
 

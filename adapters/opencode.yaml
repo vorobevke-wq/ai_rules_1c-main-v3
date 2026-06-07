@@ -32,9 +32,9 @@
 #     OpenCode reads project MCP only from the root `opencode.json` `mcp` key;
 #     a file under `.opencode/` is silently ignored and the servers never
 #     connect (this was the bug behind "MCP not picked up"). Per-server schema:
-#     remote -> { type: "remote", url, enabled }, local -> { type: "local",
-#     command: [...], enabled }. OpenCode validates each entry with a STRICT
-#     schema (Zod `.strict()`) — any extra key (e.g. `description`,
+#     remote -> { type: "remote", url, enabled, headers? }, local -> { type:
+#     "local", command: [...], enabled }. OpenCode validates each entry with a
+#     STRICT schema (Zod `.strict()`) — any extra key (e.g. `description`,
 #     `connection_id`) makes it reject the WHOLE config, so the renderer emits
 #     only the documented keys. `opencode.json` is the user's shared config, so
 #     the installer deep-merges only the top-level `mcp` key (see `mcp.merge`).
@@ -43,15 +43,15 @@
 #     from the `mcp` object — OpenCode only swaps characters outside
 #     [a-zA-Z0-9_-] for `_`, it does NOT prepend a letter). Some providers
 #     (Moonshot/Kimi) reject any function name that does not start with a letter
-#     (`^[a-zA-Z_][a-zA-Z0-9-_]{2,63}$`), so a key like `1c-syntax-checker-mcp`
-#     yields `1c-syntax-checker-mcp_syntaxcheck` and the whole request fails with
+#     (`^[a-zA-Z_][a-zA-Z0-9-_]{2,63}$`), so a key like `1c-lsp-diagnostics`
+#     yields `1c-lsp-diagnostics_diagnostics` and the whole request fails with
 #     "function name is invalid, must start with a letter". Rendering rule:
-#     a leading `1c`/`1C` becomes `onec` (`1c-syntax-checker-mcp` ->
-#     `onec-syntax-checker-mcp`, `1C-docs-mcp` -> `onec-docs-mcp`); any other
+#     a leading `1c`/`1C` becomes `onec` (`1c-lsp-diagnostics` ->
+#     `onec-lsp-diagnostics`, `1C-docs-mcp` -> `onec-docs-mcp`); any other
 #     non-letter-leading id gets an `mcp-` prefix. Canonical ids in
 #     content/mcp-servers.json and in the docs stay `1c-...`; only the rendered
 #     OpenCode key changes. /checkmcp + /doctor detect tools by their bare names
-#     (syntaxcheck, docinfo, ...), not by the server prefix, so the rename is
+#     (diagnostics, docinfo, ...), not by the server prefix, so the rename is
 #     transparent to them.
 #   - On-demand rules are placed under `.opencode/rules/` and referenced from
 #     AGENTS.md by file path. OpenCode itself does not auto-discover them — the
@@ -112,7 +112,7 @@ mcp:
   # the main config file. Writing MCP to `.opencode/opencode.json` produces a
   # file OpenCode never reads, so the servers silently never connect.
   target: "opencode.json"
-  schema: "mcp[id]={ type: 'remote', url, enabled: true } | { type: 'local', command: [...], enabled: true }"
+  schema: "mcp[id]={ type: 'remote', url, headers?, enabled: true } | { type: 'local', command: [...], enabled: true }"
   format: json
   # `opencode.json` is the user's SHARED project config (model, theme, agent
   # overrides, permissions, …), not an MCP-only file. Deep-merge ONLY the

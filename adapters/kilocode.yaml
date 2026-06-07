@@ -23,8 +23,8 @@
 #   - MCP project-level config lives in `.kilo/kilo.json` (or any of the
 #     equivalents `kilo.json` / `kilo.jsonc` / `.kilo/kilo.jsonc`) and is
 #     written under the top-level `mcp` key, with per-server entries of
-#     shape `{ "type": "remote"|"local", "url"|"command": ..., "enabled":
-#     true }`. The legacy `.kilocode/mcp.json` with `mcpServers` is no
+#     shape `{ "type": "remote"|"local", "url"|"command": ..., "headers"?,
+#     "enabled": true }`. The legacy `.kilocode/mcp.json` with `mcpServers` is no
 #     longer read by current Kilo CLI / Kilo Code (v7.x+) — see
 #     https://kilo.ai/docs/automate/mcp/using-in-cli. Past installs that
 #     placed MCP into `.kilocode/mcp.json` produced silently empty MCP

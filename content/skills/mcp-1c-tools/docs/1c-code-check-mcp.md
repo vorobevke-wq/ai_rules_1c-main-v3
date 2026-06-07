@@ -10,7 +10,7 @@
 |---|---|---|
 | **check_1c_code** | Technical check: syntax, logic, performance | After writing code — find bugs and performance issues |
 | **review_1c_code** | Code review: style, ITS standards, naming, structure | After writing code — verify standards compliance |
-| **rewrite_1c_code** | AI rewrites code with improvements (optional `goal`: `optimize`, `readability`, `error handling`) | When code needs significant improvement. **Non-deterministic — mandatory re-validation** via `syntaxcheck` + `check_1c_code` + `review_1c_code` |
+| **rewrite_1c_code** | AI rewrites code with improvements (optional `goal`: `optimize`, `readability`, `error handling`) | When code needs significant improvement. **Non-deterministic — mandatory re-validation** via `diagnostics` + `check_1c_code` + `review_1c_code` |
 | **modify_1c_code** | Modify / generate code by explicit instruction | Targeted fixes, specific bug fixes, feature additions. **Non-deterministic — mandatory re-validation** |
 | **ask_1c_ai** | Free-form question to 1С:Напарник (preserves dialog context) | Architectural questions, concept explanations, advice. **Non-deterministic — treat as a hint, not authority** |
 
@@ -31,7 +31,7 @@
 
 ## Notes on AI tools
 
-`ask_1c_ai`, `rewrite_1c_code`, `modify_1c_code` are non-deterministic. Their output is a draft hint, not authority. Generated / rewritten code is **always** re-validated: `syntaxcheck` + `check_1c_code` + `review_1c_code`.
+`ask_1c_ai`, `rewrite_1c_code`, `modify_1c_code` are non-deterministic. Their output is a draft hint, not authority. Generated / rewritten code is **always** re-validated: `diagnostics` + `check_1c_code` + `review_1c_code`.
 
 ## Call limit
 

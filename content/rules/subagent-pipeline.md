@@ -6,7 +6,7 @@ category: workflow
 
 # Subagent Pipeline — Full-Cycle Flow
 
-**When to load this file:** any task that exceeds the **quick-fix** threshold defined in `AGENTS.md → Triage: Quick-fix vs Full-cycle` (more than ~20 changed lines, more than one module, any metadata change, any architectural impact, any non-trivial bug). For quick-fix tasks the pipeline is unnecessary overhead — a direct edit + `syntaxcheck` is enough.
+**When to load this file:** any task that exceeds the **quick-fix** threshold defined in `AGENTS.md → Triage: Quick-fix vs Full-cycle` (more than ~20 changed lines, more than one module, any metadata change, any architectural impact, any non-trivial bug). For quick-fix tasks the pipeline is unnecessary overhead — a direct edit + `diagnostics` is enough.
 
 **Companion files:** `subagents.md` (catalog of subagents and when to delegate), `verification-checklist.md` (the closing gate of the pipeline).
 
@@ -74,7 +74,7 @@ The pipeline removes those failure modes by separating **what to build** (planne
 
 ### Stage 1 — Triage (parent agent)
 
-Apply the matrix from `AGENTS.md → Triage: Quick-fix vs Full-cycle`. **Only** full-cycle tasks enter the pipeline. If the task is a quick-fix, edit directly and skip to stage 5 with a minimal verification (`syntaxcheck` only).
+Apply the matrix from `AGENTS.md → Triage: Quick-fix vs Full-cycle`. **Only** full-cycle tasks enter the pipeline. If the task is a quick-fix, edit directly and skip to stage 5 with a minimal verification (`diagnostics` only).
 
 If the user asks for a small change that **looks** like a quick-fix but the change touches a transactional path, a public common-module export, an extension's adopted object, an event subscription / scheduled job / RLS condition, or metadata wired into existing behavior (rename / remove / immediate-use, RLS / indexing / fill-check changes) — promote it to full-cycle. **Isolated metadata additions** that satisfy the "Isolated metadata addition" clause in `AGENTS.md → Triage` (new independent register / defined type / enumeration / constant / unwired attribute, with no consumer touched in the same change) stay on the quick-fix path. When in doubt, full-cycle wins.
 
@@ -92,7 +92,7 @@ The plan must satisfy these acceptance criteria before stage 3:
 
 - Each task is small enough that an enthusiastic junior 1C developer with no project context can execute it: typically 1 file / 1 procedure / ≤ ~20 changed lines per task.
 - Each task names exact file paths and exact procedure names — no "update the related modules".
-- Each task has a verification step (`syntaxcheck`, an MCP query, an assertion, a manual reproduction).
+- Each task has a verification step (`diagnostics`, an MCP query, an assertion, a manual reproduction).
 - Risks and rollback are explicit, especially for metadata changes (UUID stability, register movements, role grants).
 - The plan is reviewed by the user. The user's approval is a hard gate — do not proceed to stage 3 without it.
 
@@ -113,7 +113,7 @@ The implementation subagent is bound by the plan from stage 2. Out-of-plan chang
 The implementation subagent is responsible for:
 
 - editing the BSL / XML;
-- running its own pre-handoff `syntaxcheck` on every touched module;
+- running its own pre-handoff `diagnostics` on every touched `.bsl` module;
 - preserving module headers, regions and the project's code style (`dev-standards-core.md`);
 - removing only the imports / variables / procedures **that its own changes made unused** — never pre-existing dead code;
 - summarizing the diff against the plan, file by file;

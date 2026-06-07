@@ -8,7 +8,7 @@ category: quality
 
 **When to load this file:** any task that involves diagnosing a bug, runtime error, regression, performance regression, or unexpected behavior — whether the parent agent is debugging directly or delegating to the `1c-error-fixer` / `1c-performance-optimizer` subagent.
 
-**Goal:** replace ad-hoc trial-and-error with a structured root-cause loop. Skipping a phase is a defect, the same way as skipping `syntaxcheck` after editing code.
+**Goal:** replace ad-hoc trial-and-error with a structured root-cause loop. Skipping a phase is a defect, the same way as skipping `diagnostics` after editing code.
 
 The methodology is adapted from the `systematic-debugging` skill of [obra/superpowers](https://github.com/obra/superpowers) and combined with 1C platform mechanics (debugger, `ЖурналРегистрации`, `ОтчетПоЖурналуРегистрации`, `ПоказатьЗначение`, `СообщитьПользователю`, `Replay` of background jobs, technological log).
 
@@ -102,7 +102,7 @@ Required:
 - The fix touches only the code paths involved in the confirmed hypothesis (Surgical Changes principle from `AGENTS.md`).
 - A regression guard exists: a query, a `ЖурналРегистрации` event, an `Утверждение`, or — at minimum — a documented manual reproduction step in the change description.
 - All temporary `ЗаписьЖурналаРегистрации("Debug.*"`, `ПоказатьЗначение`, hard-coded values, breakpoints, and TODO markers introduced in phase 3 are removed.
-- Verification chain runs cleanly: `syntaxcheck` → `check_1c_code` → `review_1c_code` → Metacode impact templates or fallback dependency analysis against the touched objects (see `verification-checklist.md`).
+- Verification chain runs cleanly: `diagnostics` → `check_1c_code` → `review_1c_code` → Metacode impact templates or fallback dependency analysis against the touched objects (see `verification-checklist.md`).
 - The original reproduction case from phase 1 no longer triggers the symptom.
 
 If the fix requires architectural rework (signature changes in shared common modules, metadata edits, a new register), escalate — call the `1c-architect` or `1c-developer` subagent rather than expanding the scope of the bug fix yourself.

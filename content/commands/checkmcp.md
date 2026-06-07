@@ -4,15 +4,15 @@ description: Check availability of 1C MCP servers and install/start the missing 
 
 # /checkmcp — check and install 1C MCP servers
 
-This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "enabled": true }` — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file).
+This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "headers": { ... }, "enabled": true }` when headers are needed — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file).
 
-The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>.
+The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>. For `1c-lsp-mcp-skill`, use the upstream repository: <https://github.com/fserg/1c-lsp-mcp-skill>.
 
 ## Target server catalog
 
 | id | Port | Docker image | Purpose | Requires data |
 |---|---|---|---|---|
-| `1c-syntax-checker-mcp` | 8002 | `comol/1c_syntaxcheck_mcp:latest` | BSL syntax (BSL Language Server) | No |
+| `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — configured `lsp-skill-server` project id (`LSP_PROJECT_ID`) |
 | `1c-templates-mcp` | 8004 | `comol/1c_templates_mcp:latest` | Templates and project memory (`remember`/`recall`) | No |
 | `1c-ssl-mcp` | 8008 | `comol/mcp_ssl_server:latest` | BSP/SSL search | No (`SSL_VERSION`) |
 | `1C-docs-mcp` | 8003 | `comol/1c_help_mcp:latest` | 1C platform help (RAG) | Yes — platform `bin` folder |
@@ -44,7 +44,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 ### Step 1. Determine the server set
 
-1. If the project has `.ai-rules.json`, take the catalog from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]`). A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-syntax-checker-mcp`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
+1. If the project has `.ai-rules.json`, take the catalog from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]`). A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-lsp-diagnostics`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
 2. Otherwise use `content/mcp-servers.json` from the rules repository.
 3. If neither source exists, use the table above as the default set.
 
@@ -52,7 +52,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 For each `id`, determine **TOOLS_OK** / **TOOLS_MISSING**:
 
-- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `syntaxcheck` for `1c-syntax-checker-mcp`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `docinfo`/`docsearch` for `1C-docs-mcp`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`its_help` for `1c-code-check-mcp`).
+- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `diagnostics` for `1c-lsp-diagnostics`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `docinfo`/`docsearch` for `1C-docs-mcp`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`its_help` for `1c-code-check-mcp`).
 - **TOOLS_MISSING** — no tools are visible in the schema.
 
 If status is **TOOLS_OK**, treat the server as working and do not check it further.
@@ -64,7 +64,7 @@ For servers with **TOOLS_MISSING**, call the HTTP endpoint. PowerShell (Windows)
 ```powershell
 $servers = @(
     @{ Id = 'rlm-tools-bsl';          Port = 9000 },
-    @{ Id = '1c-syntax-checker-mcp';  Port = 8002 },
+    @{ Id = '1c-lsp-diagnostics';     Port = 9011 },
     @{ Id = '1C-docs-mcp';            Port = 8003 },
     @{ Id = '1c-templates-mcp';       Port = 8004 },
     @{ Id = '1c-mcp-metacode';        Port = 6001 },
@@ -142,18 +142,19 @@ Possible outcomes:
   docker start <container_name>
   ```
 
-  Default names: `1c_syntaxcheck_mcp`, `1c_templates_mcp`, `mcp_ssl_server`, `1c_help_mcp`, `1c-metacode-<METACODE_PROJECT_ID>`, `1c_code_checker_mcp` (check the actual name in `docker ps -a`). `rlm-tools-bsl` is usually a native Windows service / systemd service; check it through the upstream service scripts before assuming Docker is involved.
+  Default names: `1c_templates_mcp`, `mcp_ssl_server`, `1c_help_mcp`, `1c-metacode-<METACODE_PROJECT_ID>`, `1c_code_checker_mcp` (check the actual name in `docker ps -a`). `rlm-tools-bsl` and `1c-lsp-mcp-skill` are usually native Windows services / systemd services; check them through upstream service scripts before assuming Docker is involved.
 
 - The container is absent from `docker ps -a` → **CONTAINER_MISSING**. The image may already be cached (`docker images`), but the container was not created. Create and start it — see Step 5.
 
 ### Step 5. Install missing server
 
-**Do not install or start services silently.** For Docker-based servers, do not run `docker run` without user confirmation. For `rlm-tools-bsl`, do not download / run the upstream installer without user confirmation.
+**Do not install or start services silently.** For Docker-based servers, do not run `docker run` without user confirmation. For `rlm-tools-bsl` or `1c-lsp-mcp-skill`, do not download / run the upstream installer or binaries without user confirmation.
 
 - `LICENSE_KEY` — shared MCP server license key.
 - Local data paths for servers that need them:
   - `1C-docs-mcp` — platform `bin` folder path (for example, `C:\Program Files\1cv8\8.3.23.1997\bin`).
   - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
+  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and `LSP_PROJECT_ID` in `.dev.env` (used as the `x-project-id` MCP header for `1c-lsp-diagnostics`); no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
   - `1c-code-check-mcp` — 1C:Assistant token, if it will be used.
@@ -162,11 +163,6 @@ Possible outcomes:
 Command templates (minimal set without data preparation):
 
 ```powershell
-# 1c-syntax-checker-mcp
-docker run -d -p 8002:8002 --name 1c_syntaxcheck_mcp `
-  -e LICENSE_KEY={LICENSE_KEY} `
-  comol/1c_syntaxcheck_mcp:latest
-
 # 1c-templates-mcp
 docker run -d -p 8004:8004 --name 1c_templates_mcp `
   -e LICENSE_KEY={LICENSE_KEY} `
@@ -199,6 +195,15 @@ curl -LO https://raw.githubusercontent.com/Dach-Coin/rlm-tools-bsl/master/simple
 chmod +x simple-install-from-pip.sh
 ./simple-install-from-pip.sh
 
+# 1c-lsp-mcp-skill — install by upstream release / quickstart
+# 1. Install Java/JVM and download bsl-language-server JAR.
+# 2. Start lsp-skill-server and configure the JAR path.
+# 3. Add the 1C project in the web UI and enable MCP.
+# 4. Put the project id into .dev.env:
+#    LSP_PROJECT_ID=<project-id-from-lsp-skill-server>
+# 5. Re-run install.ps1 update so MCP headers are rendered:
+#    "1c-lsp-diagnostics": { "type": "http", "url": "http://127.0.0.1:9011/mcp", "headers": { "x-project-id": "<project-id>" } }
+
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs
 # https://github.com/ROCTUP/1c-mcp-metacode
 
@@ -212,9 +217,9 @@ Exact current commands for each server are on the server-specific documentation 
 
 - [HelpSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/help-search-server.md)
 - [rlm-tools-bsl](https://github.com/Dach-Coin/rlm-tools-bsl)
+- [1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill)
 - [Graph Metadata Search](https://docs.onerpa.ru/mcp-servery-1c/servery/graph-metadata-search.md)
 - [SSLSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/ssl-search-server.md)
-- [SyntaxCheckServer](https://docs.onerpa.ru/mcp-servery-1c/servery/syntax-check-server.md)
 - [TemplatesSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/templates-search-server.md)
 - [1CCodeChecker](https://docs.onerpa.ru/mcp-servery-1c/servery/code-checker.md)
 
@@ -242,4 +247,4 @@ Under the table, list clear next steps with copy-ready commands. Do not list ite
 
 - The command does not run `docker run` or upstream service installers without user confirmation. Docker servers need `LICENSE_KEY`, data paths, and consent to download images (several GB). `rlm-tools-bsl` does not use the shared `LICENSE_KEY`, but installing it still downloads and registers a local service.
 - Metacode MCP (`1c-mcp-metacode`) requires separate Neo4j setup and indexing. This is a multi-step process; execute it by the GitHub repository instructions, not from this command.
-- Indexed servers (`1C-docs-mcp`, `1c-mcp-metacode`, `1c-ssl-mcp`, and `rlm-tools-bsl` when its SQLite index is building) may respond over HTTP before becoming useful while primary indexing is still running. This is normal; monitor Docker services with `docker logs -f <name>` and `rlm-tools-bsl` through `rlm_index(action="info", project="...")` / service logs.
+- Indexed servers (`1C-docs-mcp`, `1c-mcp-metacode`, `1c-ssl-mcp`, `rlm-tools-bsl` when its SQLite index is building, and `1c-lsp-mcp-skill` while `bsl-language-server` is warming up) may respond over HTTP before becoming useful while primary indexing is still running. This is normal; monitor Docker services with `docker logs -f <name>`, `rlm-tools-bsl` through `rlm_index(action="info", project="...")` / service logs, and `1c-lsp-mcp-skill` through its web UI / service logs.

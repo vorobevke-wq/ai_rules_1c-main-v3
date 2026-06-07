@@ -32,7 +32,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 - **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — trace call chains to understand what will be affected
 - **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify metadata dependencies and structure
 - **templatesearch** — find better patterns to apply
-- **syntaxcheck** — verify refactored code syntax
+- **diagnostics** — verify refactored `.bsl` files through `1c-lsp-diagnostics`
 - **check_1c_code** — check for performance and logic issues
 - **review_1c_code** — check style and ITS standards compliance
 - **rewrite_1c_code** — get AI-improved version of code (with `goal` parameter: `optimize`, `readability`)

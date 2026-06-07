@@ -652,6 +652,12 @@ function Format-TomlString {
     return '"' + $s + '"'
 }
 
+function Format-TomlKey {
+    param([string]$Key)
+    if ($Key -match '^[A-Za-z_][A-Za-z0-9_-]*$') { return $Key }
+    return (Format-TomlString $Key)
+}
+
 function Format-TomlArray {
     param([array]$Values)
     $items = @($Values | ForEach-Object { Format-TomlString $_ })
@@ -751,28 +757,61 @@ function Get-InfobasePublishUrlBase {
     return $url
 }
 
+function Get-LspProjectId {
+    # Reads the optional project id used by `1c-lsp-mcp-skill` MCP servers.
+    # The value is sent as the `x-project-id` HTTP header to
+    # `1c-lsp-diagnostics`.
+    param([string]$Root)
+
+    $envPath = Join-Path $Root $script:DevEnvFileName
+    if (-not (Test-Path $envPath)) { return '' }
+
+    $keys = Read-DevEnvKeys -Path $envPath
+    if (-not $keys.Contains('LSP_PROJECT_ID')) { return '' }
+
+    $raw = [string]$keys['LSP_PROJECT_ID']
+    if ([string]::IsNullOrWhiteSpace($raw)) { return '' }
+    return $raw.Trim()
+}
+
 function Resolve-McpServerPlaceholders {
-    # Substitutes {INFOBASE_PUBLISH_URL} in the `url` field of every server
-    # entry that contains it. Mutates the input collection. Returns the list
-    # of server ids whose placeholder could not be resolved because
-    # INFOBASE_PUBLISH_URL was empty / `.dev.env` was missing — the caller
-    # uses this to warn the user.
+    # Substitutes supported placeholders in MCP server URLs and headers.
+    # Mutates the input collection. Returns a dictionary of placeholder names
+    # to server ids whose placeholder could not be resolved.
     param(
         [array]$Servers,
-        [string]$InfobaseBase
+        [string]$InfobaseBase,
+        [string]$LspProjectId
     )
-    $unresolved = @()
+    $unresolved = [ordered]@{
+        INFOBASE_PUBLISH_URL = @()
+        LSP_PROJECT_ID       = @()
+    }
     foreach ($s in $Servers) {
-        if (-not $s.url) { continue }
-        if ($s.url -notmatch '\{INFOBASE_PUBLISH_URL\}') { continue }
-        if ($InfobaseBase) {
-            $s.url = $s.url.Replace('{INFOBASE_PUBLISH_URL}', $InfobaseBase)
+        if ($s.url -and $s.url -match '\{INFOBASE_PUBLISH_URL\}') {
+            if ($InfobaseBase) {
+                $s.url = $s.url.Replace('{INFOBASE_PUBLISH_URL}', $InfobaseBase)
+            }
+            else {
+                $unresolved.INFOBASE_PUBLISH_URL += $s.id
+            }
         }
-        else {
-            $unresolved += $s.id
+
+        if ($s.headers) {
+            foreach ($p in $s.headers.PSObject.Properties) {
+                if ($null -eq $p.Value) { continue }
+                $value = [string]$p.Value
+                if ($value -notmatch '\{LSP_PROJECT_ID\}') { continue }
+                if ($LspProjectId) {
+                    $p.Value = $value.Replace('{LSP_PROJECT_ID}', $LspProjectId)
+                }
+                else {
+                    $unresolved.LSP_PROJECT_ID += $s.id
+                }
+            }
         }
     }
-    return , $unresolved
+    return $unresolved
 }
 
 function Test-McpHttpEndpoint {
@@ -815,6 +854,7 @@ function ConvertTo-McpServersJsonDict {
         if ($s.url) { $entry['url'] = $s.url }
         if ($s.connectionId) { $entry['connection_id'] = $s.connectionId }
         if ($s.description) { $entry['description'] = $s.description }
+        if ($s.headers) { $entry['headers'] = $s.headers }
         if ($s.command) { $entry['command'] = $s.command }
         if ($s.args) { $entry['args'] = $s.args }
         if ($s.env) { $entry['env'] = $s.env }
@@ -866,6 +906,7 @@ function New-McpConfig-Kilocode {
         if ($s.url) {
             $entry['type'] = 'remote'
             $entry['url'] = $s.url
+            if ($s.headers) { $entry['headers'] = $s.headers }
         }
         elseif ($s.command) {
             $entry['type'] = 'local'
@@ -896,7 +937,7 @@ function ConvertTo-OpenCodeMcpKey {
     # outside [a-zA-Z0-9_-] with `_`, it does NOT force a leading letter). Some
     # providers — Moonshot/Kimi in particular — reject any function name that
     # does not start with a letter (`^[a-zA-Z_][a-zA-Z0-9-_]{2,63}$`), so a key
-    # like `1c-syntax-checker-mcp` produces `1c-syntax-checker-mcp_syntaxcheck`
+    # like `1c-lsp-diagnostics` produces `1c-lsp-diagnostics_diagnostics`
     # and the whole request fails with "function name is invalid, must start
     # with a letter". Normalize the well-known `1c`/`1C` prefix to the readable
     # `onec`; guarantee any other non-letter-leading id also starts with a
@@ -918,7 +959,7 @@ function New-McpConfig-OpenCode {
     # allowed, and any unknown key (e.g. `description`, `connection_id`) makes
     # OpenCode reject the whole config so the servers silently never load.
     # Emit only:
-    #   remote -> { type: "remote", url, enabled }
+    #   remote -> { type: "remote", url, enabled, headers? }
     #   local  -> { type: "local",  command: [...], enabled, environment? }
     # `enabled: true` is written explicitly (matches OpenCode's documented
     # examples). `$schema` is added for editor validation; on merge an existing
@@ -930,6 +971,7 @@ function New-McpConfig-OpenCode {
         if ($s.url) {
             $entry['type'] = 'remote'
             $entry['url'] = $s.url
+            if ($s.headers) { $entry['headers'] = $s.headers }
         }
         elseif ($s.command) {
             $entry['type'] = 'local'
@@ -954,6 +996,15 @@ function New-McpConfig-Codex {
         if ($s.url) { $lines += 'url = ' + (Format-TomlString $s.url) }
         if ($s.connectionId) { $lines += 'connection_id = ' + (Format-TomlString $s.connectionId) }
         if ($s.description) { $lines += 'description = ' + (Format-TomlString $s.description) }
+        if ($s.headers) {
+            $headerItems = @()
+            foreach ($p in $s.headers.PSObject.Properties) {
+                $headerItems += ((Format-TomlKey $p.Name) + ' = ' + (Format-TomlString ([string]$p.Value)))
+            }
+            if ($headerItems.Count -gt 0) {
+                $lines += 'headers = { ' + ($headerItems -join ', ') + ' }'
+            }
+        }
         if ($s.command) {
             $lines += 'command = ' + (Format-TomlString $s.command)
             if ($s.args) { $lines += 'args = ' + (Format-TomlArray $s.args) }
@@ -1594,7 +1645,7 @@ function Format-1cProjectMd {
     [void]$lines.Add('- Стандарты ИТС, расширенные правилами проекта (см. `AGENTS.md` и каталог on-demand правил активного инструмента)')
     [void]$lines.Add('- Запрет на тернарный оператор `?(...)`, `Сообщить()`, обращение к реквизитам через точку')
     [void]$lines.Add('- Перед написанием кода — поиск по `templatesearch` / `search_code` / `rlm-tools-bsl` (`rlm_start` → `rlm_execute`)')
-    [void]$lines.Add('- После написания кода — `syntaxcheck` → `check_1c_code` → `review_1c_code` (≤ 3 раза за цикл)')
+    [void]$lines.Add('- После написания кода — `diagnostics` → `check_1c_code` → `review_1c_code` (≤ 3 раза за цикл)')
     [void]$lines.Add('- Полный список запретов и стандартов — `AGENTS.md`, раздел *Forbidden Calls and Constructs*')
     return ($lines -join "`n") + "`n"
 }
@@ -2019,16 +2070,21 @@ function Invoke-McpPhase {
     )
     $servers = Read-McpServers -Root $SourceRoot
 
-    # Substitute {INFOBASE_PUBLISH_URL} placeholders in server URLs from the
-    # project's .dev.env (Place-DevEnv runs earlier in the pipeline so the
-    # file is in place by now). Servers whose placeholder cannot be resolved
-    # keep the literal placeholder in the rendered config — the user sees a
-    # clear TODO marker and a warning telling them what to fill in.
+    # Substitute MCP placeholders from the project's .dev.env
+    # (Place-DevEnv runs earlier in the pipeline so the file is in place by
+    # now). Servers whose placeholder cannot be resolved keep the literal
+    # placeholder in the rendered config — the user sees a clear TODO marker
+    # and a warning telling them what to fill in.
     $infobaseBase = Get-InfobasePublishUrlBase -Root $Root
-    $unresolved = Resolve-McpServerPlaceholders -Servers $servers -InfobaseBase $infobaseBase
-    if ($unresolved.Count -gt 0) {
-        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {INFOBASE_PUBLISH_URL}, но INFOBASE_PUBLISH_URL в .dev.env пуст: " + ($unresolved -join ', ') + '.')
+    $lspProjectId = Get-LspProjectId -Root $Root
+    $unresolved = Resolve-McpServerPlaceholders -Servers $servers -InfobaseBase $infobaseBase -LspProjectId $lspProjectId
+    if ($unresolved.INFOBASE_PUBLISH_URL.Count -gt 0) {
+        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {INFOBASE_PUBLISH_URL}, но INFOBASE_PUBLISH_URL в .dev.env пуст: " + ($unresolved.INFOBASE_PUBLISH_URL -join ', ') + '.')
         Write-Warn '  Заполните INFOBASE_PUBLISH_URL в .dev.env (URL веб-публикации ИБ, напр. http://localhost/<infobase_name>/ru/) и запустите установщик повторно — MCP-конфиг будет перерендерен с подставленным URL.'
+    }
+    if ($unresolved.LSP_PROJECT_ID.Count -gt 0) {
+        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {LSP_PROJECT_ID}, но LSP_PROJECT_ID в .dev.env пуст: " + ($unresolved.LSP_PROJECT_ID -join ', ') + '.')
+        Write-Warn '  Заполните LSP_PROJECT_ID в .dev.env значением project id из lsp-skill-server и запустите установщик повторно — заголовок x-project-id будет перерендерен.'
     }
 
     # Probe HTTP-service-based MCP servers (1c-data-mcp). The MCP HTTP client
@@ -2485,7 +2541,7 @@ function Place-DevEnv {
         if (-not $values.Contains($k) -or [string]::IsNullOrWhiteSpace($values[$k])) { $criticalEmpty += $k }
     }
     $recommendedEmpty = @()
-    foreach ($k in @('INFOBASE_PUBLISH_URL')) {
+    foreach ($k in @('INFOBASE_PUBLISH_URL', 'LSP_PROJECT_ID')) {
         if (-not $values.Contains($k) -or [string]::IsNullOrWhiteSpace($values[$k])) { $recommendedEmpty += $k }
     }
     if ($criticalEmpty.Count -gt 0) {
@@ -2664,9 +2720,10 @@ function Invoke-Init {
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
 
     # .dev.env must be placed BEFORE the MCP phase because some MCP server
-    # URLs in `content/mcp-servers.json` reference {INFOBASE_PUBLISH_URL} —
-    # the installer substitutes that placeholder from the freshly-written
-    # .dev.env when rendering per-tool MCP configs.
+    # entries in `content/mcp-servers.json` reference placeholders such as
+    # {INFOBASE_PUBLISH_URL} and {LSP_PROJECT_ID}; the installer substitutes
+    # those placeholders from the freshly-written .dev.env when rendering
+    # per-tool MCP configs.
     Write-Section 'Phase 7: .dev.env (project parameters, single source of truth)'
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
 
@@ -2867,8 +2924,8 @@ function Invoke-Update {
     Write-Section 'OpenSpec project.md (update / 1C autodetect)'
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
 
-    # .dev.env runs before MCP so that {INFOBASE_PUBLISH_URL} placeholders in
-    # `content/mcp-servers.json` resolve against the actual project value
+    # .dev.env runs before MCP so that placeholders in
+    # `content/mcp-servers.json` resolve against the actual project values
     # when MCP configs are re-rendered.
     Write-Section '.dev.env (update — placed only if missing)'
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest

@@ -96,7 +96,7 @@ Pass criterion: OpenSpec exists, and `openspec/project.md` is present and meanin
 Check MCP at two levels:
 
 1. **Current session tools** — verify that expected tools are visible in the current agent tool schema when the server is configured:
-   - `syntaxcheck` for `1c-syntax-checker-mcp`;
+   - `diagnostics` for `1c-lsp-diagnostics`;
    - `templatesearch`, `remember`, `recall` for `1c-templates-mcp`;
    - `ssl_search` for `1c-ssl-mcp`;
    - `docinfo`, `docsearch` for `1C-docs-mcp`;

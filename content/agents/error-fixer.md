@@ -25,7 +25,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 **Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 
 **Key tools for error fixing:**
-- **syntaxcheck** — check code for syntax errors (limit: 1 per cycle by default, up to 3 only on substantive defects — see `AGENTS.md → MCP Tool Calling → B.1`)
+- **diagnostics** — check touched `.bsl` files for syntax and analyzer errors (limit: 1 per cycle by default, up to 3 only on substantive defects — see `AGENTS.md → MCP Tool Calling → B.1`)
 - **docsearch** — verify built-in function existence/syntax
 - **rlm-tools-bsl** `search` / `git_search` — find correct usage patterns
 - **rlm-tools-bsl** `search_methods` — find the problematic procedure/function by name
@@ -44,7 +44,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 
 ```
 a) Run syntax check
-   - Use syntaxcheck tool
+   - Use `diagnostics` tool
    - Capture ALL errors, not just first
 
 b) Categorize errors by type

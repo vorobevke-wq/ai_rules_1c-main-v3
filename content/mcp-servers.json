@@ -9,11 +9,14 @@
       "required": false
     },
     {
-      "id": "1c-syntax-checker-mcp",
-      "description": "BSL syntax validation via BSL Language Server",
+      "id": "1c-lsp-diagnostics",
+      "description": "BSL diagnostics via 1c-lsp-mcp-skill and bsl-language-server: syntax errors, warnings, analyzer remarks",
       "transport": "http",
-      "url": "http://localhost:8002/mcp",
-      "connectionId": "1c_lsp_service_001",
+      "url": "http://127.0.0.1:9011/mcp",
+      "headers": {
+        "x-project-id": "{LSP_PROJECT_ID}"
+      },
+      "connectionId": "1c_lsp_diagnostics_service_001",
       "required": false
     },
     {

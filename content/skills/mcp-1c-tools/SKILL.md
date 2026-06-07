@@ -1,6 +1,6 @@
 ---
 name: mcp-1c-tools
-description: "Catalog of MCP servers for 1C development — search, code navigation, metadata, code review, docs, ITS, templates. Use whenever a 1C task requires calling tools from any 1c-*-mcp / 1C-*-mcp server. Each server has its own detail file under `docs/` — load it when you are about to call tools from that server, and only if the server is actually available in the current session."
+description: "Catalog of MCP servers for 1C development — search, code navigation, metadata, diagnostics, code review, docs, ITS, templates. Use whenever a 1C task requires calling tools from any 1C MCP server. Each server has its own detail file under `docs/` — load it when you are about to call tools from that server, and only if the server is actually available in the current session."
 ---
 
 # MCP tools for 1C — dispatcher
@@ -20,6 +20,7 @@ For these tools default parameters are usually suboptimal; consult the server's 
 
 - `1c-mcp-metacode`: `search_metadata` (JSON template operations and natural-language mode), `search_metadata_by_description`, `search_code`. Use `docs/1c-mcp-metacode.md` to choose the right template operation before calling.
 - `rlm-tools-bsl`: `rlm_start`, `rlm_help`, `rlm_execute`, `rlm_index`; inside `rlm_execute`, tune helper choice and arguments (`search`, `search_objects`, `search_methods`, `git_search`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, etc.).
+- `1c-lsp-diagnostics`: `diagnostics` (path-based BSL validation); use `docs/1c-lsp-mcp-skill.md` to confirm relative path rules.
 
 If `docs/<server>.md` conflicts with the descriptor exposed by the current environment, the environment descriptor wins.
 
@@ -42,7 +43,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 | **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
 | **1C-docs-mcp** | 1C platform documentation (search by description / by exact name) | [`docs/1C-docs-mcp.md`](docs/1C-docs-mcp.md) |
 | **1c-code-check-mcp** | 1С:Напарник — code review, technical check, AI rewrite/modify, ITS documentation | [`docs/1c-code-check-mcp.md`](docs/1c-code-check-mcp.md) |
-| **1c-syntax-checker-mcp** | BSL syntax and style via BSL Language Server | [`docs/1c-syntax-checker-mcp.md`](docs/1c-syntax-checker-mcp.md) |
+| **1c-lsp-diagnostics** | BSL diagnostics via `1c-lsp-mcp-skill` / BSL Language Server | [`docs/1c-lsp-mcp-skill.md`](docs/1c-lsp-mcp-skill.md) |
 | **1c-data-mcp** | Live-IB execution: BSL fragment run (`vcexecutecode`), query run (`vcexecutequery`), query parse-check (`validatequery`), last event-log error (`vcloggetlasterror`) | [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md) |
 
 ## Fallback chain (highest priority to lowest)
@@ -66,7 +67,7 @@ These servers have no `Grep` / `rg` equivalent; call them only when their knowle
 2. `1c-ssl-mcp` — БСП / SSL reusable APIs and patterns.
 3. `1C-docs-mcp` — versioned platform documentation.
 4. `1c-code-check-mcp` — 1С:Напарник checks, ITS standards (`its_help` → `fetch_its` for every document used), AI drafts.
-5. `1c-syntax-checker-mcp` — BSL syntax / style validation after edits.
+5. `1c-lsp-diagnostics` — BSL syntax / analyzer diagnostics after edits.
 6. `1c-data-mcp` — execution against the **live** infobase (run a BSL fragment, run a query, parse-check a query, fetch the last event-log error). No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md).
 
 ## Quick map: "task → MCP tool"
