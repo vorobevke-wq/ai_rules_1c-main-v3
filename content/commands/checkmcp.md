@@ -12,7 +12,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 | id | Port | Docker image | Purpose | Requires data |
 |---|---|---|---|---|
-| `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — configured `lsp-skill-server` project id (`LSP_PROJECT_ID`) |
+| `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — configured `lsp-skill-server` project id in the active MCP config `x-project-id` header |
 | `1c-templates-mcp` | 8004 | `comol/1c_templates_mcp:latest` | Templates and project memory (`remember`/`recall`) | No |
 | `1c-ssl-mcp` | 8008 | `comol/mcp_ssl_server:latest` | BSP/SSL search | No (`SSL_VERSION`) |
 | `1C-docs-mcp` | 8003 | `comol/1c_help_mcp:latest` | 1C platform help (RAG) | Yes — platform `bin` folder |
@@ -154,7 +154,7 @@ Possible outcomes:
 - Local data paths for servers that need them:
   - `1C-docs-mcp` — platform `bin` folder path (for example, `C:\Program Files\1cv8\8.3.23.1997\bin`).
   - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
-  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and `LSP_PROJECT_ID` in `.dev.env` (used as the `x-project-id` MCP header for `1c-lsp-diagnostics`); no shared `LICENSE_KEY` is required.
+  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the `x-project-id` header configured manually in the active MCP client config for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
   - `1c-code-check-mcp` — 1C:Assistant token, if it will be used.
@@ -199,9 +199,7 @@ chmod +x simple-install-from-pip.sh
 # 1. Install Java/JVM and download bsl-language-server JAR.
 # 2. Start lsp-skill-server and configure the JAR path.
 # 3. Add the 1C project in the web UI and enable MCP.
-# 4. Put the project id into .dev.env:
-#    LSP_PROJECT_ID=<project-id-from-lsp-skill-server>
-# 5. Re-run install.ps1 update so MCP headers are rendered:
+# 4. Put the project id into the active MCP client config:
 #    "1c-lsp-diagnostics": { "type": "http", "url": "http://127.0.0.1:9011/mcp", "headers": { "x-project-id": "<project-id>" } }
 
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs

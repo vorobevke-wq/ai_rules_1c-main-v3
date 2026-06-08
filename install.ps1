@@ -757,61 +757,28 @@ function Get-InfobasePublishUrlBase {
     return $url
 }
 
-function Get-LspProjectId {
-    # Reads the optional project id used by `1c-lsp-mcp-skill` MCP servers.
-    # The value is sent as the `x-project-id` HTTP header to
-    # `1c-lsp-diagnostics`.
-    param([string]$Root)
-
-    $envPath = Join-Path $Root $script:DevEnvFileName
-    if (-not (Test-Path $envPath)) { return '' }
-
-    $keys = Read-DevEnvKeys -Path $envPath
-    if (-not $keys.Contains('LSP_PROJECT_ID')) { return '' }
-
-    $raw = [string]$keys['LSP_PROJECT_ID']
-    if ([string]::IsNullOrWhiteSpace($raw)) { return '' }
-    return $raw.Trim()
-}
-
 function Resolve-McpServerPlaceholders {
-    # Substitutes supported placeholders in MCP server URLs and headers.
-    # Mutates the input collection. Returns a dictionary of placeholder names
-    # to server ids whose placeholder could not be resolved.
+    # Substitutes {INFOBASE_PUBLISH_URL} in the `url` field of every server
+    # entry that contains it. Mutates the input collection. Returns the list
+    # of server ids whose placeholder could not be resolved because
+    # INFOBASE_PUBLISH_URL was empty / `.dev.env` was missing — the caller
+    # uses this to warn the user.
     param(
         [array]$Servers,
-        [string]$InfobaseBase,
-        [string]$LspProjectId
+        [string]$InfobaseBase
     )
-    $unresolved = [ordered]@{
-        INFOBASE_PUBLISH_URL = @()
-        LSP_PROJECT_ID       = @()
-    }
+    $unresolved = @()
     foreach ($s in $Servers) {
-        if ($s.url -and $s.url -match '\{INFOBASE_PUBLISH_URL\}') {
-            if ($InfobaseBase) {
-                $s.url = $s.url.Replace('{INFOBASE_PUBLISH_URL}', $InfobaseBase)
-            }
-            else {
-                $unresolved.INFOBASE_PUBLISH_URL += $s.id
-            }
+        if (-not $s.url) { continue }
+        if ($s.url -notmatch '\{INFOBASE_PUBLISH_URL\}') { continue }
+        if ($InfobaseBase) {
+            $s.url = $s.url.Replace('{INFOBASE_PUBLISH_URL}', $InfobaseBase)
         }
-
-        if ($s.headers) {
-            foreach ($p in $s.headers.PSObject.Properties) {
-                if ($null -eq $p.Value) { continue }
-                $value = [string]$p.Value
-                if ($value -notmatch '\{LSP_PROJECT_ID\}') { continue }
-                if ($LspProjectId) {
-                    $p.Value = $value.Replace('{LSP_PROJECT_ID}', $LspProjectId)
-                }
-                else {
-                    $unresolved.LSP_PROJECT_ID += $s.id
-                }
-            }
+        else {
+            $unresolved += $s.id
         }
     }
-    return $unresolved
+    return , $unresolved
 }
 
 function Test-McpHttpEndpoint {
@@ -2070,21 +2037,16 @@ function Invoke-McpPhase {
     )
     $servers = Read-McpServers -Root $SourceRoot
 
-    # Substitute MCP placeholders from the project's .dev.env
-    # (Place-DevEnv runs earlier in the pipeline so the file is in place by
-    # now). Servers whose placeholder cannot be resolved keep the literal
-    # placeholder in the rendered config — the user sees a clear TODO marker
-    # and a warning telling them what to fill in.
+    # Substitute {INFOBASE_PUBLISH_URL} placeholders in server URLs from the
+    # project's .dev.env (Place-DevEnv runs earlier in the pipeline so the
+    # file is in place by now). Servers whose placeholder cannot be resolved
+    # keep the literal placeholder in the rendered config — the user sees a
+    # clear TODO marker and a warning telling them what to fill in.
     $infobaseBase = Get-InfobasePublishUrlBase -Root $Root
-    $lspProjectId = Get-LspProjectId -Root $Root
-    $unresolved = Resolve-McpServerPlaceholders -Servers $servers -InfobaseBase $infobaseBase -LspProjectId $lspProjectId
-    if ($unresolved.INFOBASE_PUBLISH_URL.Count -gt 0) {
-        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {INFOBASE_PUBLISH_URL}, но INFOBASE_PUBLISH_URL в .dev.env пуст: " + ($unresolved.INFOBASE_PUBLISH_URL -join ', ') + '.')
+    $unresolved = Resolve-McpServerPlaceholders -Servers $servers -InfobaseBase $infobaseBase
+    if ($unresolved.Count -gt 0) {
+        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {INFOBASE_PUBLISH_URL}, но INFOBASE_PUBLISH_URL в .dev.env пуст: " + ($unresolved -join ', ') + '.')
         Write-Warn '  Заполните INFOBASE_PUBLISH_URL в .dev.env (URL веб-публикации ИБ, напр. http://localhost/<infobase_name>/ru/) и запустите установщик повторно — MCP-конфиг будет перерендерен с подставленным URL.'
-    }
-    if ($unresolved.LSP_PROJECT_ID.Count -gt 0) {
-        Write-Warn ("  MCP config: следующие серверы используют плейсхолдер {LSP_PROJECT_ID}, но LSP_PROJECT_ID в .dev.env пуст: " + ($unresolved.LSP_PROJECT_ID -join ', ') + '.')
-        Write-Warn '  Заполните LSP_PROJECT_ID в .dev.env значением project id из lsp-skill-server и запустите установщик повторно — заголовок x-project-id будет перерендерен.'
     }
 
     # Probe HTTP-service-based MCP servers (1c-data-mcp). The MCP HTTP client
@@ -2541,7 +2503,7 @@ function Place-DevEnv {
         if (-not $values.Contains($k) -or [string]::IsNullOrWhiteSpace($values[$k])) { $criticalEmpty += $k }
     }
     $recommendedEmpty = @()
-    foreach ($k in @('INFOBASE_PUBLISH_URL', 'LSP_PROJECT_ID')) {
+    foreach ($k in @('INFOBASE_PUBLISH_URL')) {
         if (-not $values.Contains($k) -or [string]::IsNullOrWhiteSpace($values[$k])) { $recommendedEmpty += $k }
     }
     if ($criticalEmpty.Count -gt 0) {
@@ -2720,10 +2682,9 @@ function Invoke-Init {
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
 
     # .dev.env must be placed BEFORE the MCP phase because some MCP server
-    # entries in `content/mcp-servers.json` reference placeholders such as
-    # {INFOBASE_PUBLISH_URL} and {LSP_PROJECT_ID}; the installer substitutes
-    # those placeholders from the freshly-written .dev.env when rendering
-    # per-tool MCP configs.
+    # URLs in `content/mcp-servers.json` reference {INFOBASE_PUBLISH_URL} —
+    # the installer substitutes that placeholder from the freshly-written
+    # .dev.env when rendering per-tool MCP configs.
     Write-Section 'Phase 7: .dev.env (project parameters, single source of truth)'
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
 
@@ -2924,8 +2885,8 @@ function Invoke-Update {
     Write-Section 'OpenSpec project.md (update / 1C autodetect)'
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
 
-    # .dev.env runs before MCP so that placeholders in
-    # `content/mcp-servers.json` resolve against the actual project values
+    # .dev.env runs before MCP so that {INFOBASE_PUBLISH_URL} placeholders in
+    # `content/mcp-servers.json` resolve against the actual project value
     # when MCP configs are re-rendered.
     Write-Section '.dev.env (update — placed only if missing)'
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest

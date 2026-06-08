@@ -11,7 +11,7 @@
 ## Connection and paths
 
 - Every MCP call requires the HTTP header `x-project-id` with the project id from `lsp-skill-server`.
-- `content/mcp-servers.json` uses the placeholder `{LSP_PROJECT_ID}` in that header for `1c-lsp-diagnostics`. Fill `LSP_PROJECT_ID` in `.dev.env` and rerun `install.ps1 update`, or set the header manually in the active MCP client config.
+- `content/mcp-servers.json` does not store that project-specific header. Configure `x-project-id` manually in the active MCP client config for `1c-lsp-diagnostics`.
 - All `file_path` arguments are paths to `.bsl` files **relative to `project_root_path`**, not absolute filesystem paths and not raw BSL text.
 - Preserve Cyrillic directory names exactly.
 - LSP coordinates are zero-based: `line` starts at `0`, `character` starts at `0`.
