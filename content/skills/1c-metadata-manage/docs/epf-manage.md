@@ -320,7 +320,7 @@ The PowerShell script `tools/1c-epf-validate/scripts/epf-validate.ps1` was refre
 - **check_1c_code** — Verify BSL code for syntax, logic and performance issues before building; analyze code in extracted modules after dumping.
 - **review_1c_code** — Check code style and ITS standards compliance before building.
 - **diagnostics** — BSL diagnostics verification before building.
-- **docsearch** — Look up valid property values when investigating validation errors.
+- **search_syntax** / **get_function_info** — look up valid property values when investigating validation errors.
 
 ## SDD Integration
 

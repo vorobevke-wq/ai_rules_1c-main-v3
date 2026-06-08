@@ -384,7 +384,7 @@ The PowerShell scripts under `tools/1c-db-ops/scripts/` were refreshed from [Nik
 
 - **rlm-tools-bsl** `search_objects` — Verify object names when doing partial loads.
 - **rlm-tools-bsl** `get_object_full_structure` — Get object structure for verifying load targets.
-- **docsearch** — Platform documentation on Designer command-line parameters.
+- **search_syntax** / **get_function_info** — platform syntax reference for Designer command-line parameters.
 
 ## SDD Integration
 

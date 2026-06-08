@@ -54,8 +54,8 @@ The complete helper list is returned by `rlm_start.available_functions`; detaile
 `rlm-tools-bsl` is an exploration server, not an XSD/XML validator and not a platform-reference server.
 
 - For metadata XML validation use the `1c-metadata-manage` validators (`form-validate.ps1`, `meta-validate.ps1`, `role-validate.ps1`, `skd-validate.ps1`, `mxl-validate.ps1`, `cf-validate.ps1`, etc.) or the available XML-generation/validation skill for the active tool.
-- For platform API/member discovery use `1C-docs-mcp` (`docinfo` / `docsearch`) and, when needed, the live syntax-reference tools exposed by the environment.
-- For 1C help / methodological documentation use `1C-docs-mcp`, `1c-code-check-mcp` (`search_1c_documentation`, `its_help` → `fetch_its`), or repository help files found through `git_search`.
+- For platform API/member discovery use `1c-syntax` (`search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax`) and, when needed, the live syntax-reference tools exposed by the environment.
+- For 1C help / methodological documentation use `1c-code-check-mcp` (`search_1c_documentation`, `onec_help`, `its_help` → `fetch_its`) or repository help files found through `git_search`.
 
 ## Replacement map from the retired server
 
@@ -71,6 +71,6 @@ The complete helper list is returned by `rlm_start.available_functions`; detaile
 | `bsl_scope_members` | No direct RLM equivalent; use platform docs for built-in APIs and `search_methods` / `find_exports` for project routines. |
 | `search_forms` | `parse_form` plus `search_objects` / `git_search` for form names and XML literals. |
 | `inspect_form_layout` | `parse_form`; for handler bodies use `read_procedure` on the returned form module path. |
-| `helpsearch` | No direct RLM equivalent; use `docinfo` / `docsearch`, `search_1c_documentation`, or `git_search` over dumped help files. |
+| `helpsearch` | No direct RLM equivalent; use `1c-syntax` for syntax-reference names, `search_1c_documentation`, or `git_search` over dumped help files. |
 | `get_xsd_schema` / `verify_xml` | No direct RLM equivalent; use metadata-management validators / XML-generation validation tools. |
 | `reindex` / `stats` | `rlm_index(action="build"|"update"|"info"|"drop")` and `get_index_info()`. |

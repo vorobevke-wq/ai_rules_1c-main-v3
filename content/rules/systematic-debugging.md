@@ -61,7 +61,7 @@ Tools to use:
 - **`search_metadata`** call-graph templates (`list_callers_of_routine`, `call_graph_subtree`) to map all the call paths that reach the failing routine.
 - **`search_metadata`** usage / movement / call-graph templates to map which objects the failing routine depends on (registers it reads, common modules it calls, metadata it touches).
 - **`rlm-tools-bsl` `find_call_hierarchy` / `find_callers_context`** as a fallback when the graph server is unavailable.
-- **`docinfo`** to verify that a built-in function actually does what you assume — many bugs are platform-version-dependent (`ТекущаяДатаСеанса` vs `ТекущаяДата`, `НайтиПоНаименованию` collation, `ПолучитьСтруктуруХраненияБазыДанных` differences across versions).
+- **`get_function_info`** to verify that a built-in function actually does what you assume — many bugs are platform-version-dependent (`ТекущаяДатаСеанса` vs `ТекущаяДата`, `НайтиПоНаименованию` collation, `ПолучитьСтруктуруХраненияБазыДанных` differences across versions).
 - **`its_help` → `fetch_its`** to verify the documented behaviour of the platform mechanism you suspect.
 - **`ask_1c_ai`** as a hint generator (treat as a draft — do not let an AI hint replace the falsifying experiment).
 

@@ -38,7 +38,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
    - Start with `rlm_start`, call `rlm_help` for non-trivial exploration, then use batched `rlm_execute` helpers such as `search`, `search_objects`, `search_methods`, `find_module`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, `find_code_usages`, `git_search`, and `safe_grep`.
 3. **`1c-templates-mcp`** — `templatesearch` to find canonical implementation patterns; **`recall`** to retrieve earlier project-specific notes for the same topic.
 4. **`1c-ssl-mcp`** — `ssl_search` to check whether a standard SSL/БСП function already covers the need.
-5. **`1C-docs-mcp`** — `docinfo` for known names, `docsearch` for description-based lookup of platform APIs.
+5. **`1c-syntax`** — `get_function_info` for known names, `search_syntax` / `suggest_completion` for name-based lookup of platform APIs.
 6. **`1c-code-check-mcp`** — `its_help` → **always follow up with** `fetch_its` to read full ITS articles.
 7. **Grep / Glob** — only as an absolute last resort.
 
@@ -85,7 +85,7 @@ If the question is ambiguous and cannot be sharpened from context, ask **one** c
 | Impact of a change | `search_metadata` usage / movement / call-graph templates, then fallback `rlm-tools-bsl` references / usages / movement helpers |
 | Who calls a routine | `search_metadata({"operation": "list_callers_of_routine", ...})` or `rlm-tools-bsl` `find_call_hierarchy(...)` |
 | Reuse check | `templatesearch(query)` + `ssl_search(query)` |
-| Platform API verification | `docinfo(name)` or `docsearch(query)` |
+| Platform API verification | `get_function_info(name)` or `search_syntax(query)` |
 | ITS standards lookup | `its_help(query)` → `fetch_its(id)` for every relevant article |
 
 ### 3. Verify before reporting

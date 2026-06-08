@@ -12,4 +12,4 @@ Search across the Standard Subsystems Library (БСП / SSL).
 
 - Before writing a new function, check whether БСП already provides one — this is the first step in the "Writing New Code" playbook.
 - Good candidates for search: users, files, data exchange, digital signature, internet support, object versioning, uploads / downloads, scheduled jobs.
-- If a БСП function is found — proceed to its documentation (`docinfo` / `docsearch`, or `search_1c_documentation` when exposed) and use it instead of a custom implementation.
+- If a БСП function is found — proceed to its documentation (`search_syntax` / `get_function_info` for syntax-reference names, or `search_1c_documentation` when exposed) and use it instead of a custom implementation.

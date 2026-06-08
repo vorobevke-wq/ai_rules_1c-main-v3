@@ -28,8 +28,8 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 4. **rlm-tools-bsl** (`search_methods`; fallback `find_module` + `extract_procedures`) — find an existing procedure/function by name for reuse.
 5. **rlm-tools-bsl** (`find_module` + `extract_procedures` + `code_metrics`) — overview of the module you intend to edit.
 6. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `parse_object_xml`) — verify metadata structure and attribute types.
-7. **docinfo / docsearch** for platform APIs; **rlm-tools-bsl** (`search_methods`, `find_exports`) for project routines.
-8. **docinfo** — verify built-in functions by exact name; **docsearch** — search by description.
+7. **get_function_info / search_syntax** for platform APIs; **rlm-tools-bsl** (`search_methods`, `find_exports`) for project routines.
+8. **get_function_info** — verify built-in functions by exact name; **search_syntax / suggest_completion** — find candidates by name or prefix.
 9. **ssl_search** — find reusable БСП functions.
 10. **diagnostics** — verify touched `.bsl` files after writing.
 11. **check_1c_code** — find logic and performance defects.
@@ -42,7 +42,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 2. **search_metadata** usage / movement / call-graph templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — impact analysis of the change.
 3. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — BSL call chains, callers/callees.
 4. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_references_to_object`) — correct metadata usage.
-5. **docinfo** — verify method/property existence; **docsearch** — search by description.
+5. **get_function_info** — verify method/property existence; **search_syntax** — search by name fragment.
 6. **review_1c_code** — style and ITS compliance.
 7. **check_1c_code** — bugs and performance issues.
 8. **its_help** → **fetch_its** — cross-check against ITS standards.
@@ -68,7 +68,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 5. **search_code** → **rlm-tools-bsl** (`search`, `git_search`, `read_procedure`) — related patterns and the minimal routine body needed.
 6. **rlm-tools-bsl** (`find_module` + `extract_procedures` + `code_metrics`) — module context around the error.
 7. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — how the error propagates through the call chain.
-8. **docinfo** — verify function/method names; **docsearch** — fallback by description.
+8. **get_function_info** — verify function/method names; **search_syntax / suggest_completion** — fallback by name or prefix.
 9. **rlm-tools-bsl** (`search_objects`, `get_object_full_structure`, `find_attributes`) — verify metadata names and attributes.
 10. **validatequery** (`1c-data-mcp`, if available) — when the suspect path is a query string, parse-check it before deeper investigation.
 11. **vcexecutequery** (`1c-data-mcp`, if available) — read-only query against the live IB to confirm a data-state hypothesis without changing production code.
@@ -122,8 +122,8 @@ Use this playbook when writing HTTP services / clients, REST integrations, file 
 1. **ssl_search** — check for ready-made БСП subsystems ("Интернет-поддержка пользователей", "Обмен данными", "Получение файлов из Интернета", "Цифровая подпись").
 2. **templatesearch** — integration templates (HTTP request, JSON parsing, signed payloads, retry policy).
 3. **search_code** → **rlm-tools-bsl** (`find_http_services`, `find_web_services`, `search`, `git_search`) — existing integrations in the configuration ("HTTP запрос", "отправка JSON", "парсинг ответа").
-4. **docinfo** — verify platform types by exact name (`HTTPСоединение`, `HTTPЗапрос`, `ЧтениеJSON`, `ЗаписьJSON`, `ЗаписьXML`, `ЧтениеXML`).
-5. **docsearch** — fallback when the exact platform-API name is unknown.
+4. **get_function_info** — verify platform types by exact name (`HTTPСоединение`, `HTTPЗапрос`, `ЧтениеJSON`, `ЗаписьJSON`, `ЗаписьXML`, `ЧтениеXML`).
+5. **search_syntax / suggest_completion** — fallback when the exact platform-API name is unknown.
 6. **1c-metadata-manage / XML validation tooling** — when the contract is XML with a known XSD.
 7. **its_help** → **fetch_its** — ITS articles on long-running operations, secure password storage, asynchronous external components.
 8. **rlm-tools-bsl** (`search_methods`, `find_module`, `extract_procedures`) — locate or extend the integration common module (typically `*HTTPClient`, `*Integration`, `*Exchange`).
@@ -134,8 +134,8 @@ Use this playbook when writing HTTP services / clients, REST integrations, file 
 1. **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — find code to document.
 2. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_references_to_object`) — metadata structure.
 3. **rlm-tools-bsl** (`find_module`, `extract_procedures`) — list of procedures/functions.
-4. **docinfo** — documentation by exact name; **docsearch** — search by description.
-5. **docsearch / search_1c_documentation** — existing help articles.
+4. **get_function_info** — syntax-reference information by exact name; **search_syntax** — search by name fragment.
+5. **search_1c_documentation** — existing help articles.
 6. **its_help** → **fetch_its** — methodological ITS articles.
 7. **search_1c_documentation** — version-specific platform documentation.
 

@@ -37,7 +37,7 @@ The value inside the `<Event>` tag is the name of the handler procedure in the f
 
 For the complete and authoritative list of available events, do **not** rely on this table. Use:
 
-- `docinfo` / `docsearch` for the relevant platform form object and event names (e.g. `"УправляемаяФорма"`, `"ПолеФормы"`, `"ТаблицаФормы"`, `"КнопкаФормы"`).
+- `get_function_info` / `search_syntax` for the relevant platform form object and event names (e.g. `"УправляемаяФорма"`, `"ПолеФормы"`, `"ТаблицаФормы"`, `"КнопкаФормы"`).
 - `rlm-tools-bsl` `parse_form` on a similar existing form — wired-up events are listed under elements with handler names.
-- `docinfo` / `docsearch` against the platform documentation for the specific form-item type.
+- `get_function_info` / `search_syntax` against the platform syntax reference for the specific form-item type.
 - `rlm-tools-bsl` `search_objects` / `git_search` to locate canonical form examples that already use the event you need.

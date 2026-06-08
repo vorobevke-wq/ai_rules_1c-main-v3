@@ -159,7 +159,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode) и LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -177,7 +177,7 @@ Fallback к графовому MCP и компактный способ иссл
 - **Код**: `search`, `search_methods`, `find_module`, `extract_procedures`, `find_exports`, `read_procedure`, `git_search`, `safe_grep`, `code_metrics`.
 - **Связи и проведение**: `find_call_hierarchy`, `find_callers_context`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`.
 - **Формы и интеграции**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`.
-- **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для платформенной справки — `1C-docs-mcp` / `1c-code-check-mcp`.
+- **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для синтаксической справки платформы — `1c-syntax`, для статей и методической документации — `1c-code-check-mcp`.
 
 ### `1c-lsp-mcp-skill` — диагностика и навигация BSL
 
@@ -201,12 +201,14 @@ Fallback к графовому MCP и компактный способ иссл
 
 `ssl_search` — поиск стандартных функций БСП (любой версии) по точному имени и по семантике. Перед написанием новой служебной процедуры агент проверяет, нет ли готовой в БСП, чтобы «не изобретать велосипед».
 
-### `1C-docs-mcp` — справка платформы 1С
+### `1c-syntax` — синтаксическая справка платформы 1С
 
-Поиск по официальной справке **конкретной версии** платформы — критично, потому что сигнатуры и поведение меняются между версиями.
+Локальный MCP-сервер на базе [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). При первом запуске он извлекает `shcntx_ru.hbk` из установленной платформы 1С, строит индекс и отдаёт справку по функциям, методам, объектам и синтаксису вызовов.
 
-- `docinfo` — точечный поиск по известному имени объекта/метода (`ТаблицаЗначений`, `Массив.Найти`, `Запрос`).
-- `docsearch` — гибридный (вектор + BM25) поиск по описанию, когда точное имя неизвестно.
+- `search_syntax` — поиск функций, методов или объектов 1С по имени или фрагменту имени.
+- `get_function_info` — детальная информация по точному имени функции или метода (`СтрДлина`, `Массив.Найти`, `Запрос`).
+- `suggest_completion` — автодополнение по префиксу имени.
+- `validate_syntax` — проверка синтаксиса одиночного вызова функции; для `.bsl` файлов используйте `diagnostics`.
 
 ### `1c-code-check-mcp` — 1С:Напарник и ИТС
 
@@ -226,6 +228,7 @@ Fallback к графовому MCP и компактный способ иссл
 - [vibecoding1c.ru](https://vibecoding1c.ru/) — портал по вайбкодингу для 1С: курсы, бенчмарк моделей, статьи, продукты для разработки 1С с ИИ.
 - [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) — пакет MCP-серверов для 1С, под который заточены правила и плейбуки этого репозитория.
 - [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) — LSP-мост для диагностики и навигации BSL через `bsl-language-server`.
+- [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp) — локальный MCP-сервер синтаксической справки 1С.
 - [Telegram-канал «IT Does Matter»](https://t.me/comol_it_does_matter) — обсуждение вайбкодинга для 1С, MCP, ИИ-агентов, практик и обновлений.
 
 ## Лицензия

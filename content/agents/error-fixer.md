@@ -26,7 +26,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 
 **Key tools for error fixing:**
 - **diagnostics** — check touched `.bsl` files for syntax and analyzer errors (limit: 1 per cycle by default, up to 3 only on substantive defects — see `AGENTS.md → MCP Tool Calling → B.1`)
-- **docsearch** — verify built-in function existence/syntax
+- **get_function_info** / **search_syntax** — verify built-in function existence/syntax
 - **rlm-tools-bsl** `search` / `git_search` — find correct usage patterns
 - **rlm-tools-bsl** `search_methods` — find the problematic procedure/function by name
 - **rlm-tools-bsl** `find_module` + `extract_procedures` — understand module context around the error
@@ -85,7 +85,7 @@ For each error:
 |------------|--------|
 | Syntax error | Fix exact syntax issue |
 | Undefined variable | Add declaration or fix typo |
-| Unknown method | Verify via docsearch, fix name |
+| Unknown method | Verify via get_function_info / search_syntax, fix name |
 | Unknown metadata | Verify via `search_metadata` / `rlm-tools-bsl` `search_objects`, fix name |
 | Type mismatch | Convert to correct type |
 | Missing parameter | Add required parameters |
@@ -102,14 +102,14 @@ For each error:
 ```bsl
 // Missing semicolon → Add ;
 // Unmatched block → Add КонецЕсли/КонецЦикла/КонецПопытки
-// Wrong keyword → Check docsearch for correct spelling
+// Wrong keyword → Check search_syntax for correct spelling
 ```
 
 ### Undefined References
 
 ```bsl
 // Typo in variable → Fix spelling
-// Typo in method → Verify via docsearch
+// Typo in method → Verify via get_function_info / search_syntax
 // Wrong metadata name → Verify via search_metadata / rlm-tools-bsl search_objects
 ```
 

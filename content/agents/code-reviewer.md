@@ -56,7 +56,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 **Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` are not in this agent's toolset by design (see frontmatter) — request a search via the parent or `1c-explorer` if needed.
 
 **Key tools for review:**
-- **docsearch** — verify method/property existence
+- **get_function_info** — verify method/property existence
 - **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify correct metadata usage and attribute types
 - **rlm-tools-bsl** `search` / `search_methods` / `git_search` — verify compliance with existing patterns
 - **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — analyze impact of the code being reviewed

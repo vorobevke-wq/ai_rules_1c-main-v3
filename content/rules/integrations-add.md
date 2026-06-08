@@ -30,7 +30,7 @@ For the full MCP playbook see `tooling-playbooks.md → Integrations`.
 
 ## 4. Serialization and data contract
 
-- JSON — via platform `ЧтениеJSON` / `ЗаписьJSON` (or the equivalent БСП helper if your БСП version provides one — verify the exact name with `ssl_search` / `docinfo` before use). Manual string assembly is forbidden.
+- JSON — via platform `ЧтениеJSON` / `ЗаписьJSON` (or the equivalent БСП helper if your БСП version provides one — verify the exact name with `ssl_search` / `get_function_info` before use). Manual string assembly is forbidden.
 - Numbers, dates and booleans must be validated separately: agree the date format with the receiving side (typically `ISO 8601`), specify decimal precision for numbers explicitly.
 - For XML — `ЧтениеXML` / `ЗаписьXML` plus XSD validation when a schema is available. Manual string parsing is forbidden.
 

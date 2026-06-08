@@ -135,7 +135,7 @@ The PowerShell scripts under `tools/1c-cf-manage/scripts/` were refreshed from [
 - **rlm-tools-bsl** `search_objects` — Find similar configuration objects as XML reference examples.
 - **cf-validate** — Validate generated configuration XML before committing.
 - **search_metadata** / **search_code** — Compare configuration objects with their extension counterparts when working with configurations that have extensions.
-- **docsearch** — Platform documentation on configuration properties.
+- **search_syntax** / **get_function_info** — platform syntax reference for configuration properties.
 
 ## SDD Integration
 

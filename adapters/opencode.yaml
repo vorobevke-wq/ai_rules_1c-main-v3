@@ -47,11 +47,11 @@
 #     yields `1c-lsp-diagnostics_diagnostics` and the whole request fails with
 #     "function name is invalid, must start with a letter". Rendering rule:
 #     a leading `1c`/`1C` becomes `onec` (`1c-lsp-diagnostics` ->
-#     `onec-lsp-diagnostics`, `1C-docs-mcp` -> `onec-docs-mcp`); any other
+#     `onec-lsp-diagnostics`, `1c-syntax` -> `onec-syntax`); any other
 #     non-letter-leading id gets an `mcp-` prefix. Canonical ids in
 #     content/mcp-servers.json and in the docs stay `1c-...`; only the rendered
 #     OpenCode key changes. /checkmcp + /doctor detect tools by their bare names
-#     (diagnostics, docinfo, ...), not by the server prefix, so the rename is
+#     (diagnostics, search_syntax, ...), not by the server prefix, so the rename is
 #     transparent to them.
 #   - On-demand rules are placed under `.opencode/rules/` and referenced from
 #     AGENTS.md by file path. OpenCode itself does not auto-discover them — the

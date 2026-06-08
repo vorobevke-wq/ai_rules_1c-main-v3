@@ -530,7 +530,7 @@ The PowerShell scripts under `tools/1c-meta-{compile,edit,info,remove,validate}/
 - **search_metadata** (`find_objects_using_object`) — Find all objects referencing the given object in their attributes/dimensions/resources before removal.
 - **search_metadata** (`find_usages_of_object`) — Attribute-level reference analysis: which specific attributes reference the object.
 - **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — Dependency overview (who uses this / what it uses).
-- **docsearch** — Look up platform documentation for metadata type properties and valid property values when investigating validation errors.
+- **search_syntax** / **get_function_info** — look up platform syntax reference for metadata type properties and valid property values when investigating validation errors.
 - **search_metadata_by_description** — Semantic search of related objects when creating configuration objects.
 - **search_metadata** — Natural-language or template-based questions about object structure; verify important facts with deterministic template operations.
 - **check_1c_code** — Verify BSL code in object modules after fixing structural issues (syntax, logic, performance).

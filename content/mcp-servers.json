@@ -17,11 +17,13 @@
       "required": false
     },
     {
-      "id": "1C-docs-mcp",
-      "description": "1C platform documentation search (docsearch, docinfo)",
-      "transport": "http",
-      "url": "http://localhost:8003/mcp",
-      "connectionId": "1c_docs_service_001",
+      "id": "1c-syntax",
+      "description": "1C platform syntax reference via 1c-syntax-mcp: search_syntax, get_function_info, suggest_completion, validate_syntax",
+      "transport": "local",
+      "command": "C:/Users/Lenovo PC/1c-syntax-mcp-master/venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/Lenovo PC/1c-syntax-mcp-master/server.py"
+      ],
       "required": false
     },
     {

@@ -62,8 +62,8 @@ When working with form modules, follow `content/rules/form-module.md`:
 5. If unclear — ask the user for clarification
 6. Design solution considering DRY, and project rules
 7. Verify metadata via `search_metadata` templates or `rlm-tools-bsl` (`get_object_full_structure`, `find_attributes`) for attribute types
-8. Use `docinfo` / `docsearch` for platform methods/properties and `rlm-tools-bsl` (`search_methods`, `find_exports`) for project routines
-9. Use `docsearch` and `ssl_search` as needed
+8. Use `get_function_info` / `search_syntax` for platform methods/properties and `rlm-tools-bsl` (`search_methods`, `find_exports`) for project routines
+9. Use `search_syntax` and `ssl_search` as needed
 10. Write code strictly following the rules
 11. Check code via `diagnostics`, `check_1c_code` and `review_1c_code`
 12. Before refactoring, use `search_metadata` impact templates and `rlm-tools-bsl` (`find_references_to_object`, `find_code_usages`, `find_call_hierarchy`) to understand impact

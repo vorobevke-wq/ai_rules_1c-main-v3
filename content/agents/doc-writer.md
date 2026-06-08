@@ -41,7 +41,7 @@ You are an expert documentation specialist focused on creating and maintaining *
 ## MCP Tool Usage
 
 See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`) for tool descriptions. Follow the `powershell-windows` skill for shell commands.
-Key tools: **rlm-tools-bsl** (`search`, `search_methods`, `git_search`, `get_object_full_structure`, `find_module`, `extract_procedures`), **templatesearch**, **docsearch** / **search_1c_documentation**
+Key tools: **rlm-tools-bsl** (`search`, `search_methods`, `git_search`, `get_object_full_structure`, `find_module`, `extract_procedures`), **templatesearch**, **search_syntax** / **get_function_info** / **search_1c_documentation**
 
 **Search discipline:** Follow `content/rules/mcp-first-search.md` — MCP project-index tools first (graph → `rlm-tools-bsl` → RLM literal / narrowed retry); `Grep` / `Glob` only as a justified last resort on 1C project source.
 

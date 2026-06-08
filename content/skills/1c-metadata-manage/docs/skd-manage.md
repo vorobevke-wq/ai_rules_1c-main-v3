@@ -450,7 +450,7 @@ The PowerShell scripts under `tools/1c-skd-{compile,edit,info,validate}/scripts/
 - **rlm-tools-bsl** `search_objects` — Find similar metadata objects for DCS schema XML reference.
 - **skd-validate** — Validate generated DCS XML. Always validate before committing.
 - **templatesearch** — Find similar DCS patterns in the codebase.
-- **docsearch** — Look up valid DCS element types and properties when investigating validation errors; DCS platform documentation.
+- **search_syntax** / **get_function_info** — look up valid DCS element types and properties when investigating validation errors; DCS platform syntax reference.
 
 ## SDD Integration
 
