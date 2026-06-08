@@ -44,7 +44,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 ### Step 1. Determine the server set
 
-1. If the project has `.ai-rules.json`, take the catalog from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]`). A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-lsp-diagnostics`, `onec-syntax`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
+1. If the project has `.ai-rules.json`, take the catalog from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]`). For the local `1c-syntax` server the rendered Codex block is the bare-key table `[mcp_servers.1c-syntax]` shown below. A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-lsp-diagnostics`, `onec-syntax`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
 2. Otherwise use `content/mcp-servers.json` from the rules repository.
 3. If neither source exists, use the table above as the default set.
 
@@ -109,6 +109,22 @@ Copy-ready MCP entry for the common `mcpServers` shape:
     }
   }
 }
+```
+
+Codex entry:
+
+```toml
+[mcp_servers.1c-syntax]
+enabled = true
+command = "C:/Users/Lenovo PC/1c-syntax-mcp-master/venv/Scripts/python.exe"
+args = ["C:/Users/Lenovo PC/1c-syntax-mcp-master/server.py"]
+cwd = "C:/Users/Lenovo PC/1c-syntax-mcp-master"
+env = { PYTHONIOENCODING = "utf-8", PYTHONUTF8 = "1" }
+startup_timeout_sec = 60
+tool_timeout_sec = 60
+required = true
+enabled_tools = ["search_syntax", "get_function_info", "suggest_completion", "validate_syntax"]
+default_tools_approval_mode = "approve"
 ```
 
 For `1c-data-mcp` (HTTP service on the infobase, no docker container), check the URL rendered by the installer into the active client's MCP config:

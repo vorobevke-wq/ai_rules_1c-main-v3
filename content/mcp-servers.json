@@ -24,7 +24,21 @@
       "args": [
         "C:/Users/Lenovo PC/1c-syntax-mcp-master/server.py"
       ],
-      "required": false
+      "cwd": "C:/Users/Lenovo PC/1c-syntax-mcp-master",
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1"
+      },
+      "startupTimeoutSec": 60,
+      "toolTimeoutSec": 60,
+      "required": true,
+      "enabledTools": [
+        "search_syntax",
+        "get_function_info",
+        "suggest_completion",
+        "validate_syntax"
+      ],
+      "defaultToolsApprovalMode": "approve"
     },
     {
       "id": "1c-templates-mcp",
