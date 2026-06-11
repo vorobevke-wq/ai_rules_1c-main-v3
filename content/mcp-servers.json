@@ -73,11 +73,11 @@
       "required": false
     },
     {
-      "id": "1c-data-mcp",
-      "description": "1C data management and analysis (HTTP service published on the infobase; URL is derived from INFOBASE_PUBLISH_URL in .dev.env by the installer). The endpoint MUST be reachable without a password — configure anonymous access in default.vrd (technical user with empty password), otherwise the MCP client receives HTTP 401/403 and the tools do not appear.",
+      "id": "1c-mcp-toolkit",
+      "description": "Live infobase access through ROCTUP/1c-mcp-toolkit processing in TOON mode: execute_query, execute_code, get_metadata, get_event_log, object link helpers, reference search, access rights, BSL syntax help, screenshots and session helpers",
       "transport": "http",
-      "url": "{INFOBASE_PUBLISH_URL}/hs/mcp",
-      "connectionId": "1c_data_mcp_001",
+      "url": "http://localhost:6003/mcp",
+      "connectionId": "1c_mcp_toolkit_service_001",
       "required": false
     }
   ]

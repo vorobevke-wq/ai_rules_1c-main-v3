@@ -22,7 +22,7 @@ Applies to every subagent except `1c-explorer`, which already encodes the same r
 3. **Tune the query before re-calling.** If the first MCP call returned nothing, do **not** immediately fall through to the next tool — reformulate: broaden / narrow the query, switch `search_type` (`fulltext` ↔ `semantic` ↔ `hybrid`), adjust `detail_level`, lower `exact`, raise `top_k`, drop or change `project_name` / category filters. Use the per-server parameter docs in `content/skills/mcp-1c-tools/docs/<server>.md`.
 4. **No-change repeats are forbidden.** Do not re-run the same MCP call against the same unchanged state. A new call must change parameters substantively, or the project state must have changed (file edit, new generation, resumed session).
 
-External-knowledge and validation servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1c-syntax`, `onec-buddy-mcp`, `1c-lsp-diagnostics`, `1c-data-mcp`) have **no `Grep` / `rg` equivalent** — they are called only when their knowledge is needed, not as part of the fallback above.
+External-knowledge, validation, and live-IB servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1c-syntax`, `onec-buddy-mcp`, `1c-lsp-diagnostics`, `1c-mcp-toolkit`) have **no `Grep` / `rg` equivalent** — they are called only when their knowledge is needed, not as part of the fallback above.
 
 ---
 

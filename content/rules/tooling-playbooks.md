@@ -33,7 +33,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 9. **ssl_search** — find reusable БСП functions.
 10. **diagnostics** — verify touched `.bsl` files after writing.
 11. **check_1c_code** — find syntax, logic, performance, style, and ITS-compliance defects.
-12. **validatequery** (`1c-data-mcp`, if available) — when the change introduces a new / non-trivial query string (module code, DCS data set, dynamic list), parse-check it against the live IB before delivery. Especially important after non-deterministic AI generation (`modify_1c_code` / `ask_1c_ai`).
+12. **execute_code** query parse wrapper (`1c-mcp-toolkit`, if available) — when the change introduces a new / non-trivial query string (module code, DCS data set, dynamic list), parse-check it against the live IB by running `Новый Запрос(<query>).НайтиПараметры()` inside a read-only `execute_code` fragment before delivery. Especially important after non-deterministic AI generation (`modify_1c_code` / `ask_1c_ai`). Use `execute_query` with an intentionally empty result only when the query can be safely rewritten to return no rows.
 
 ## Code Review
 
@@ -58,7 +58,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 ## Error Fixing
 
-1. **vcloggetlasterror** (`1c-data-mcp`, if available) — fetch the exact text, timestamp and affected metadata of the last error from the live IB before forming hypotheses. Avoids guessing what the user "probably saw". Skip when the failing scenario is not yet reproduced in the connected IB.
+1. **get_event_log** (`1c-mcp-toolkit`, if available) — fetch the exact text, timestamp and affected metadata of the relevant live-IB error before forming hypotheses. Start with `levels=["Error"]`, a recent `start_date`, and `limit=1`; add `metadata_type`, `user`, `application`, or `comment_contains` when the log is noisy. Avoids guessing what the user "probably saw". Skip when the failing scenario is not yet reproduced in the connected IB.
 2. **diagnostics** — syntax and analyzer errors.
 3. **check_1c_code** — logic, performance, style, and ITS compliance issues.
 4. **rlm-tools-bsl** (`search_methods`; fallback `find_module` + `extract_procedures`) — locate the failing procedure/function.
@@ -67,9 +67,9 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 7. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — how the error propagates through the call chain.
 8. **get_function_info** — verify function/method names; **search_syntax / suggest_completion** — fallback by name or prefix.
 9. **rlm-tools-bsl** (`search_objects`, `get_object_full_structure`, `find_attributes`) — verify metadata names and attributes.
-10. **validatequery** (`1c-data-mcp`, if available) — when the suspect path is a query string, parse-check it before deeper investigation.
-11. **vcexecutequery** (`1c-data-mcp`, if available) — read-only query against the live IB to confirm a data-state hypothesis without changing production code.
-12. **vcexecutecode** (`1c-data-mcp`, if available) — run a small read-only BSL fragment in the live IB to verify a platform-version-specific behaviour. Default to read-only; **never** wrap a mutation without explicit user consent (see `docs/1c-data-mcp.md → Safety`).
+10. **execute_code** query parse wrapper (`1c-mcp-toolkit`, if available) — when the suspect path is a query string, parse-check it through `Новый Запрос(<query>).НайтиПараметры()` before deeper investigation.
+11. **execute_query** (`1c-mcp-toolkit`, if available) — read-only query against the live IB to confirm a data-state hypothesis without changing production code.
+12. **execute_code** (`1c-mcp-toolkit`, if available) — run a small read-only BSL fragment in the live IB to verify a platform-version-specific behaviour. Default to read-only; **never** wrap a mutation without explicit user consent (see `docs/1c-mcp-toolkit.md → Safety and discipline`).
 13. **modify_1c_code** — targeted AI fix (treat output as a draft, re-validate).
 
 ## Performance Optimization
@@ -82,7 +82,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 6. **modify_1c_code** — targeted AI optimization only with an explicit instruction; re-validate with `diagnostics` and `check_1c_code`.
 7. **templatesearch** — optimized templates.
 8. **search_its** → **fetch_its** — ITS performance standards.
-9. **validatequery** → **vcexecutequery** (`1c-data-mcp`, if available) — parse-check the rewritten query, then run it read-only against the live IB to compare row counts / spot Cartesian explosions / confirm a virtual-table state. Use only on a test or copy IB when production data volumes matter.
+9. **execute_code** query parse wrapper → **execute_query** (`1c-mcp-toolkit`, if available) — parse-check the rewritten query through `Новый Запрос(<query>).НайтиПараметры()`, then run it read-only against the live IB to compare row counts / spot Cartesian explosions / confirm a virtual-table state. Use only on a test or copy IB when production data volumes matter.
 
 ## Refactoring
 

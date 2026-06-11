@@ -21,6 +21,7 @@ For these tools default parameters are usually suboptimal; consult the server's 
 - `1c-mcp-metacode`: `search_metadata` (JSON template operations and natural-language mode), `search_metadata_by_description`, `search_code`. Use `docs/1c-mcp-metacode.md` to choose the right template operation before calling.
 - `rlm-tools-bsl`: `rlm_start`, `rlm_help`, `rlm_execute`, `rlm_index`; inside `rlm_execute`, tune helper choice and arguments (`search`, `search_objects`, `search_methods`, `git_search`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, etc.).
 - `1c-lsp-diagnostics`: `diagnostics` (path-based BSL validation); use `docs/1c-lsp-mcp-skill.md` to confirm relative path rules.
+- `1c-mcp-toolkit`: `execute_query`, `execute_code`, `get_metadata`, `get_event_log`, `get_object_by_link`, `get_link_of_object`, `find_references_to_object`, `get_access_rights`, `get_bsl_syntax_help`, `get_screenshot`; use `docs/1c-mcp-toolkit.md` to confirm parameters, TOON output assumptions, and live-IB safety rules.
 
 If `docs/<server>.md` conflicts with the descriptor exposed by the current environment, the environment descriptor wins.
 
@@ -44,7 +45,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 | **1c-syntax** | 1C platform syntax reference from the local Syntax Assistant (`shcntx_ru.hbk`): functions, methods, completions, call syntax checks | [`docs/1c-syntax-mcp.md`](docs/1c-syntax-mcp.md) |
 | **onec-buddy-mcp** | 1С:Напарник via 1C Buddy — AI advice, syntax explanation, code check / targeted modify, platform documentation, ITS documentation | [`docs/onec-buddy-mcp.md`](docs/onec-buddy-mcp.md) |
 | **1c-lsp-diagnostics** | BSL diagnostics via `1c-lsp-mcp-skill` / BSL Language Server | [`docs/1c-lsp-mcp-skill.md`](docs/1c-lsp-mcp-skill.md) |
-| **1c-data-mcp** | Live-IB execution: BSL fragment run (`vcexecutecode`), query run (`vcexecutequery`), query parse-check (`validatequery`), last event-log error (`vcloggetlasterror`) | [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md) |
+| **1c-mcp-toolkit** | Live-IB access through ROCTUP/1c-mcp-toolkit in TOON mode: query/code execution, metadata, event log, object links, references, access rights, screenshots and session helpers | [`docs/1c-mcp-toolkit.md`](docs/1c-mcp-toolkit.md) |
 
 ## Fallback chain (highest priority to lowest)
 
@@ -68,7 +69,7 @@ These servers have no `Grep` / `rg` equivalent; call them only when their knowle
 3. `1c-syntax` — local platform syntax reference for exact function / method names and call syntax.
 4. `onec-buddy-mcp` — 1С:Напарник checks, ITS standards (`search_its` → `fetch_its` for every document used), AI drafts.
 5. `1c-lsp-diagnostics` — BSL syntax / analyzer diagnostics after edits.
-6. `1c-data-mcp` — execution against the **live** infobase (run a BSL fragment, run a query, parse-check a query, fetch the last event-log error). No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md).
+6. `1c-mcp-toolkit` — live infobase access through Toolkit processing / proxy: run a query, run a read-only BSL fragment, emulate query parse-checking through `execute_code`, inspect event-log records, metadata, links, references and access rights. No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-mcp-toolkit.md`](docs/1c-mcp-toolkit.md).
 
 ## Quick map: "task → MCP tool"
 
