@@ -159,7 +159,7 @@ git clone https://github.com/comol/ai_rules_1c.git $env:TEMP\1c-rules
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), шлюзом [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy), LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -177,7 +177,7 @@ Fallback к графовому MCP и компактный способ иссл
 - **Код**: `search`, `search_methods`, `find_module`, `extract_procedures`, `find_exports`, `read_procedure`, `git_search`, `safe_grep`, `code_metrics`.
 - **Связи и проведение**: `find_call_hierarchy`, `find_callers_context`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`.
 - **Формы и интеграции**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`.
-- **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для синтаксической справки платформы — `1c-syntax`, для статей и методической документации — `1c-code-check-mcp`.
+- **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для синтаксической справки платформы — `1c-syntax`, для статей и методической документации — `onec-buddy-mcp`.
 
 ### `1c-lsp-mcp-skill` — диагностика и навигация BSL
 
@@ -210,14 +210,14 @@ Fallback к графовому MCP и компактный способ иссл
 - `suggest_completion` — автодополнение по префиксу имени.
 - `validate_syntax` — проверка синтаксиса одиночного вызова функции; для `.bsl` файлов используйте `diagnostics`.
 
-### `1c-code-check-mcp` — 1С:Напарник и ИТС
+### `onec-buddy-mcp` — 1C Buddy, 1С:Напарник и ИТС
 
-Доступ к коммерческому сервису 1С:Напарник в роли субагента + поиск по ИТС.
+HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к сервису 1С:Напарник, документации платформы и ИТС. Сервер устанавливается и запускается отдельно; каталог правил ожидает endpoint `http://localhost:6002/mcp`.
 
-- **Анализ кода**: `check_1c_code` (синтаксис, логика, производительность), `review_1c_code` (стиль, стандарты ИТС, нейминг, структура), `rewrite_1c_code` / `modify_1c_code` (переписывание/целевые правки), `ask_1c_ai` (свободный диалог с сохранением контекста).
-- **Документация и база знаний**: `search_1c_documentation` (документация под конкретную версию платформы), `onec_help` (актуальная справка), `its_help` → `fetch_its` (поиск по ИТС-стандартам с обязательным дочитыванием полной статьи), `diff_1c_documentation_versions` (диффы между версиями платформы), `config_help` (документация по конкретным конфигурациям — ERP, БП, ЗУП, УТ).
+- **Анализ кода**: `check_1c_code` (синтаксис, логика, производительность, code review через `check_type="review"`), `modify_1c_code` (целевые правки по явной инструкции), `ask_1c_ai` (свободный диалог), `explain_1c_syntax` (объяснение объекта, метода или конструкции 1С).
+- **Документация и база знаний**: `search_1c_documentation` (документация под конкретную версию платформы), `search_its` → `fetch_its` (поиск по ИТС-стандартам с обязательным дочитыванием полной статьи), `diff_1c_documentation_versions` (диффы между версиями платформы).
 
-Лимит на `check_1c_code` / `review_1c_code` — до 3 вызовов каждого валидатора на цикл, как и у `diagnostics`. Output AI-инструментов всегда перепроверяется через `diagnostics` + `check_1c_code` + `review_1c_code` перед сдачей кода.
+Лимит на `check_1c_code` — до 3 вызовов валидатора на цикл, как и у `diagnostics`. Output AI-инструментов всегда перепроверяется через `diagnostics` + `check_1c_code` перед сдачей кода.
 
 ## OpenSpec
 

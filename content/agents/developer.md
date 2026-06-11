@@ -65,7 +65,7 @@ When working with form modules, follow `content/rules/form-module.md`:
 8. Use `get_function_info` / `search_syntax` for platform methods/properties and `rlm-tools-bsl` (`search_methods`, `find_exports`) for project routines
 9. Use `search_syntax` and `ssl_search` as needed
 10. Write code strictly following the rules
-11. Check code via `diagnostics`, `check_1c_code` and `review_1c_code`
+11. Check code via `diagnostics` and `check_1c_code`
 12. Before refactoring, use `search_metadata` impact templates and `rlm-tools-bsl` (`find_references_to_object`, `find_code_usages`, `find_call_hierarchy`) to understand impact
 13. Perform internal code review
 14. Improve code if necessary

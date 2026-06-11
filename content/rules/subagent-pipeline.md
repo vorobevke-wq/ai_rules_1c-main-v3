@@ -192,13 +192,13 @@ If anything fails — bounce back to stage 3 with a precise delta. If optional 4
 Two important constraints from the existing `subagents.md`:
 
 - The `1c-code-reviewer` subagent runs **only when the user explicitly asks for a code review**. Auto-triggering after every edit is forbidden.
-- For non-review-requested tasks, the parent agent still runs `check_1c_code` + `review_1c_code` itself in stage 5 — this is enough for routine work.
+- For non-review-requested tasks, the parent agent still runs `check_1c_code` itself in stage 5 — this is enough for routine work.
 
 When the user asks for a review, the subagent looks at:
 
 - anti-patterns from `anti-patterns.md` and `platform-solutions.md`;
-- ITS standards via `its_help` → `fetch_its`;
-- BSL LS warnings via `review_1c_code`;
+- ITS standards via `search_its` → `fetch_its`;
+- BSL LS warnings via `diagnostics` and `check_1c_code(check_type="review")`;
 - query patterns, transactional safety, lock granularity, posting boundaries.
 
 The subagent reports issues by severity (critical / major / minor). Critical issues block delivery; minor issues are informational.

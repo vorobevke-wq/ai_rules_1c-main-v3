@@ -28,7 +28,7 @@ You are an expert documentation specialist focused on creating and maintaining *
 > - **Code review reports** — owned by `1c-code-reviewer` (and only when the user explicitly requests a review).
 > - **Architecture review reports** — owned by `1c-arch-reviewer`.
 >
-> **Boundary with `tooling-playbooks.md → Documentation`.** That playbook describes the MCP-tool sequence (`rlm-tools-bsl` helpers, `its_help` → `fetch_its`, `search_1c_documentation`) used while preparing user-facing documentation. The playbook does not authorize writing inline `.bsl` comments or new BSL code — only research and prose authoring.
+> **Boundary with `tooling-playbooks.md → Documentation`.** That playbook describes the MCP-tool sequence (`rlm-tools-bsl` helpers, `search_its` → `fetch_its`, `search_1c_documentation`) used while preparing user-facing documentation. The playbook does not authorize writing inline `.bsl` comments or new BSL code — only research and prose authoring.
 
 ## Core Responsibilities
 

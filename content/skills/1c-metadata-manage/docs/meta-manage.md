@@ -533,8 +533,7 @@ The PowerShell scripts under `tools/1c-meta-{compile,edit,info,remove,validate}/
 - **search_syntax** / **get_function_info** — look up platform syntax reference for metadata type properties and valid property values when investigating validation errors.
 - **search_metadata_by_description** — Semantic search of related objects when creating configuration objects.
 - **search_metadata** — Natural-language or template-based questions about object structure; verify important facts with deterministic template operations.
-- **check_1c_code** — Verify BSL code in object modules after fixing structural issues (syntax, logic, performance).
-- **review_1c_code** — Check code style and ITS standards compliance in object modules.
+- **check_1c_code** — Verify BSL code in object modules after fixing structural issues (syntax, logic, performance, style, ITS standards compliance).
 
 ## SDD Integration
 

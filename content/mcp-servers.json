@@ -57,11 +57,11 @@
       "required": false
     },
     {
-      "id": "1c-code-check-mcp",
-      "description": "1C code review and quality checking (1С:Напарник) — check_1c_code, review_1c_code, ITS docs",
+      "id": "onec-buddy-mcp",
+      "description": "1C Buddy gateway to 1С:Напарник: ask_1c_ai, explain_1c_syntax, check_1c_code, modify_1c_code, platform documentation and ITS search",
       "transport": "http",
-      "url": "http://localhost:8007/mcp",
-      "connectionId": "1c_code_check_service_001",
+      "url": "http://localhost:6002/mcp",
+      "connectionId": "1c_buddy_service_001",
       "required": false
     },
     {

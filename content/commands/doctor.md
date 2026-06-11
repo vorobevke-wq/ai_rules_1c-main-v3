@@ -102,7 +102,7 @@ Check MCP at two levels:
    - `search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax` for `1c-syntax`;
    - `rlm_start`, `rlm_execute`, `rlm_end` for `rlm-tools-bsl` (`rlm_help`, `rlm_projects`, `rlm_index` when exposed by the server mode);
    - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;
-   - `check_1c_code`, `review_1c_code`, `its_help`, `fetch_its` for `1c-code-check-mcp`.
+   - `ask_1c_ai`, `explain_1c_syntax`, `check_1c_code`, `modify_1c_code`, `search_1c_documentation`, `search_its`, `fetch_its`, `diff_1c_documentation_versions` for `onec-buddy-mcp`.
 2. **Transport fallback** — when tools are missing but MCP config lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action.
 
 Pass criterion: required MCP tools for the expected 1C workflow are visible in the current session. HTTP-only availability is **WARN** because the agent still cannot call the tools until the client reconnects.

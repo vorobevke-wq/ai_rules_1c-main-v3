@@ -68,4 +68,4 @@ By default, tools return standard LSP JSON. If `use_toon_format` is enabled in `
 - `diagnostics` follows the same validator budget as other BSL gates: 1 call per validator per cycle by default; up to 3 only when the previous run returned a substantive defect.
 - A cycle is one logical edit of one module.
 - Style-only warnings, naming nits, formatting issues, or analyzer noise do not justify repeated runs.
-- `check_1c_code` and `review_1c_code` remain separate validators from `1c-code-check-mcp`; run them after `diagnostics` when BSL validation is required by `AGENTS.md`.
+- `check_1c_code` remains the AI-assisted validator from `onec-buddy-mcp`; run it after `diagnostics` when BSL validation is required by `AGENTS.md`.

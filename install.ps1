@@ -1629,7 +1629,7 @@ function Format-1cProjectMd {
     [void]$lines.Add('- Стандарты ИТС, расширенные правилами проекта (см. `AGENTS.md` и каталог on-demand правил активного инструмента)')
     [void]$lines.Add('- Запрет на тернарный оператор `?(...)`, `Сообщить()`, обращение к реквизитам через точку')
     [void]$lines.Add('- Перед написанием кода — поиск по `templatesearch` / `search_code` / `rlm-tools-bsl` (`rlm_start` → `rlm_execute`)')
-    [void]$lines.Add('- После написания кода — `diagnostics` → `check_1c_code` → `review_1c_code` (≤ 3 раза за цикл)')
+    [void]$lines.Add('- После написания кода — `diagnostics` → `check_1c_code` (≤ 3 раза за цикл)')
     [void]$lines.Add('- Полный список запретов и стандартов — `AGENTS.md`, раздел *Forbidden Calls and Constructs*')
     return ($lines -join "`n") + "`n"
 }

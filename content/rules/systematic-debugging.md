@@ -62,7 +62,7 @@ Tools to use:
 - **`search_metadata`** usage / movement / call-graph templates to map which objects the failing routine depends on (registers it reads, common modules it calls, metadata it touches).
 - **`rlm-tools-bsl` `find_call_hierarchy` / `find_callers_context`** as a fallback when the graph server is unavailable.
 - **`get_function_info`** to verify that a built-in function actually does what you assume — many bugs are platform-version-dependent (`ТекущаяДатаСеанса` vs `ТекущаяДата`, `НайтиПоНаименованию` collation, `ПолучитьСтруктуруХраненияБазыДанных` differences across versions).
-- **`its_help` → `fetch_its`** to verify the documented behaviour of the platform mechanism you suspect.
+- **`search_its` → `fetch_its`** to verify the documented behaviour of the platform mechanism you suspect.
 - **`ask_1c_ai`** as a hint generator (treat as a draft — do not let an AI hint replace the falsifying experiment).
 
 Produce at least 2 hypotheses. A single hypothesis is anchoring bias — challenge it with a competing one even if it feels obviously right.
@@ -102,7 +102,7 @@ Required:
 - The fix touches only the code paths involved in the confirmed hypothesis (Surgical Changes principle from `AGENTS.md`).
 - A regression guard exists: a query, a `ЖурналРегистрации` event, an `Утверждение`, or — at minimum — a documented manual reproduction step in the change description.
 - All temporary `ЗаписьЖурналаРегистрации("Debug.*"`, `ПоказатьЗначение`, hard-coded values, breakpoints, and TODO markers introduced in phase 3 are removed.
-- Verification chain runs cleanly: `diagnostics` → `check_1c_code` → `review_1c_code` → Metacode impact templates or fallback dependency analysis against the touched objects (see `verification-checklist.md`).
+- Verification chain runs cleanly: `diagnostics` → `check_1c_code` → Metacode impact templates or fallback dependency analysis against the touched objects (see `verification-checklist.md`).
 - The original reproduction case from phase 1 no longer triggers the symptom.
 
 If the fix requires architectural rework (signature changes in shared common modules, metadata edits, a new register), escalate — call the `1c-architect` or `1c-developer` subagent rather than expanding the scope of the bug fix yourself.

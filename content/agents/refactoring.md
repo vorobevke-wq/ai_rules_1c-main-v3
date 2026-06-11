@@ -33,9 +33,8 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 - **rlm-tools-bsl** `get_object_full_structure` / `find_attributes` — verify metadata dependencies and structure
 - **templatesearch** — find better patterns to apply
 - **diagnostics** — verify refactored `.bsl` files through `1c-lsp-diagnostics`
-- **check_1c_code** — check for performance and logic issues
-- **review_1c_code** — check style and ITS standards compliance
-- **rewrite_1c_code** — get AI-improved version of code (with `goal` parameter: `optimize`, `readability`)
+- **check_1c_code** — check performance, logic, style, and ITS standards compliance
+- **modify_1c_code** — request targeted AI edits only with an explicit instruction
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

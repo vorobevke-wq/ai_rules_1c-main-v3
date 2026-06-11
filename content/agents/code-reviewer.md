@@ -61,9 +61,8 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 - **rlm-tools-bsl** `search` / `search_methods` / `git_search` — verify compliance with existing patterns
 - **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — analyze impact of the code being reviewed
 - **rlm-tools-bsl** `find_call_hierarchy` / `find_callers_context` — trace call chains, find affected callers
-- **check_1c_code** — analyze code for syntax, logic and performance issues
-- **review_1c_code** — check style, ITS standards, naming, structure compliance
-- **its_help** → **fetch_its** — verify code against ITS standards (always read full article by ID)
+- **check_1c_code** — analyze code for syntax, logic, performance, style, ITS standards, naming, and structure compliance
+- **search_its** → **fetch_its** — verify code against ITS standards (always read full article by ID)
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

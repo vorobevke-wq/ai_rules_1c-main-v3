@@ -28,7 +28,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 
 - Before writing code / a query / metadata XML — pick the MCP tool that best fits the task (template search, metadata check, syntax validation, code review).
 - For impact analysis and code navigation — decide which server to use first (`graph` → `rlm-tools-bsl` → `Grep` — see *Fallback chain* below).
-- For ITS standards (`its_help` → `fetch_its`) and platform syntax reference (`search_syntax` / `get_function_info` / `suggest_completion` / `validate_syntax`).
+- For ITS standards (`search_its` → `fetch_its`) and platform syntax reference (`search_syntax` / `get_function_info` / `suggest_completion` / `validate_syntax`).
 - For code templates and project memory (`templatesearch`, `remember`, `recall`).
 
 > Short obligation rules and verification budgets live in `AGENTS.md → MCP Tool Calling` (sections A, B, C). This skill owns the MCP catalog, routing, and fallback details.
@@ -42,7 +42,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 | **1c-templates-mcp** | Code template library + project vector memory (`remember` / `recall`) | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
 | **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
 | **1c-syntax** | 1C platform syntax reference from the local Syntax Assistant (`shcntx_ru.hbk`): functions, methods, completions, call syntax checks | [`docs/1c-syntax-mcp.md`](docs/1c-syntax-mcp.md) |
-| **1c-code-check-mcp** | 1С:Напарник — code review, technical check, AI rewrite/modify, ITS documentation | [`docs/1c-code-check-mcp.md`](docs/1c-code-check-mcp.md) |
+| **onec-buddy-mcp** | 1С:Напарник via 1C Buddy — AI advice, syntax explanation, code check / targeted modify, platform documentation, ITS documentation | [`docs/onec-buddy-mcp.md`](docs/onec-buddy-mcp.md) |
 | **1c-lsp-diagnostics** | BSL diagnostics via `1c-lsp-mcp-skill` / BSL Language Server | [`docs/1c-lsp-mcp-skill.md`](docs/1c-lsp-mcp-skill.md) |
 | **1c-data-mcp** | Live-IB execution: BSL fragment run (`vcexecutecode`), query run (`vcexecutequery`), query parse-check (`validatequery`), last event-log error (`vcloggetlasterror`) | [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md) |
 
@@ -66,7 +66,7 @@ These servers have no `Grep` / `rg` equivalent; call them only when their knowle
 1. `1c-templates-mcp` — code templates and project memory (`templatesearch`, `remember`, `recall`).
 2. `1c-ssl-mcp` — БСП / SSL reusable APIs and patterns.
 3. `1c-syntax` — local platform syntax reference for exact function / method names and call syntax.
-4. `1c-code-check-mcp` — 1С:Напарник checks, ITS standards (`its_help` → `fetch_its` for every document used), AI drafts.
+4. `onec-buddy-mcp` — 1С:Напарник checks, ITS standards (`search_its` → `fetch_its` for every document used), AI drafts.
 5. `1c-lsp-diagnostics` — BSL syntax / analyzer diagnostics after edits.
 6. `1c-data-mcp` — execution against the **live** infobase (run a BSL fragment, run a query, parse-check a query, fetch the last event-log error). No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-data-mcp.md`](docs/1c-data-mcp.md).
 

@@ -317,8 +317,7 @@ The PowerShell script `tools/1c-epf-validate/scripts/epf-validate.ps1` was refre
 
 - **rlm-tools-bsl** `search_objects` — Verify metadata object names and types when setting up the processor/report for integration with existing configuration objects.
 - **rlm-tools-bsl** `get_object_full_structure` — Get full structure of target metadata objects for integration.
-- **check_1c_code** — Verify BSL code for syntax, logic and performance issues before building; analyze code in extracted modules after dumping.
-- **review_1c_code** — Check code style and ITS standards compliance before building.
+- **check_1c_code** — Verify BSL code for syntax, logic, performance, style, and ITS standards compliance before building; analyze code in extracted modules after dumping.
 - **diagnostics** — BSL diagnostics verification before building.
 - **search_syntax** / **get_function_info** — look up valid property values when investigating validation errors.
 

@@ -55,7 +55,7 @@ The complete helper list is returned by `rlm_start.available_functions`; detaile
 
 - For metadata XML validation use the `1c-metadata-manage` validators (`form-validate.ps1`, `meta-validate.ps1`, `role-validate.ps1`, `skd-validate.ps1`, `mxl-validate.ps1`, `cf-validate.ps1`, etc.) or the available XML-generation/validation skill for the active tool.
 - For platform API/member discovery use `1c-syntax` (`search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax`) and, when needed, the live syntax-reference tools exposed by the environment.
-- For 1C help / methodological documentation use `1c-code-check-mcp` (`search_1c_documentation`, `onec_help`, `its_help` → `fetch_its`) or repository help files found through `git_search`.
+- For 1C help / methodological documentation use `onec-buddy-mcp` (`search_1c_documentation`, `search_its` → `fetch_its`) or repository help files found through `git_search`.
 
 ## Replacement map from the retired server
 

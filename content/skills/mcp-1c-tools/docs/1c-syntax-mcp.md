@@ -15,4 +15,4 @@
 
 - Prefer `get_function_info` when the exact function or method name is known.
 - Use `search_syntax` or `suggest_completion` when only a partial name is known.
-- For broader platform articles, methodology, or version comparison, use `1c-code-check-mcp` documentation tools (`search_1c_documentation`, `onec_help`, `diff_1c_documentation_versions`) or ITS (`its_help` -> `fetch_its`) when exposed.
+- For broader platform articles, methodology, or version comparison, use `onec-buddy-mcp` documentation tools (`search_1c_documentation`, `diff_1c_documentation_versions`) or ITS (`search_its` -> `fetch_its`) when exposed.

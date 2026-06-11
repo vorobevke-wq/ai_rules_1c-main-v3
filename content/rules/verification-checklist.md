@@ -24,16 +24,17 @@ You MUST run all five gates in order. Each gate has an explicit pass / fail crit
 
 If the budget is exhausted with substantive errors remaining: fix the substantive errors, document any remaining style warnings in the delivery summary, and stop. Do not loop infinitely on style noise.
 
-### Gate 2 — Logic & performance (`check_1c_code`)
+### Gate 2 — Logic, performance, style & ITS (`check_1c_code`, `check_type="review"`)
 
 - Run on every touched module. Always after Gate 1 passes — never before, otherwise the AI checker drowns in syntax noise.
 - Pass criterion: no `critical` or `error` severity items.
 - `warning` items: triage. Inside-scope warnings (introduced by your change) — fix. Pre-existing warnings outside your scope — leave alone (Surgical Changes).
 - AI non-determinism rule: if `check_1c_code` returns inconsistent results across runs on the **same** code, do not loop on it. Take the strictest result, fix what is fixable, document the rest.
 
-### Gate 3 — Style & ITS compliance (`review_1c_code`)
+### Gate 3 — Style & ITS compliance (covered by Gate 2 review mode)
 
-- Run on every touched module after Gate 2 passes.
+- If Gate 2 already ran with `check_type="review"`, this gate is satisfied.
+- If you only ran a syntax-only probe earlier, follow it with one review pass using `check_type="review"` before delivery.
 - Pass criterion: no `error` severity items.
 - `warning` items: same triage rule as Gate 2.
 - For specific warnings that are intentional and justified: add a `//BSLLS:<rule>` suppression with a 1-line explanation, per `dev-standards-core.md §2 → "Formatting"`. Blanket suppressions without justification are forbidden.
@@ -106,7 +107,7 @@ If — and only if — the user explicitly requested a code review:
 
 - The `1c-code-reviewer` subagent was invoked.
 - Critical / major issues were addressed before delivery; minor issues were summarized.
-- For non-review-requested tasks, gates 2 and 3 already cover the routine quality bar — do not auto-trigger the reviewer subagent (forbidden by `subagents.md`).
+- For non-review-requested tasks, gates 2 and 3 already cover the routine quality bar through `check_1c_code` — do not auto-trigger the reviewer subagent (forbidden by `subagents.md`).
 
 ## Delivery summary — what the user sees
 

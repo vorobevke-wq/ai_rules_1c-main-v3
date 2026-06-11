@@ -22,7 +22,7 @@ Applies to every subagent except `1c-explorer`, which already encodes the same r
 3. **Tune the query before re-calling.** If the first MCP call returned nothing, do **not** immediately fall through to the next tool — reformulate: broaden / narrow the query, switch `search_type` (`fulltext` ↔ `semantic` ↔ `hybrid`), adjust `detail_level`, lower `exact`, raise `top_k`, drop or change `project_name` / category filters. Use the per-server parameter docs in `content/skills/mcp-1c-tools/docs/<server>.md`.
 4. **No-change repeats are forbidden.** Do not re-run the same MCP call against the same unchanged state. A new call must change parameters substantively, or the project state must have changed (file edit, new generation, resumed session).
 
-External-knowledge and validation servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1c-syntax`, `1c-code-check-mcp`, `1c-lsp-diagnostics`, `1c-data-mcp`) have **no `Grep` / `rg` equivalent** — they are called only when their knowledge is needed, not as part of the fallback above.
+External-knowledge and validation servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1c-syntax`, `onec-buddy-mcp`, `1c-lsp-diagnostics`, `1c-data-mcp`) have **no `Grep` / `rg` equivalent** — they are called only when their knowledge is needed, not as part of the fallback above.
 
 ---
 
@@ -42,8 +42,8 @@ External-knowledge and validation servers (`1c-templates-mcp`, `1c-ssl-mcp`, `1c
 | Module structure overview | `rlm_execute`: `find_module` + `extract_procedures` + `code_metrics` | `read_file` / `read_procedure` on narrowed paths |
 | Form layout | `rlm_execute`: `parse_form(object_name, form_name="")` | `git_search` over form XML or `read_file` on narrowed form paths |
 | Canonical pattern / template | `templatesearch(query)` (+ `ssl_search` for БСП) | — |
-| Platform API verification | `get_function_info(name)` or `search_syntax(query)` | `search_1c_documentation` / `onec_help` when exposed |
-| ITS standards | `its_help(query)` → `fetch_its(id)` for **every** relevant doc | — |
+| Platform API verification | `get_function_info(name)` or `search_syntax(query)` | `search_1c_documentation` when exposed |
+| ITS standards | `search_its(query)` → `fetch_its(id)` for **every** relevant doc | — |
 
 `Grep` / `Glob` are absent from this table on purpose — they are not a first pick for any of these needs.
 

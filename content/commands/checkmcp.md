@@ -6,7 +6,7 @@ description: Check availability of 1C MCP servers and install/start the missing 
 
 This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `.kilo/kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "headers": { ... }, "enabled": true }` when headers are needed — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file).
 
-The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>. For `1c-lsp-mcp-skill`, use the upstream repository: <https://github.com/fserg/1c-lsp-mcp-skill>. For `1c-syntax`, use the upstream repository: <https://github.com/Starik2005/1c-syntax-mcp>.
+The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>. For `1c-lsp-mcp-skill`, use the upstream repository: <https://github.com/fserg/1c-lsp-mcp-skill>. For `1c-syntax`, use the upstream repository: <https://github.com/Starik2005/1c-syntax-mcp>. For `onec-buddy-mcp`, use the upstream repository: <https://github.com/ROCTUP/1c-buddy>.
 
 ## Target server catalog
 
@@ -18,7 +18,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 | `1c-syntax` | local | native local Python / `1c-syntax-mcp` | 1C platform syntax reference (`search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax`) | Yes — installed 1C platform with `shcntx_ru.hbk`, 7z, and the configured local server path |
 | `rlm-tools-bsl` | 9000 | native service / `rlm-tools-bsl` package | Token-efficient BSL source exploration (RLM sandbox, optional SQLite index) | Yes — 1C source directory or registered project |
 | `1c-mcp-metacode` | 6001 | `roctup/1c-mcp-metacode` | Graph metadata/code search (Neo4j) | Yes — configuration report + code dump + Neo4j |
-| `1c-code-check-mcp` | 8007 | `comol/1c_code_checker_mcp:latest` | 1C:Assistant, ITS | No (Assistant token) |
+| `onec-buddy-mcp` | 6002 | user-managed service / `ROCTUP/1c-buddy` | 1C:Assistant, code check, platform docs, ITS | No (1C.ai token) |
 | `1c-data-mcp` | 80 / project | — (HTTP service on the infobase, **not** docker) | 1C data management and analysis (HTTP service published on the infobase itself) | Yes — `INFOBASE_PUBLISH_URL` in `.dev.env` + `mcp` HTTP service published on the infobase **with anonymous access** |
 
 > Exact image names may differ by version. If `docker pull` fails with `manifest unknown`, check the current list at [docs.onerpa.ru/mcp-servery-1c/servery.md](https://docs.onerpa.ru/mcp-servery-1c/servery.md).
@@ -52,7 +52,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 For each `id`, determine **TOOLS_OK** / **TOOLS_MISSING**:
 
-- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `diagnostics` for `1c-lsp-diagnostics`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `search_syntax`/`get_function_info` for `1c-syntax`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`its_help` for `1c-code-check-mcp`).
+- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `diagnostics` for `1c-lsp-diagnostics`, `templatesearch`/`recall` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `search_syntax`/`get_function_info` for `1c-syntax`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`search_its` for `onec-buddy-mcp`).
 - **TOOLS_MISSING** — no tools are visible in the schema.
 
 If status is **TOOLS_OK**, treat the server as working and do not check it further.
@@ -67,7 +67,7 @@ $servers = @(
     @{ Id = '1c-lsp-diagnostics';     Port = 9011 },
     @{ Id = '1c-templates-mcp';       Port = 8004 },
     @{ Id = '1c-mcp-metacode';        Port = 6001 },
-    @{ Id = '1c-code-check-mcp';      Port = 8007 },
+    @{ Id = 'onec-buddy-mcp';         Port = 6002 },
     @{ Id = '1c-ssl-mcp';             Port = 8008 }
 )
 foreach ($s in $servers) {
@@ -127,6 +127,8 @@ enabled_tools = ["search_syntax", "get_function_info", "suggest_completion", "va
 default_tools_approval_mode = "approve"
 ```
 
+For `onec-buddy-mcp`, there is no installer-managed Docker start in this command. If its tools are missing or the endpoint is down, verify that the upstream 1C Buddy service is running at `http://localhost:6002/mcp`, then restart the client so the MCP session is rebuilt.
+
 For `1c-data-mcp` (HTTP service on the infobase, no docker container), check the URL rendered by the installer into the active client's MCP config:
 
 ```powershell
@@ -184,13 +186,14 @@ Possible outcomes:
   docker start <container_name>
   ```
 
-  Default names: `1c_templates_mcp`, `mcp_ssl_server`, `1c-metacode-<METACODE_PROJECT_ID>`, `1c_code_checker_mcp` (check the actual name in `docker ps -a`). `rlm-tools-bsl`, `1c-syntax`, and `1c-lsp-mcp-skill` are usually native Windows services / local processes / systemd services; check them through upstream service scripts before assuming Docker is involved.
+  Default names: `1c_templates_mcp`, `mcp_ssl_server`, `1c-metacode-<METACODE_PROJECT_ID>` (check the actual name in `docker ps -a`). `rlm-tools-bsl`, `1c-syntax`, `1c-lsp-mcp-skill`, and `onec-buddy-mcp` are usually user-managed native services / local processes / containers; check them through upstream service scripts before assuming Docker is involved.
 
 - The container is absent from `docker ps -a` → **CONTAINER_MISSING**. The image may already be cached (`docker images`), but the container was not created. Create and start it — see Step 5.
 
 ### Step 5. Install missing server
 
 **Do not install or start services silently.** For Docker-based servers, do not run `docker run` without user confirmation. For `rlm-tools-bsl` or `1c-lsp-mcp-skill`, do not download / run the upstream installer or binaries without user confirmation.
+`onec-buddy-mcp` is user-managed: follow the upstream repository instructions and expose `http://localhost:6002/mcp`; do not try to auto-install it from this command.
 
 - `LICENSE_KEY` — shared MCP server license key.
 - Local data paths for servers that need them:
@@ -199,7 +202,7 @@ Possible outcomes:
   - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the `x-project-id` header configured manually in the active MCP client config for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
-  - `1c-code-check-mcp` — 1C:Assistant token, if it will be used.
+  - `onec-buddy-mcp` — 1C.ai token and a running 1C Buddy service, if it will be used.
 - Index volume directory (`-v ...:/app/chroma_db`) — common folder such as `E:\bases\mcp_<id>`.
 
 Command templates (minimal set without data preparation):
@@ -251,10 +254,11 @@ chmod +x simple-install-from-pip.sh
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs
 # https://github.com/ROCTUP/1c-mcp-metacode
 
-# 1c-code-check-mcp
-docker run -d -p 8007:8007 --name 1c_code_checker_mcp `
-  -e NAPARNIK_TOKEN={NAPARNIK_TOKEN} `
-  comol/1c_code_checker_mcp:latest
+# onec-buddy-mcp — user-managed 1C Buddy service
+# Install and start it by upstream instructions:
+# https://github.com/ROCTUP/1c-buddy
+# Expected MCP endpoint in this rules catalog:
+# "onec-buddy-mcp": { "url": "http://localhost:6002/mcp", "connection_id": "1c_buddy_service_001" }
 ```
 
 Exact current commands for each server are on the server-specific documentation page:
@@ -265,7 +269,7 @@ Exact current commands for each server are on the server-specific documentation 
 - [Graph Metadata Search](https://docs.onerpa.ru/mcp-servery-1c/servery/graph-metadata-search.md)
 - [SSLSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/ssl-search-server.md)
 - [TemplatesSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/templates-search-server.md)
-- [1CCodeChecker](https://docs.onerpa.ru/mcp-servery-1c/servery/code-checker.md)
+- [1C Buddy](https://github.com/ROCTUP/1c-buddy)
 
 ### Step 6. After install/start
 
