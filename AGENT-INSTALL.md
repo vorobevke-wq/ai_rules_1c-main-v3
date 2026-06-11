@@ -195,6 +195,7 @@ The script implements the protocol above. Notes:
 
 - `-Source` accepts a local path or a Git source URL (`https://...`, `git@...`, or a value ending with `.git`). URL sources are cloned into the installer's cache before placement.
 - Run from the **project root**; the script writes there.
+- If the first `init` / `update` run fails with `Access denied`, `EPERM`, or `UnauthorizedAccessException` while creating `.cursor/`, `.claude/`, `.codex/`, etc., the session is read-only. Rerun the same command from a shell with project-root write access or request filesystem approval. Do not use a global config directory as a workaround.
 - Commands: `init` / `update` / `add <tool>` / `remove [<tool>]` / `doctor` (read-only diagnostic) / `eject` (delete the manifest, leave files in place).
 - Flags: `-Tools cursor,claude-code` (explicit list), `-NonInteractive` (auto-resolve prompts), `-AssumeYes` (answer yes to confirmations but still pause on destructive conflicts unless `-NonInteractive` is also set).
 
