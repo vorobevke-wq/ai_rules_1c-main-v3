@@ -1,10 +1,10 @@
 ---
-description: Update the 1c-rules ruleset from GitHub (https://github.com/comol/ai_rules_1c)
+description: Update the 1c-rules ruleset from GitHub (https://github.com/vorobevke-wq/ai_rules_1c-main-v3)
 ---
 
 # /updaterules — update 1c-rules
 
-Source: `https://github.com/comol/ai_rules_1c`.
+Source: `https://github.com/vorobevke-wq/ai_rules_1c-main-v3`.
 
 Action: update managed files in the current installation to the latest repository version (on-demand rules, subagent descriptions, slash commands, SKILL packages, MCP config, OpenSpec bundle, rendered `AGENTS.md`). Preserve:
 
@@ -24,7 +24,7 @@ if (Test-Path (Join-Path $src '.git')) {
     git -C $src fetch --depth 1 origin HEAD
     git -C $src reset --hard FETCH_HEAD
 } else {
-    git clone --depth 1 https://github.com/comol/ai_rules_1c.git $src
+    git clone --depth 1 https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $src
 }
 & "$src\install.ps1" update -Source $src -AssumeYes
 ```

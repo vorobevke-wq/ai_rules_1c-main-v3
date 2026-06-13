@@ -58,7 +58,7 @@
     & "$env:TEMP\install.ps1" init -ProjectRoot "C:\Work\MyProject" -Source "$env:TEMP\1c-rules" -AssumeYes
 
 .EXAMPLE
-    .\install.ps1 init -Source https://github.com/comol/ai_rules_1c -AssumeYes
+    .\install.ps1 init -Source https://github.com/vorobevke-wq/ai_rules_1c-main-v3 -AssumeYes
 
 .NOTES
     Target: Windows PowerShell 5.1+ (compatible with PowerShell 7+).
