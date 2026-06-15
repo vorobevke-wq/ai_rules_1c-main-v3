@@ -1,7 +1,7 @@
 ---
 name: 1c-code-reviewer
 description: "Expert 1C code reviewer agent. Reviews code for bugs, readability, standards compliance using confidence-based filtering to report only genuinely important issues. Use only when the user explicitly asks for a code review."
-modelHint: gemini-3-pro
+modelTier: coding
 tools: ["Read", "MCP"]
 allowParallel: true
 ---

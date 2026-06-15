@@ -1,7 +1,7 @@
 ---
 name: 1c-arch-reviewer
 description: "Expert 1C architecture reviewer agent. Reviews architectural decisions, evaluates design patterns, identifies scalability issues, and assesses compliance with 1C best practices. Provides confidence-scored feedback on architectural solutions. Use PROACTIVELY before implementing significant architectural changes."
-modelHint: gemini-3-pro
+modelTier: coding
 tools: ["Read", "MCP"]
 allowParallel: true
 ---

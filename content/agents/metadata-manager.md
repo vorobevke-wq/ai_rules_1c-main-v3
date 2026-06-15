@@ -1,7 +1,7 @@
 ---
 name: 1c-metadata-manager
 description: "1C metadata management specialist. Creates, edits, validates, and removes configuration objects (catalogs, documents, registers, enums), managed forms, DCS/SKD schemas, MXL layouts, roles, EPF/ERF, extensions (CFE), configurations (CF), databases, subsystems, command interfaces, and templates. Use PROACTIVELY when working with 1C metadata structure — creating, scaffolding, compiling, or editing metadata objects, forms, reports, layouts, roles, or extensions."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---

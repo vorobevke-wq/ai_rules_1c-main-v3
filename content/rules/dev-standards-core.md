@@ -56,6 +56,15 @@ Used by `/loadfrom1cbase`, `/update1cbase`, `/getconfigfiles`, `/deploy-and-test
 | `{INFOBASE_PUBLISH_URL}` | Web-publish URL of the test infobase for `1c-tester` UI tests | **Highly desirable** — критично для UI-тестирования | Empty = UI tests are silently skipped, the rest of `/deploy-and-test` still runs; only ask if the user explicitly requested UI tests |
 | `{IBCMD_CONFIG}` | Path to standalone-server `config.yml` for `ibcmd`-based ops | Defaulted | Empty = fallback to Designer (per `.dev.env.example`) |
 
+### Subagent model parameters
+
+Consumed by the **installer** when rendering subagent files (source agents declare an abstract `modelTier: coding | light` instead of a concrete model — see `content/rules/subagents.md → Model-tier routing`). Not consulted at task time.
+
+| Parameter | Effect | Class | Behavior when empty |
+|---|---|---|---|
+| `{SUBAGENT_MODEL_CODING}` | Concrete model for tier `coding` (coding / architecture / planning / analysis / review subagents) | Defaulted | Empty = the model field is omitted from installed agent files; the AI client uses its default model. **Never ask at task time**; re-render via `install.ps1 update` after editing. |
+| `{SUBAGENT_MODEL_LIGHT}` | Concrete model for tier `light` (small bounded tasks: quick error fixes, scouting, mechanical checks) | Defaulted | Same as above |
+
 Task number `{TASK}` is **only required when modification comment markers are produced** — i.e. when the change touches **typical (standard) configuration code** and the templates `{COMMENT_OPEN}` / `{COMMENT_CLOSE}` reference `{TASK}`. For new objects with `{PREFIX}` (no per-method markers), review / analysis / documentation tasks, and any task where `COMPANY` / `DEVELOPER` are empty (markers skipped) — `{TASK}` is **not required**. Do not block on it.
 
 When `{TASK}` is required and not provided — ask the user once and reuse the same value across the whole change.

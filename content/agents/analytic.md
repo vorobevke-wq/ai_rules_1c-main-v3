@@ -1,7 +1,7 @@
 ---
 name: 1c-analytic
 description: "Expert 1C business analyst agent. Analyzes existing code and metadata structure, writes PRD (Product Requirements Document), specifications, and answers architectural questions. Creates technical documentation in 1C terms without writing code. Use PROACTIVELY when analyzing requirements or creating specifications."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---

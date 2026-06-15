@@ -1714,6 +1714,77 @@ function Invoke-PlaceSkill {
     }
 }
 
+# ============================================================================
+# SECTION 7b: SUBAGENT MODEL TIERS
+# ============================================================================
+#
+# Source agent files in content/agents/*.md declare an abstract `modelTier`
+# (coding | light) instead of a concrete model name. The concrete model per
+# tier is a project setting in .dev.env:
+#   SUBAGENT_MODEL_CODING — coding / analysis / review subagents;
+#   SUBAGENT_MODEL_LIGHT  — small bounded tasks (e.g. 1c-error-fixer).
+# Both are DEFAULTED parameters: an empty value means the model field is
+# omitted from the installed agent file and the AI client uses its default
+# model. The install never blocks on them.
+# On first init (no .dev.env yet) the values are asked interactively once
+# during agent placement and persisted into the rendered .dev.env by
+# Place-DevEnv. On update they are read from the existing .dev.env silently.
+
+$script:ModelTierKeys = [ordered]@{ coding = 'SUBAGENT_MODEL_CODING'; light = 'SUBAGENT_MODEL_LIGHT' }
+$script:ModelTierValues = $null
+
+function Resolve-ModelTiers {
+    # Returns an ordered hashtable tier -> concrete model name ('' = client
+    # default). Cached for the whole run so the interactive prompt fires once.
+    param([string]$Root)
+    if ($null -ne $script:ModelTierValues) { return $script:ModelTierValues }
+    $vals = [ordered]@{ coding = ''; light = '' }
+    $envPath = Join-Path $Root $script:DevEnvFileName
+    if (Test-Path $envPath) {
+        $keys = Read-DevEnvKeys -Path $envPath
+        foreach ($tier in @($script:ModelTierKeys.Keys)) {
+            $k = $script:ModelTierKeys[$tier]
+            if ($keys.Contains($k)) { $vals[$tier] = ([string]$keys[$k]).Trim() }
+        }
+    }
+    elseif (-not $NonInteractive) {
+        Write-Info ''
+        Write-Info '  Модели субагентов (Enter — модель AI-клиента по умолчанию):'
+        $vals['coding'] = Read-Required 'SUBAGENT_MODEL_CODING (модель для кодинга/анализа/ревью)' ''
+        $vals['light']  = Read-Required 'SUBAGENT_MODEL_LIGHT (модель для небольших задач: быстрые исправления, разведка)' ''
+    }
+    if (-not $vals['coding'] -and -not $vals['light']) {
+        Write-Info '  subagent models not set (SUBAGENT_MODEL_CODING / SUBAGENT_MODEL_LIGHT in .dev.env) — agents will use the AI client default model'
+    }
+    $script:ModelTierValues = $vals
+    return $vals
+}
+
+function Resolve-AgentModelTier {
+    # Replaces the abstract `modelTier` key in an agent's frontmatter with the
+    # concrete `modelHint` consumed by the adapters' keep/rename ops (and by
+    # the Codex rebuild-toml template). When the tier is unknown or its model
+    # is not configured, the key is removed and no model is emitted — the AI
+    # client falls back to its default model.
+    param(
+        [System.Collections.IDictionary]$Frontmatter,
+        [string]$Root
+    )
+    if (-not $Frontmatter -or -not $Frontmatter.Contains('modelTier')) { return $Frontmatter }
+    $tiers = Resolve-ModelTiers -Root $Root
+    $tier = ([string]$Frontmatter['modelTier']).Trim().ToLowerInvariant()
+    $model = if ($tiers.Contains($tier)) { [string]$tiers[$tier] } else { '' }
+    $result = [ordered]@{}
+    foreach ($k in $Frontmatter.Keys) {
+        if ($k -eq 'modelTier') {
+            if ($model) { $result['modelHint'] = $model }
+            continue
+        }
+        $result[$k] = $Frontmatter[$k]
+    }
+    return $result
+}
+
 function Invoke-PlacePhase {
     param(
         [string]$Root,
@@ -1750,10 +1821,11 @@ function Invoke-PlacePhase {
             $template = $adapter.agents.template
             foreach ($f in Get-ChildItem -File (Join-Path $SourceRoot 'content/agents') -Filter *.md) {
                 $parts = Split-FrontmatterAndBody (Read-TextFile $f.FullName)
+                $agentFm = Resolve-AgentModelTier -Frontmatter $parts.Frontmatter -Root $Root
                 $name = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
                 $target = Resolve-CopyToPath $copyTpl $name
                 Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
-                    -TargetRel $target -SourceFm $parts.Frontmatter -SourceBody $parts.Body `
+                    -TargetRel $target -SourceFm $agentFm -SourceBody $parts.Body `
                     -FrontmatterOps $fmOps -Mode $mode -Template $template `
                     -Manifest $Manifest -ContentSource ("content/agents/" + $f.Name)
             }
@@ -2203,7 +2275,9 @@ function Place-RootTemplates {
 # Defaulted fields (empty = silently fall back to a documented default;
 # never re-asked at task time):
 #   IB_PASSWORD (empty = no password; /P omitted),
-#   LOG_PATH    (empty = $env:TEMP\1cv8.log).
+#   LOG_PATH    (empty = $env:TEMP\1cv8.log),
+#   SUBAGENT_MODEL_CODING / SUBAGENT_MODEL_LIGHT (empty = AI client default
+#   model; see SECTION 7b).
 
 function Find-PlatformPath {
     # Returns the path to the most recent installed 1C platform under
@@ -2344,6 +2418,19 @@ function Place-DevEnv {
         $val = Read-Required 'IB_PASSWORD (пусто — без пароля, /P опускается; не храните прод-пароли)' '';                                       if ($val) { $text = Set-DevEnvValue -Text $text -Key 'IB_PASSWORD'         -Value $val }
         $val = Read-Required 'LOG_PATH (файл лога Designer''а; пусто — $env:TEMP\1cv8.log)' '';                                                if ($val) { $text = Set-DevEnvValue -Text $text -Key 'LOG_PATH'            -Value $val }
         $val = Read-Required 'INFOBASE_PUBLISH_URL (URL веб-публикации для UI-тестов; пусто — UI-тесты пропускаются)' '';                      if ($val) { $text = Set-DevEnvValue -Text $text -Key 'INFOBASE_PUBLISH_URL' -Value $val }
+    }
+
+    # Persist subagent model tiers. The values were either asked once during
+    # agent placement (Resolve-ModelTiers, init without .dev.env) or are still
+    # unset; ask here only if placement never ran (e.g. degenerate tool set).
+    if ($null -eq $script:ModelTierValues -and -not $NonInteractive) {
+        Resolve-ModelTiers -Root $Root | Out-Null
+    }
+    if ($script:ModelTierValues) {
+        foreach ($tier in @($script:ModelTierKeys.Keys)) {
+            $mval = [string]$script:ModelTierValues[$tier]
+            if ($mval) { $text = Set-DevEnvValue -Text $text -Key $script:ModelTierKeys[$tier] -Value $mval }
+        }
     }
 
     Write-TextFile -Path $target -Content $text

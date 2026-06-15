@@ -1,7 +1,7 @@
 ---
 name: 1c-developer
 description: "Expert 1C code developer agent. Creates modules, procedures, functions, queries, and forms. Uses MCP tools for documentation, syntax checking, and metadata verification. Use PROACTIVELY when writing or modifying 1C code."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---

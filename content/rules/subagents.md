@@ -1,5 +1,5 @@
 ---
-description: Subagent catalog — when to delegate to a specialized subagent vs. execute directly
+description: Subagent catalog — when to delegate to a specialized subagent vs. execute directly; model-tier routing
 alwaysApply: false
 category: workflow
 ---
@@ -49,7 +49,23 @@ category: workflow
 | **1c-metadata-manager** | Creating, scaffolding, compiling, or multi-step / multi-domain metadata operations (objects, forms, reports, layouts, roles, extensions) | Single info lookup or single XML attribute fix — use a direct edit or the `1c-metadata-manage` skill |
 | **1c-refactoring** | Dead-code cleanup, consolidation, or deduplication across multiple modules | Refactor is local to one procedure |
 | **1c-performance-optimizer** | User reports slowness, or query / loop optimization is the explicit task | No performance concern was raised |
-| **1c-error-fixer** | Quick fix of syntax / runtime errors / BSL LS warnings without architectural changes (routes to a lightweight model when the active tool supports model hints) | The fix requires architectural rework — escalate to `1c-architect` / `1c-developer` |
+| **1c-error-fixer** | Quick fix of syntax / runtime errors / BSL LS warnings without architectural changes (tier `light` — runs on the small-tasks model when one is configured) | The fix requires architectural rework — escalate to `1c-architect` / `1c-developer` |
 | **1c-tester** | User asks to verify changes via deploy + UI automation against a test infobase | No test infobase available, or the task is purely static |
 | **1c-code-reviewer** | **Only when the user explicitly asks for a code review** | Auto-triggering after edits is forbidden |
 | **1c-doc-writer** | User-facing documentation: user guides, admin manuals, tutorials, codemaps, API references | Inline code documentation (module / procedure headers) — that is the developer's responsibility |
+
+## Model-tier routing
+
+Subagent source files do **not** hard-code model names. Each agent declares an abstract tier in its frontmatter — `modelTier: coding` or `modelTier: light` — and the installer resolves the tier into a concrete model from `.dev.env` (`SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT`, both Defaulted: empty = the AI client's default model; see `dev-standards-core.md §1 → "Subagent model parameters"`). Model names live only in project settings, never in rules or agent prompts.
+
+The two tiers:
+
+- **`coding`** — the primary tier: coding, architecture, planning, analysis, review, metadata / forms, refactoring, performance, testing, documentation. Default for every subagent except `1c-error-fixer`.
+- **`light`** — small bounded tasks where a cheaper / faster model saves limits without hurting quality: quick error fixes, read-only scouting, impact lists, mechanical post-edit checks. Default for `1c-error-fixer`.
+
+Routing rules:
+
+- **Good candidates for the `light` tier** (when the active tool supports a per-invocation model override, the parent may route these down even to a `coding`-tier agent): initial project-source scouting and candidate lists; navigation / reference gathering for objects, modules, forms, procedures; impact lists ("where is X used"); mechanical verification after edits; small bounded edits in strictly assigned files.
+- **Never use the `light` tier as the final authority** for architecture, metadata / form design, transactions, registers, complex queries, security, data integrity, or release-critical decisions. Output of a light-tier run is working material, not a source of truth — the parent agent owns decomposition, source boundaries, the final decision, verification, and integration.
+- **Do not delegate trivial single-step tasks at all** — the launch overhead exceeds the saving.
+- The tier system does not change the validation obligations: whatever tier produced the change, the standard validators (`diagnostics` → `check_1c_code`) and the verification gate still apply.

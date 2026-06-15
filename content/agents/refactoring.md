@@ -1,7 +1,7 @@
 ---
 name: 1c-refactoring
 description: "Expert 1C code refactoring specialist. Focuses on dead code cleanup, code consolidation, performance optimization, and technical debt reduction. Identifies and safely removes unused code, duplicates, and improves code structure. Use PROACTIVELY for code cleanup and refactoring tasks."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---

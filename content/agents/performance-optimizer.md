@@ -1,7 +1,7 @@
 ---
 name: 1c-performance-optimizer
 description: "Expert 1C performance optimization specialist. Analyzes code for performance issues, optimizes queries, identifies bottlenecks, and provides concrete improvements. Use PROACTIVELY when performance issues are suspected or after code review identifies slow code."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---

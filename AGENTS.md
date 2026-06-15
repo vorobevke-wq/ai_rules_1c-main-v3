@@ -143,7 +143,7 @@ Operational parameters (platform version, platform path, infobase connection, we
 - **Advisory** (`PREFIX`, `COMPANY`, `DEVELOPER`) — empty is valid; documented fallback applies (no prefix; no modification markers). **MUST NOT be asked about, ever.**
 - **Highly desirable for IB-bound operations** (`INFOBASE_PATH`, `PLATFORM_PATH`) — needed only for `/loadfrom1cbase`, `/update1cbase`, `/getconfigfiles`, `/deploy-and-test` and similar commands. Ask **only when that command is in scope of the current task**. Pure code / review / analysis / documentation tasks proceed even when this whole block is empty.
 - **Highly desirable for UI testing** (`INFOBASE_PUBLISH_URL`) — needed by the `1c-tester` subagent / `/deploy-and-test`. Empty = UI tests are silently skipped, the rest of the flow still runs. Ask only when the user explicitly requested UI tests.
-- **Defaulted** (`INFOBASE_KIND`, `IB_USER`, `IB_PASSWORD`, `EXTENSION_NAME`, `EXPORT_PATH`, `LOG_PATH`, `NEW_OBJECTS_IN`, `IBCMD_CONFIG`) — empty resolves to a documented default; no question. In particular: empty `IB_USER` / `IB_PASSWORD` = no authentication (the `/N` / `/P` flags are simply omitted; an empty password is a valid configuration for dev / test infobases); empty `LOG_PATH` = `$env:TEMP\1cv8.log` (Windows) / `$TMPDIR/1cv8.log` (POSIX). Re-ask `IB_USER` / `IB_PASSWORD` **only** if the command fails with an authentication error; re-ask `LOG_PATH` **only** if the resolved default path turns out to be non-writable.
+- **Defaulted** (`INFOBASE_KIND`, `IB_USER`, `IB_PASSWORD`, `EXTENSION_NAME`, `EXPORT_PATH`, `LOG_PATH`, `NEW_OBJECTS_IN`, `IBCMD_CONFIG`, `SUBAGENT_MODEL_CODING`, `SUBAGENT_MODEL_LIGHT`) — empty resolves to a documented default; no question. In particular: empty `IB_USER` / `IB_PASSWORD` = no authentication (the `/N` / `/P` flags are simply omitted; an empty password is a valid configuration for dev / test infobases); empty `LOG_PATH` = `$env:TEMP\1cv8.log` (Windows) / `$TMPDIR/1cv8.log` (POSIX); empty `SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT` = subagents run on the AI client's default model (consumed by the installer only — see `content/rules/subagents.md → Model-tier routing`). Re-ask `IB_USER` / `IB_PASSWORD` **only** if the command fails with an authentication error; re-ask `LOG_PATH` **only** if the resolved default path turns out to be non-writable.
 
 Guessing values is still PROHIBITED. When an in-scope operation truly needs a missing highly-desirable value, ask once and proceed.
 
@@ -262,7 +262,7 @@ Load the corresponding file when the task matches the rule's scenario.
 
 ## Subagents
 
-- **subagents** — catalog of 13 specialized subagents and delegation rules. Load when a task may be worth delegating to a subagent. File: `content/rules/subagents.md`.
+- **subagents** — catalog of 13 specialized subagents, delegation rules, and model-tier routing (`coding` / `light`). Load when a task may be worth delegating to a subagent. File: `content/rules/subagents.md`.
 - **subagent-pipeline** — formalized full-cycle pipeline (`planner → developer → spec-compliance review → optional user-requested code review → verification gate`). Load for full-cycle tasks (>~20 lines, multi-module, metadata or architectural impact) when delegating to subagents. File: `content/rules/subagent-pipeline.md`.
 
 ## Forms

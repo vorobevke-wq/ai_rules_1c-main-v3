@@ -1,7 +1,7 @@
 ---
 name: 1c-architect
 description: "Expert 1C solution architect agent. Designs architecture for 1C modifications, analyzes existing codebase patterns and conventions, provides complete implementation plans with specific files, component design, data flows, and build sequence. Use PROACTIVELY for designing architecture of complex modifications."
-modelHint: opus
+modelTier: coding
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Shell", "MCP"]
 allowParallel: true
 ---
