@@ -1,5 +1,5 @@
 ---
-description: Subagent catalog — when to delegate to a specialized subagent vs. execute directly; model-tier routing
+description: Subagent catalog — when to delegate to a specialized subagent vs. execute directly; model-tier routing and bounded sidecar task templates
 alwaysApply: false
 category: workflow
 ---
@@ -56,7 +56,7 @@ category: workflow
 
 ## Model-tier routing
 
-Subagent source files do **not** hard-code model names. Each agent declares an abstract tier in its frontmatter — `modelTier: coding` or `modelTier: light` — and the installer resolves the tier into a concrete model from `.dev.env` (`SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT`, both Defaulted: empty = the AI client's default model; see `dev-standards-core.md §1 → "Subagent model parameters"`). Model names live only in project settings, never in rules or agent prompts.
+Subagent source files do **not** hard-code model names. Each agent declares an abstract tier in its frontmatter — `modelTier: coding` or `modelTier: light` — and the installer resolves the tier into a concrete model from `.dev.env` (`SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT`, both Defaulted: empty = the AI client's default model; see `content/rules/dev-standards-core.md §1 → "Subagent model parameters"`). Model names live only in project settings, never in rules or agent prompts.
 
 The two tiers:
 
@@ -69,3 +69,67 @@ Routing rules:
 - **Never use the `light` tier as the final authority** for architecture, metadata / form design, transactions, registers, complex queries, security, data integrity, or release-critical decisions. Output of a light-tier run is working material, not a source of truth — the parent agent owns decomposition, source boundaries, the final decision, verification, and integration.
 - **Do not delegate trivial single-step tasks at all** — the launch overhead exceeds the saving.
 - The tier system does not change the validation obligations: whatever tier produced the change, the standard validators (`diagnostics` → `check_1c_code`) and the verification gate still apply.
+
+## Bounded sidecar task templates
+
+When delegating, the launch prompt must make the task **bounded and self-contained**. Every delegation prompt includes:
+
+- **bounded responsibility** — one verifiable goal, not "help with the task";
+- **allowed and forbidden sources** — which MCP servers / files to use; the MCP-first search discipline (`content/rules/mcp-first-search.md`) applies to subagents too;
+- **read/write scope** — explicitly read-only, or an explicit list of files the subagent may edit;
+- **expected output format** — what the report must contain;
+- a reminder that the subagent **is not alone in the codebase**: it must not revert or overwrite changes outside its scope and must not delete files without an explicit instruction.
+
+Reusable templates (fill in `<...>`; they slot into the matching subagent from the catalog):
+
+### explorer-impact — read-only impact analysis (`1c-explorer`, light-tier candidate)
+
+```text
+Read-only impact analysis. Find all references to <object / procedure / attribute>.
+Follow the project MCP fallback chain (Metacode graph → rlm-tools-bsl → RLM literal / narrowed retry → Grep).
+Thoroughness: <quick | medium>. Do not edit files.
+Return: locations with file/line references and qualified 1C names, usage categories
+(call / query / RLS / form / subscription), risky dependencies, and gaps you could not verify.
+```
+
+### explorer-patterns — find existing implementations (`1c-explorer`, light-tier candidate)
+
+```text
+Read-only pattern search. Find existing implementations similar to <task>.
+Prefer templatesearch / search_code / rlm-tools-bsl helpers over raw grep. Do not edit files.
+Return: 3–7 best examples with paths and qualified names, which pattern to reuse, and what NOT to copy.
+```
+
+### metadata-scout — inspect an object / form before a change (`1c-explorer`, light-tier candidate)
+
+```text
+Read-only metadata/form scout. Inspect <metadata object / form / layout> via search_metadata template operations
+and rlm-tools-bsl helpers (`get_object_full_structure`, `parse_form`, `find_attributes`); confirm against source XML/BSL when in doubt.
+Do not edit files. Return: object structure, form elements / commands / events, related modules,
+validation risks, and a suggested write scope for the implementation step.
+```
+
+### worker-bounded-edit — implementation within fixed boundaries (`1c-developer` / `1c-error-fixer`)
+
+```text
+Bounded implementation. You are not alone in the codebase; do not revert or overwrite edits
+outside your scope. Edit only: <files>. Implement <specific change> per the approved plan.
+Follow project rules (`content/rules/dev-standards-core.md`, `content/rules/module-structure.md`). Run diagnostics on every touched module.
+Return: changed files, diff summary against the plan, checks performed, unresolved risks.
+```
+
+### reviewer-risk — independent review (`1c-code-reviewer`, **only when the user explicitly asked for a review**)
+
+```text
+Independent review of the current change for bugs, regressions, missing checks, and project-rule
+violations. Do not edit files. High-confidence findings only, ordered by severity, with file/line
+references; then test gaps and residual risk.
+```
+
+### smoke-check — mechanical post-change verification (`1c-explorer`, light-tier candidate)
+
+```text
+Read-only smoke check. Verify that <feature / rule / artifact> is discoverable and consistent through
+its intended entry points (referenced paths exist, names match, wiring is complete). Do not edit files.
+Return: exact checks performed, observed result, pass/fail per item.
+```

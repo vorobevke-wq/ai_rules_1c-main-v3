@@ -23,7 +23,7 @@ User may combine methods or specify custom scope as needed.
 
 ### Project Guidelines Compliance
 
-Check compliance with the `## Persona` section in `AGENTS.md`, `content/rules/dev-standards-core.md` (project parameters, code style, modification comments, naming, documentation) and `content/rules/dev-standards-architecture.md` (architecture patterns, extensions, platform standards):
+Check compliance with the project's `AGENTS.md` (Core Principles, Development Procedure), `content/rules/dev-standards-core.md` (project parameters, code style, modification comments, naming, documentation) and `content/rules/dev-standards-architecture.md` (architecture patterns, extensions, platform standards):
 - Query formatting
 - Common module usage
 - Attribute access patterns

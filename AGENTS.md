@@ -262,7 +262,7 @@ Load the corresponding file when the task matches the rule's scenario.
 
 ## Subagents
 
-- **subagents** — catalog of 13 specialized subagents, delegation rules, and model-tier routing (`coding` / `light`). Load when a task may be worth delegating to a subagent. File: `content/rules/subagents.md`.
+- **subagents** — catalog of 13 specialized subagents, delegation rules, model-tier routing (`coding` / `light`), and bounded sidecar task templates. Load when a task may be worth delegating to a subagent. File: `content/rules/subagents.md`.
 - **subagent-pipeline** — formalized full-cycle pipeline (`planner → developer → spec-compliance review → optional user-requested code review → verification gate`). Load for full-cycle tasks (>~20 lines, multi-module, metadata or architectural impact) when delegating to subagents. File: `content/rules/subagent-pipeline.md`.
 
 ## Forms
