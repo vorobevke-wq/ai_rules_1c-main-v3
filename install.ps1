@@ -754,8 +754,31 @@ function New-McpConfig-Cursor {
 }
 
 function New-McpConfig-ClaudeCode {
+    # Claude Code `.mcp.json` schema (https://code.claude.com/docs/en/mcp).
+    # Remote servers MUST carry an explicit `"type": "http"` — without it the
+    # current Claude Code (VS Code extension and CLI) does not load the server
+    # and it silently never appears in the tool list. The documented keys for
+    # an HTTP entry are `type`, `url`, `headers`; for a local (stdio) entry
+    # `command`, `args`, `env`. The Cursor-only `connection_id` / `description`
+    # keys are NOT part of the Claude Code schema, so they are omitted here.
     param([array]$Servers)
-    return New-McpConfig-Cursor $Servers
+    $dict = [ordered]@{}
+    foreach ($s in $Servers) {
+        $entry = [ordered]@{}
+        if ($s.url) {
+            $entry['type'] = 'http'
+            $entry['url'] = $s.url
+            if ($s.headers) { $entry['headers'] = $s.headers }
+        }
+        elseif ($s.command) {
+            $entry['command'] = $s.command
+            if ($s.args) { $entry['args'] = $s.args }
+            if ($s.env) { $entry['env'] = $s.env }
+        }
+        $dict[$s.id] = $entry
+    }
+    $root = [ordered]@{ mcpServers = $dict }
+    return (ConvertTo-Json $root -Depth 10)
 }
 
 function New-McpConfig-Kilocode {
