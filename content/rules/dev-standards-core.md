@@ -294,6 +294,6 @@ Before keeping a comment, answer: **"What does this comment tell the reader that
 
 ## 8. Internal Code Review After Each Edit
 
-After any code change, perform a brief internal review covering: style, readability, correctness, edge cases, security, concurrency / locks / transactions, BSL-LS compliance. If issues are found — fix them and re-run the cycle until the code is clean.
+After any code change, perform a brief internal review covering: style, readability, correctness, edge cases, security, concurrency / locks / transactions, BSL-LS compliance. If issues are found — fix them and re-run the cycle, staying within the verification budget from `AGENTS.md → MCP Tool Calling → B.1` (one call per validator by default, up to 3 only on substantive defects). After the budget is exhausted — fix the substantive issues and report any remaining style noise instead of looping further.
 
 Always consider whether an external transaction already exists (e.g. an object-write transaction) before opening a new one. See `platform-solutions.md` for the canonical templates.

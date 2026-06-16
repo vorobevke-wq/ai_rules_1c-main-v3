@@ -67,7 +67,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 ├── content/
 │   ├── rules/               # on-demand правила, подключаемые по задаче
 │   ├── agents/              # описания 13 специализированных субагентов
-│   ├── commands/            # слэш-команды (doctor, deploy-and-test, getconfigfiles, loadfrom1cbase, update1cbase, checkmcp, update)
+│   ├── commands/            # слэш-команды (doctor, deploy-and-test, getconfigfiles, loadfrom1cbase, update1cbase, checkmcp, updaterules)
 │   ├── skills/              # SKILL-пакеты (1c-metadata-manage, mermaid-diagrams и др.)
 │   ├── openspec-bundle/     # снапшот вывода `openspec init` для каждого инструмента
 │   └── mcp-servers.json     # каталог MCP-серверов экосистемы 1С
@@ -106,6 +106,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 - `registers-design.md` — проектирование регистров (сведений, накопления, бухгалтерии, расчёта): измерения и ресурсы, периодичность, индексирование, подчинение регистратору, остатки vs обороты, проведение и перепроведение.
 - `metadata-xml-workarounds.md` — типовые ошибки при ручной генерации метаданных XML (отсутствие `LineNumber` в табличных частях, опечатка `PagesGroupExtInfo`, обязательный `Page.enabled`, уникальность UUID).
 - `tooling-playbooks.md` — пошаговые MCP-плейбуки под типовые задачи (написание кода, ревью, архитектура, исправление ошибок, оптимизация, рефакторинг, метаданные XML, формы, интеграции, документация, сравнение версий платформы).
+- `mcp-first-search.md` — дисциплина MCP-first поиска по исходникам 1С: цепочка приоритетов (1c-mcp-metacode → rlm-tools-bsl → повтор с `grep=true` → `Grep`) и обязательная заметка «что было испробовано» перед fallback на `Grep` / `Glob`.
 - `subagents.md` / `subagent-pipeline.md` — каталог субагентов и формализованный pipeline для full-cycle задач.
 - `getconfigfiles.md` — выгрузка объектов метаданных из информационной базы в репозиторий.
 - `integrations-add.md` — правила для интеграций (HTTP-сервисы, REST, очереди).
@@ -221,7 +222,7 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 
 ## OpenSpec
 
-Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
+Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.codex/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
 
 ## Ссылки
 
