@@ -42,7 +42,7 @@
     },
     {
       "id": "1c-templates-mcp",
-      "description": "Code templates library and implementation examples search",
+      "description": "1C BSL code template library via Desko77/1c-templates-mcp: templatesearch, list_templates, get_template",
       "transport": "http",
       "url": "http://localhost:8004/mcp",
       "connectionId": "1c_templates_service_001",

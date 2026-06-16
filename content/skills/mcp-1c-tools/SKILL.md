@@ -30,7 +30,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 - Before writing code / a query / metadata XML — pick the MCP tool that best fits the task (template search, metadata check, syntax validation, code review).
 - For impact analysis and code navigation — decide which server to use first (`graph` → `rlm-tools-bsl` → `Grep` — see *Fallback chain* below).
 - For ITS standards (`search_its` → `fetch_its`) and platform syntax reference (`search_syntax` / `get_function_info` / `suggest_completion` / `validate_syntax`).
-- For code templates and project memory (`templatesearch`, `remember`, `recall`).
+- For 1C code templates (`templatesearch`) and read-only template browsing tools when explicitly needed.
 
 > Short obligation rules and verification budgets live in `AGENTS.md → MCP Tool Calling` (sections A, B, C). This skill owns the MCP catalog, routing, and fallback details.
 
@@ -40,7 +40,7 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 |---|---|---|
 | **1c-mcp-metacode** | Graph metadata and BSL code search (Neo4j): structure, usage, call graph, forms, rights, routines, semantic metadata/code search. Default id; per-project MCP keys may be suffixed when installing multiple Metacode project IDs, as long as the same tools are exposed. | [`docs/1c-mcp-metacode.md`](docs/1c-mcp-metacode.md) |
 | **rlm-tools-bsl** | Token-efficient 1C BSL repository exploration through an RLM sandbox: project registry, optional SQLite index, metadata/code/form/usages/call-graph helpers | [`docs/rlm-tools-bsl.md`](docs/rlm-tools-bsl.md) |
-| **1c-templates-mcp** | Code template library + project vector memory (`remember` / `recall`) | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
+| **1c-templates-mcp** | 1C BSL code-template library: semantic search and read-only template browsing tools | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
 | **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
 | **1c-syntax** | 1C platform syntax reference from the local Syntax Assistant (`shcntx_ru.hbk`): functions, methods, completions, call syntax checks | [`docs/1c-syntax-mcp.md`](docs/1c-syntax-mcp.md) |
 | **onec-buddy-mcp** | 1С:Напарник via 1C Buddy — AI advice, syntax explanation, code check / targeted modify, platform documentation, ITS documentation | [`docs/onec-buddy-mcp.md`](docs/onec-buddy-mcp.md) |
@@ -64,7 +64,7 @@ Use only the applicable branch; stop as soon as the collected evidence is suffic
 
 These servers have no `Grep` / `rg` equivalent; call them only when their knowledge is needed:
 
-1. `1c-templates-mcp` — code templates and project memory (`templatesearch`, `remember`, `recall`).
+1. `1c-templates-mcp` — 1C code templates (`templatesearch`; read-only browsing tools only when exact template contents are needed).
 2. `1c-ssl-mcp` — БСП / SSL reusable APIs and patterns.
 3. `1c-syntax` — local platform syntax reference for exact function / method names and call syntax.
 4. `onec-buddy-mcp` — 1С:Напарник checks, ITS standards (`search_its` → `fetch_its` for every document used), AI drafts.

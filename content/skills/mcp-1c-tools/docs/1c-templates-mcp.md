@@ -1,22 +1,22 @@
 # 1c-templates-mcp — tool catalog
 
-Code template library (`templatesearch`) and project vector memory (`remember` / `recall`). Memory routing rules live in `AGENTS.md → Project memory`.
+1C BSL code-template library from [`Desko77/1c-templates-mcp`](https://github.com/Desko77/1c-templates-mcp). The server provides semantic + full-text template search, a web UI, and MCP tools for template search and read-only browsing. It does **not** provide project-memory tools.
 
 > Load this file only if the `1c-templates-mcp` server is actually available in the current session.
 
 | Tool | Parameters | Purpose | When to use |
 |---|---|---|---|
-| **templatesearch** | `query` | Hybrid search (semantic + fulltext) over the code-template library (2000+ entries) | Find architectural patterns and implementation examples **before** writing code |
-| **remember** | `content` (≥ 5 chars) | Save a free-form note to project memory (vector-indexed) | Persist a project-specific fact, user correction, or non-obvious decision that should survive across tasks |
-| **recall** | `query` | Vector search over saved notes | At the start of any non-trivial task — recall earlier corrections, decisions, and project-specific quirks |
+| **templatesearch** | `query: str` | Hybrid semantic + full-text search over 1C BSL code templates | Find architectural patterns and implementation examples **before** writing code |
+| **list_templates** | `offset?`, `limit?` | List templates with pagination; default limit is 50, maximum is 200 | Browse the template library or inspect nearby candidates after search |
+| **get_template** | `template_id: int` | Return the full template, including code, by template ID | Read a specific search/list result before reusing it |
 
-## Notes on `remember`
+## Usage notes
 
-- Write in English, one self-contained fact per note, preserving original 1C identifiers and affected object / module names as-is.
-- Do not save secrets or PII.
-- Call `remember` proactively: when the user corrects you, clarifies a non-obvious detail, or adjusts your interpretation of the task.
-- Call `recall` at the start of any non-trivial task with key terms (object name, subsystem, error message).
+- Use `templatesearch` for ordinary development, review, architecture, refactoring, performance, and integration tasks when reusable 1C patterns may exist.
+- Use `get_template` before copying or adapting a concrete template; do not rely only on a search-result summary when exact code matters.
+- Mutating template-library tools are intentionally not documented in this ruleset and must not be used by agents.
+- No project-memory tools are exposed by this server. Project memory lives only in `memory.md`.
 
 ## Availability check
 
-Treat the server as **available** only if the `remember` and `recall` tools are actually present in the current session's tool schema. The mere presence of `1c-templates-mcp` in `mcp-servers.json` does not prove availability. If `recall` returns a connection error — switch to memory fallback mode (see `AGENTS.md → Project memory → Availability`).
+Treat the server as available when its MCP tools are exposed in the current session's tool schema, at minimum `templatesearch` for read-only template search. Exact template inspection requires `list_templates` and `get_template` to be visible.
