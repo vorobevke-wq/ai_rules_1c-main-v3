@@ -1,45 +1,107 @@
 # rlm-tools-bsl — tool catalog
 
-Token-efficient exploration server for 1C BSL repositories.
+Intent-first, token-efficient search and navigation backend for 1C BSL repositories.
 Upstream: <https://github.com/Dach-Coin/rlm-tools-bsl>.
+Last synced against upstream `v1.21.0` / `master` on 2026-06-17.
 
-`rlm-tools-bsl` does not expose one MCP tool per 1C operation. It exposes a small session API; inside `rlm_execute`, the agent runs Python code that calls sandbox helpers for BSL files, metadata XML, forms, usages, and call graphs.
+`rlm-tools-bsl` does not expose one MCP tool per 1C operation. It exposes a small session API; inside `rlm_execute`, the agent runs Python code that calls sandbox helpers for BSL files, metadata XML, forms, references, call graphs, data paths, and full-text search. Prefer this server over raw agent-side `Grep` / `rg` and direct file reads whenever a task touches 1C source: it keeps large file bodies on the server and returns only compact `print()` output.
 
 > Load this file only if the `rlm-tools-bsl` server is actually available in the current session.
+
+## Read order for agents
+
+Use this file in layers:
+
+1. For ordinary repository search, read `Top-level MCP tools` -> `Session discipline` -> `Sandbox helper map`.
+2. For subsystem/configuration reports, audits, and specifications, also apply `Agent analysis method`.
+3. For migration from the retired indexed metadata server, use `Replacement map from the retired server` only after the normal RLM helper choice is clear.
+
+Do not treat every section as a separate workflow. `Session discipline` is the default workflow; later sections add routing details, report-only gates, or migration aliases.
 
 ## Top-level MCP tools
 
 | Tool | Stable documented input | Purpose | When to use |
 |---|---|---|---|
-| **rlm_projects** | `action`, optional `name`, `path`, `description`, `new_name`, `password`, `clear_password` | Manage the server-side project registry. Mutating actions require a user-supplied project password when the server returns `approval_required`. | List registered projects; register a frequently used 1C source tree so later calls can use `rlm_start(project="...")`. |
-| **rlm_index** | `action`, `project` or `path`; optional `no_calls`, `no_metadata`, `no_fts`, `no_synonyms`, `confirm` | Build/update/drop/show the optional SQLite index. Build/update run in the background for registered projects. | Before large repositories, stale search results, or when helpers requiring index tables return degraded results. |
-| **rlm_start** | `query`, `path` or `project`; optional `effort`, `max_output_chars`, `max_llm_calls`, `max_execute_calls`, `execution_timeout_seconds`, `include_metadata` | Open a read-only exploration session and return `session_id`, strategy, limits, index status, and available helper signatures. | First call for repository exploration. If the user names a registered project, prefer `project`; otherwise pass an absolute 1C source path. |
-| **rlm_help** | optional `topic`, `helpers`, `category`, `section`, `format`, `include_code` | Slim-mode companion that returns recipes, helper details, disambiguation rules, and workflow sections omitted from `rlm_start`. | Call before `rlm_execute` on non-trivial analysis; call with `helpers=[...]` before using unfamiliar helpers. |
-| **rlm_execute** | `session_id`, `code`, optional `detail_level`, `max_new_variables` | Execute Python in the sandbox. Variables persist between calls; only printed output is returned to the agent context. | Batch several related helper calls, filter/summarize server-side, and print compact conclusions. |
+| **rlm_projects** | `action`, optional `name`, `path`, `description`, `new_name`, `password`, `clear_password` | Manage the server-side project registry. `path` may point to a configuration root or a parent container where the main configuration is auto-detected. Mutating actions require a user-supplied project password when the server returns `approval_required`. | List registered projects; register a frequently used 1C source tree so later calls can use `rlm_start(project="...")`. Never invent a password; ask the user only after `approval_required`. |
+| **rlm_index** | `action`, `project` or `path`; optional `no_calls`, `no_metadata`, `no_fts`, `no_synonyms`, `confirm` | Manage the optional SQLite index. `build` / `update` run in the background and return immediately; check progress through `info`. `build` / `update` / `drop` require a registered `project` and project password (`confirm`). | Before large repositories, stale search results, call-graph/data-path analysis, or when helpers requiring index tables return degraded results. Use `path` mainly for `info`; register the project before mutating index actions. |
+| **rlm_start** | `query`, `path` or `project`; optional `effort`, `max_output_chars`, `max_llm_calls`, `max_execute_calls`, `execution_timeout_seconds`, `include_metadata` | Open a fast read-only search and navigation session and return `session_id`, strategy, limits, warnings, extension context, index status, and available helper signatures. `path` may be the configuration root or a parent container with auto-detected main configuration. | First call for repository exploration. If the user names a registered project, prefer `project`; if the path is unknown, call `rlm_projects(action="list")` first. |
+| **rlm_help** | optional `topic`, `helpers`, `category`, `section`, `format`, `include_code` | Default slim-mode companion that returns recipes, exact helper details, disambiguation rules, workflow / performance / batching / IO / critical sections, and helper categories. In `RLM_STRATEGY_MODE=full` this tool is not registered because the strategy is fully inlined in `rlm_start`. | Call before `rlm_execute` on non-trivial analysis; call with `helpers=[...]` before unfamiliar helpers; call `section="disambiguation"` when choosing between similar helpers. |
+| **rlm_execute** | `session_id`, `code`, optional `detail_level`, `max_new_variables` | Run BSL search and navigation helpers by executing Python in the sandbox. Variables persist between calls; only printed output is returned to the agent context. | Batch several related helper calls, filter/summarize server-side, and print compact conclusions. This is where `find_module`, `find_definition`, `get_module_outline`, `find_call_hierarchy`, `find_path`, `find_data_path`, `git_search`, `parse_form`, etc. are called. |
 | **rlm_end** | `session_id` | Close the exploration session and free resources. | Always call when the RLM exploration is complete. |
 
 ## Session discipline
 
 1. Start with `rlm_start(query=..., project=...)` or `rlm_start(query=..., path=...)`.
-2. In default slim strategy mode, call `rlm_help(...)` before non-trivial `rlm_execute` calls. Use `topic` for business recipes (`"проведение"`, `"печать"`, `"права"`, `"интеграция"`, `"ссылки"`, `"структура объекта"`), `helpers` for exact helper docs, or `category` for helper lists.
-3. Batch operations inside one `rlm_execute`: search candidates, read the top files/procedures, compute a summary, then `print()` only the useful result.
-4. Never run broad `grep` over `path='.'` on large 1C configurations. Prefer metadata/code helpers and `git_search` where available.
-5. End with `rlm_end(session_id)` unless the parent explicitly needs to continue the same session.
+2. Read the `rlm_start` response before acting: check `warnings`, `extension_context`, `detected_custom_prefixes`, and `index.warnings`. If the index is missing/stale, do not present partial helper output as complete.
+3. In default slim strategy mode, call `rlm_help(...)` before non-trivial `rlm_execute` calls. Choose one route from `rlm_help routing`: `topic` for a business recipe, `helpers` for exact helper signatures, `category` for a helper list, or `section` for workflow / disambiguation / performance / batching / IO / critical guidance.
+4. Batch operations inside one `rlm_execute`: search candidates, read the top files/procedures, compute a summary, then `print()` only the useful result. Variables persist between calls; reuse assigned results instead of repeating identical helper calls.
+5. Never run broad agent-side `Grep` / `rg` over `path='.'` or whole top-level directories on large 1C configurations. Prefer metadata/code helpers, `find_module` + targeted reads, and RLM full-text helpers (`git_search`, then `safe_grep` / `grep_read` on narrowed paths) before leaving the server.
+6. End with `rlm_end(session_id)` unless the parent explicitly needs to continue the same session.
+
+## Agent analysis method
+
+Upstream `docs/AGENT_INSTRUCTIONS.md` defines a reporting discipline for agents that analyze a 1C configuration through `rlm-tools-bsl`. Apply this block when the task asks for a subsystem/configuration analysis, specification, audit, or other report where completeness matters.
+
+Do not apply the hard gates below to a quick lookup such as "find this procedure" or "where is this attribute used". Quick lookups still follow `Session discipline`.
+
+Base rule: facts come from data, not from memory or object names. Any claim about object composition, counts, attribute types, links, or business logic must be backed by helper output that actually read the relevant source. If the helper did not read it, treat it as unknown.
+
+Two hard gates for subsystem-composition reports:
+
+1. Composition and object counts come only from raw subsystem XML `Content` (`<xr:Item>` entries). Summary helpers such as `analyze_subsystem` may be used to locate the subsystem file, but not as the authoritative source of the object list or counts.
+2. The last substantive `rlm_execute` before delivery must re-read `Content`, count `M` programmatically, compare it with the report total and the sum by object type, and print `СВЕРКА ОК: итог = сумма_по_типам = M = N`. If the numbers differ, fix the report and repeat the check.
+
+Report-specific operational rules from the upstream agent instructions:
+
+- Follow `Session discipline` for `rlm_start`, `rlm_help`, batching, and final `rlm_end`; for reports, use `effort="high"` unless the task is explicitly narrow.
+- Use sandbox helpers as the source for 1C project data. Do not replace them with agent-side file reads or raw `Grep` / `rg` over large source files; that defeats the token-saving purpose of the server. Saving the final report is the normal file-tool exception.
+- Check `get_index_info()` at the start of analytic work. If the index is absent, stale, or a helper returns `partial=True`, do not present partial data as complete; state the limitation and consider `rlm_index(action="build"|"update")` when the user can provide the project password.
+- Treat a helper miss as inconclusive until you have done a broader search. Escalate from structural helpers to `search(...)` and then `git_search(...)` for GUIDs, user messages, query fragments, form/right/DCS XML attributes, and technical literals before writing "not found".
+- For key logic, read procedure bodies, not only signatures or names. Posting and movements may be implemented through common modules, event subscriptions, or register-writer helpers rather than directly in the object module.
+- Keep the report slice targeted: filter event subscriptions, movements, references, and counts to the subsystem/custom prefixes where possible. Do not report configuration-wide noise as subsystem-specific evidence.
+- Separate objects included in subsystem `Content` from related objects that are merely used by attributes, queries, forms, or movements. Put related-but-not-included objects in a separate section.
+- Use exact metadata types for attributes, dimensions, resources, and columns (`CatalogRef.X`, `DocumentRef.X`, `Number`, `Boolean`, `EnumRef.X`, etc.).
+
+Recommended workflow for a full subsystem/configuration report:
+
+1. `rlm_start(..., effort="high")`, inspect warnings and index status.
+2. `rlm_help` for workflow and task-specific recipes.
+3. Locate the subsystem XML, read raw `Content`, and compute composition counts by type.
+4. For every object from `Content`, collect structure, tabular sections, dimensions/resources, forms, and relevant flags with exact types.
+5. Collect applicable surroundings: roles, functional options, subscriptions, based-on links, print forms, register writers/movements, and integrations.
+6. Read key procedure bodies and follow actual execution through calls/subscriptions/common modules.
+7. Run the final programmatic reconciliation check and self-review before delivery.
+8. Call `rlm_end` after the analysis is complete.
+
+## `rlm_help` routing
+
+`rlm_help` returns JSON `{mode, result, warnings}` and has priority-ordered dispatch:
+
+| Input | Result |
+|---|---|
+| no arguments | Menu of topics, categories, sections, and helper count. |
+| `topic="..."` | Compact or full recipe for a business domain / alias. Current notable topics include rights, posting, forms, references, integrations, reachability, and data path analysis. |
+| `section="disambiguation"` | Structured helper-choice rules; pass `helpers=["a", "b"]` to narrow to a specific pair. |
+| `section="workflow" / "performance" / "batching" / "io" / "critical"` | Raw strategy section. |
+| `helpers=["name1", "name2"]` | Exact signatures, keywords, and recipes for helpers. |
+| `category="discovery" / "code" / "xml" / "composite" / "business" / "extension" / "navigation"` | One-line helper list for the category. |
 
 ## Sandbox helper map
 
-The complete helper list is returned by `rlm_start.available_functions`; detailed helper docs are available through `rlm_help(helpers=[...])`. Common replacements for the old indexed metadata server:
+The complete helper list is returned by `rlm_start.available_functions`; detailed helper docs are available through `rlm_help(helpers=[...])`. Use this table to choose helpers for new RLM work:
 
 | Need | RLM helper(s) inside `rlm_execute` |
 |---|---|
 | Broad search by object / method / attribute / region | `search(query, scope="all", limit=...)`; refine with `search_objects`, `search_methods`, `search_regions`, `search_module_headers`, `find_attributes`, `find_predefined`. |
-| Find metadata objects by category | `find_by_type(category)` for folders/types; `search_objects(query)` for technical name or synonym. |
+| Find metadata objects by category | `find_by_type(category, name="")` for folders/types; `search_objects(query)` for technical name or synonym. |
 | Full object structure | `get_object_full_structure(name)`; use `parse_object_xml(path)` when you need live XML completeness or index freshness is uncertain. |
-| Find modules of an object | `find_module(name)`, then `read_file(path)`, `extract_procedures(path)`, `find_exports(path)`, `code_metrics(path)`. |
-| Find a routine / read its body | `search_methods(query)` with an index; otherwise `find_module(name)` + `extract_procedures(path)` + `read_procedure(path, proc_name)`. |
-| Full-text code or XML search | `git_search(pattern, path="", file_types="", regex=False, mode="lines", max_results=...)` for git-backed sources; `safe_grep(pattern, name_hint, max_files)` for targeted BSL search; standard `grep_read` only for narrowed paths. |
-| Callers / call hierarchy | `find_callers(name, hint, max_files)`, `find_callers_context(proc_name, module_hint, offset, limit)`, `find_call_hierarchy(name, direction="callers", depth=1..3, module_hint="")`. |
-| Metadata usages and references | `find_references_to_object(object_ref, kinds=None, limit=...)` for declarative metadata references; `find_code_usages(object_ref, kind=None, limit=...)` for code usages. |
+| Find modules of an object | `find_module(name="", module_type="", category="")`, then `get_module_outline(path, include_methods=False)`, `extract_procedures(path)`, `find_exports(path)`, `code_metrics(path)`, or `read_file(path)` when the exact file is already narrowed. |
+| Find a routine / read its body | `find_definition(name, module_hint="", limit=50)` for go-to-definition; `search_methods(query)` with an index; otherwise `find_module(name)` + `extract_procedures(path)` + `read_procedure(path, proc_name)`. Use `module_hint` for common 1C names such as `ОбработкаПроведения` / `ПередЗаписью`. |
+| Module outline before reading bodies | `get_module_outline(path, include_methods=True/False)` for `#Область` tree, method/export counts, orphan methods, and line ranges. Use it as the first hop for 5K-15K line modules. |
+| Full-text code or XML search | `git_search(pattern, path="", file_types="", regex=False, ignore_case=False, mode="lines", max_results=..., exclude_path="")` for git-backed sources and technical literals. Use `exclude_path="Forms,Templates"` or similar literal names to suppress noisy zones. If `git_search` is unavailable or too broad, use `safe_grep(pattern, name_hint, max_files)` for targeted BSL search; use `grep_read` only on narrowed paths. Raw agent-side `Grep` / `rg` is the last fallback, after RLM helpers are insufficient. |
+| Callers / call hierarchy | `find_callers(name, module_hint, max_files)` for a compact first page; `find_callers_context(proc_name, module_hint, offset, limit)` for one-level callers with context; `find_call_hierarchy(name, direction="callers", depth=1..3, module_hint="", include_triggers=False)` for multi-level callers. `include_triggers=True` annotates nodes with non-call inbound edges: event subscriptions, form events, scheduled jobs, and CFE overrides. |
+| Call-path reachability | `find_path(from_name, to_name, max_depth=4, from_hint="", to_hint="", include_triggers=False)` for a forward path through the BSL call graph. Read `_meta.precision` (`exact` vs `heuristic`) and `_meta.budget_exceeded` before treating a missing path as proof of absence. |
+| Metadata usages, references, and data paths | `find_references_to_object(object_ref, kinds=None, limit=..., include_code=False)` for declarative metadata references; `find_code_usages(object_ref, kind=None, limit=...)` for code usages; `find_data_path(from_object, to_object, max_depth=4, kinds=None)` for an N-hop metadata-reference path. `find_data_path` endpoints must include metadata prefixes such as `Документ.X` / `Справочник.Y` or `Document.X` / `Catalog.Y`. |
 | Register movements / writers | `find_register_movements(document_name)`, `find_register_writers(register_name)`, `analyze_document_flow(document_name)`. |
 | Forms | `parse_form(object_name, form_name="", handler="")`; use `find_module(name)` + `read_procedure` for form-module handler bodies. |
 | Roles / rights | `find_roles(object_name)`. |
@@ -48,6 +110,13 @@ The complete helper list is returned by `rlm_start.available_functions`; detaile
 | Enumerations / predefined / defined types | `find_enum_values(enum_name)`, `find_predefined(name, object_name)`, `find_defined_types(name)`. |
 | Extension overrides | `detect_extensions()`, `find_ext_overrides(extension_path, object_name)`, `get_overrides(object_name, method_name)`. |
 | Index status | `get_index_info()` inside the session; `rlm_index(action="info", project=...)` outside the session. |
+
+## Version-specific helper notes
+
+- `find_definition(name, module_hint="", limit=50)` and `get_module_outline(path, include_methods=True)` are read-only helper additions. They use existing index tables when available and degrade to live parsing where possible; no index rebuild is required solely because these helpers appeared.
+- `find_path(...)`, `find_data_path(...)`, and `find_call_hierarchy(..., include_triggers=True)` depend on index freshness for trustworthy graph analysis. If the index is old, missing, or marked partial, report that limitation and verify critical findings with targeted reads / references.
+- `git_search(..., exclude_path="Forms,Templates")` excludes literal file or directory names at any depth. Do not pass glob patterns to `exclude_path`; invalid elements should be treated as a helper error, not silently broadened.
+- `rlm_index(action="build"|"update"|"drop")` is an MCP-side administrative action: it requires a registered project and the project password. When the tool returns `approval_required`, ask the user for the password; do not guess or reuse unrelated credentials.
 
 ## No direct replacement
 
@@ -64,10 +133,10 @@ The complete helper list is returned by `rlm_start.available_functions`; detaile
 | `metadatasearch` | `search_objects`, `find_by_type`, `find_attributes`, `search(scope="objects"|"attributes")`; use `git_search` for raw XML literals. |
 | `get_metadata_details` | `get_object_full_structure`; `parse_object_xml` for live XML structure. |
 | `codesearch` | `search`, `search_methods`, `git_search`, `safe_grep`, `grep_read` on narrowed paths. |
-| `search_function` | `search_methods`; fallback to `extract_procedures` / `find_exports` over paths from `find_module`. |
-| `get_module_structure` | `extract_procedures`, `find_exports`, `code_metrics`, `read_file`. |
-| `get_method_call_hierarchy` | `find_call_hierarchy` or `find_callers_context`. |
-| `graph_dependencies` | `find_references_to_object`, `find_code_usages`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`. |
+| `search_function` | `find_definition` for exact go-to-definition; `search_methods`; fallback to `extract_procedures` / `find_exports` over paths from `find_module`. |
+| `get_module_structure` | `get_module_outline`, `extract_procedures`, `find_exports`, `code_metrics`, `read_file` on narrowed paths. |
+| `get_method_call_hierarchy` | `find_call_hierarchy`, `find_callers_context`, or `find_path` for reachability between two routines. |
+| `graph_dependencies` | `find_references_to_object`, `find_code_usages`, `find_data_path`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`. |
 | `bsl_scope_members` | No direct RLM equivalent; use platform docs for built-in APIs and `search_methods` / `find_exports` for project routines. |
 | `search_forms` | `parse_form` plus `search_objects` / `git_search` for form names and XML literals. |
 | `inspect_form_layout` | `parse_form`; for handler bodies use `read_procedure` on the returned form module path. |

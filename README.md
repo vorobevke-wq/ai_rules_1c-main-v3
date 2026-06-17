@@ -106,7 +106,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 - `registers-design.md` — проектирование регистров (сведений, накопления, бухгалтерии, расчёта): измерения и ресурсы, периодичность, индексирование, подчинение регистратору, остатки vs обороты, проведение и перепроведение.
 - `metadata-xml-workarounds.md` — типовые ошибки при ручной генерации метаданных XML (отсутствие `LineNumber` в табличных частях, опечатка `PagesGroupExtInfo`, обязательный `Page.enabled`, уникальность UUID).
 - `tooling-playbooks.md` — пошаговые MCP-плейбуки под типовые задачи (написание кода, ревью, архитектура, исправление ошибок, оптимизация, рефакторинг, метаданные XML, формы, интеграции, документация, сравнение версий платформы).
-- `mcp-first-search.md` — дисциплина MCP-first поиска по исходникам 1С: цепочка приоритетов (1c-mcp-metacode → rlm-tools-bsl → повтор с `grep=true` → `Grep`) и обязательная заметка «что было испробовано» перед fallback на `Grep` / `Glob`.
+- `mcp-first-search.md` — дисциплина MCP-first поиска по исходникам 1С: цепочка приоритетов (1c-mcp-metacode → rlm-tools-bsl → RLM literal / narrowed retry через `git_search` / `safe_grep` → `Grep`) и обязательная заметка «что было испробовано» перед fallback на `Grep` / `Glob`.
 - `subagents.md` / `subagent-pipeline.md` — каталог субагентов и формализованный pipeline для full-cycle задач.
 - `getconfigfiles.md` — выгрузка объектов метаданных из информационной базы в репозиторий.
 - `integrations-add.md` — правила для интеграций (HTTP-сервисы, REST, очереди).
@@ -170,14 +170,16 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 - `search_metadata_by_description` — поиск объектов по назначению, синонимам, комментариям, описаниям и справке.
 - `search_code` — поиск процедур и функций по описанию и получение исходного BSL-кода с контекстом.
 
-### `rlm-tools-bsl` — RLM-поиск кода/метаданных 1С
+### `rlm-tools-bsl` — RLM-поиск и навигация по коду/метаданным 1С
 
-Fallback к графовому MCP и компактный способ исследовать большую выгрузку 1С без заливки сырых файлов в контекст. Сервер открывает сессию анализа (`rlm_start`), даёт справку по рецептам и хелперам (`rlm_help`), выполняет Python-код в песочнице (`rlm_execute`) и закрывает сессию (`rlm_end`). Для часто используемых исходников есть реестр проектов (`rlm_projects`) и опциональный SQLite-индекс (`rlm_index`).
+Fallback к графовому MCP и компактный способ исследовать большую выгрузку 1С без заливки сырых файлов в контекст. Сервер сейчас описан intent-first: при задачах поиска модулей, методов, ссылок, графа вызовов, форм и XML агент должен тянуться к `rlm-tools-bsl` до сырого `grep`. Сессия открывается через `rlm_start`, подробные рецепты и сигнатуры доступны через `rlm_help` в slim-режиме, хелперы вызываются Python-кодом в `rlm_execute`, завершение — `rlm_end`. Для часто используемых исходников есть реестр проектов (`rlm_projects`) и опциональный SQLite-индекс (`rlm_index`); мутирующие операции реестра/индекса требуют пароль проекта, если сервер вернул `approval_required`.
 
-- **Метаданные**: `search_objects`, `find_by_type`, `find_attributes`, `get_object_full_structure`, `parse_object_xml`, `find_references_to_object`, `find_code_usages`.
-- **Код**: `search`, `search_methods`, `find_module`, `extract_procedures`, `find_exports`, `read_procedure`, `git_search`, `safe_grep`, `code_metrics`.
-- **Связи и проведение**: `find_call_hierarchy`, `find_callers_context`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`.
-- **Формы и интеграции**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`.
+- **Метаданные и граф данных**: `search_objects`, `find_by_type`, `find_attributes`, `get_object_full_structure`, `parse_object_xml`, `find_references_to_object`, `find_code_usages`, `find_data_path`, `find_defined_types`.
+- **Код и структура модулей**: `search`, `search_methods`, `find_definition`, `find_module`, `get_module_outline`, `extract_procedures`, `find_exports`, `read_procedure`, `safe_grep`, `code_metrics`.
+- **Полнотекстовый поиск**: `git_search(pattern, path="", file_types="", regex=False, ignore_case=False, mode="lines", max_results=..., exclude_path="")`; `exclude_path` отсекает шумовые зоны вроде `Forms` / `Templates` на любой глубине.
+- **Связи и поток управления**: `find_call_hierarchy(..., include_triggers=True)`, `find_callers_context`, `find_path`, `find_register_movements`, `find_register_writers`, `analyze_document_flow`, `analyze_subsystem`.
+- **Формы, интеграции и расширения**: `parse_form`, `find_http_services`, `find_web_services`, `find_xdto_packages`, `find_exchange_plan_content`, `detect_extensions`, `get_overrides`.
+- **Методология отчётов**: в `content/skills/mcp-1c-tools/docs/rlm-tools-bsl.md`  факты только из прочитанных данных, состав подсистемы из сырого `Content`, обязательная финальная программная сверка, плотный батчинг `rlm_execute`, проверка индекса и запрет выдавать `partial`-данные как полные.
 - **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для синтаксической справки платформы — `1c-syntax`, для статей и методической документации — `onec-buddy-mcp`.
 
 ### `1c-lsp-mcp-skill` — диагностика и навигация BSL

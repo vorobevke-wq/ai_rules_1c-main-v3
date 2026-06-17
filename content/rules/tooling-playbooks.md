@@ -15,7 +15,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 | Task shape | Required before edit | Required after edit |
 |---|---|---|
 | **Quick-fix BSL** (single procedure, no metadata / transaction / public API impact) | Read the target module / procedure and any directly referenced helper needed to understand the bug | `diagnostics` on the touched `.bsl` file |
-| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / RLM helpers (`search`, `search_methods`, `git_search`, `safe_grep`) for local patterns; `search_metadata` (`object_structure` / focused templates) or RLM helpers (`get_object_full_structure`, `find_attributes`) when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `diagnostics` → `check_1c_code`; impact analysis when public surface or metadata usage changed |
+| **Full-cycle BSL** | `templatesearch` when a reusable pattern may exist; `search_code` / RLM helpers (`search`, `search_methods`, `find_definition`, `git_search`, `safe_grep`) for local patterns; `search_metadata` (`object_structure` / focused templates) or RLM helpers (`get_object_full_structure`, `find_attributes`) when metadata shape affects the code; platform / БСП / ITS docs only when versioned API or standard behaviour matters | `diagnostics` → `check_1c_code`; impact analysis when public surface or metadata usage changed |
 | **Metadata XML / forms** | Similar object/form examples, metadata lookup through `search_metadata` / RLM helpers; prefer `1c-metadata-manage` over hand edits | Relevant `1c-metadata-manage` validator (`form-validate`, `meta-validate`, `role-validate`, `skd-validate`, etc.); metadata validation / form compilation where applicable |
 | **Integrations / platform APIs** | Existing integrations, templates, relevant БСП APIs, platform docs for exact API names / version availability, security requirements | `diagnostics` → `check_1c_code`; ITS check when relying on an ITS standard |
 | **Markdown / rules / docs** | Read affected docs and referenced files needed for consistency | Structural checks only: paths, links, anchors, duplicate / conflicting wording |
@@ -24,9 +24,9 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 1. **templatesearch** — find similar implementations.
 2. **search_metadata** — verify the target metadata object with focused templates (`object_structure`, forms, modules, rights, events as needed).
-3. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — review existing patterns in the configuration.
-4. **rlm-tools-bsl** (`search_methods`; fallback `find_module` + `extract_procedures`) — find an existing procedure/function by name for reuse.
-5. **rlm-tools-bsl** (`find_module` + `extract_procedures` + `code_metrics`) — overview of the module you intend to edit.
+3. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `find_definition`, `git_search`) — review existing patterns in the configuration.
+4. **rlm-tools-bsl** (`find_definition`, `search_methods`; fallback `find_module` + `extract_procedures`) — find an existing procedure/function by name for reuse.
+5. **rlm-tools-bsl** (`find_module` + `get_module_outline` + `extract_procedures` + `code_metrics`) — overview of the module you intend to edit.
 6. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `parse_object_xml`) — verify metadata structure and attribute types.
 7. **get_function_info / search_syntax** for platform APIs; **rlm-tools-bsl** (`search_methods`, `find_exports`) for project routines.
 8. **get_function_info** — verify built-in functions by exact name; **search_syntax / suggest_completion** — find candidates by name or prefix.
@@ -37,9 +37,9 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 ## Code Review
 
-1. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — verify pattern compliance.
+1. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `find_definition`, `git_search`) — verify pattern compliance.
 2. **search_metadata** usage / movement / call-graph templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — impact analysis of the change.
-3. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — BSL call chains, callers/callees.
+3. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — BSL call chains, callers/callees, and routine-to-routine reachability.
 4. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_references_to_object`) — correct metadata usage.
 5. **get_function_info** — verify method/property existence; **search_syntax** — search by name fragment.
 6. **check_1c_code** — bugs, performance issues, style, and ITS compliance.
@@ -51,8 +51,8 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 2. **rlm-tools-bsl** (`search_objects`, `get_object_full_structure`, `find_attributes`) — existing metadata structure.
 3. **search_metadata** usage / movement / call-graph templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — dependency map across metadata references, code usages, movements and calls.
 4. **search_metadata** (`find_objects_using_object`) — find all objects referencing the given one.
-5. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — existing architectural patterns.
-6. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — code coupling and call chains.
+5. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `find_definition`, `git_search`) — existing architectural patterns.
+6. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — code coupling, call chains, and routine-to-routine reachability.
 7. **templatesearch** — architectural templates.
 8. **ask_1c_ai** — architectural questions to 1С:Напарник (treat as a hint, not authority).
 
@@ -61,10 +61,10 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 1. **get_event_log** (`1c-mcp-toolkit`, if available) — fetch the exact text, timestamp and affected metadata of the relevant live-IB error before forming hypotheses. Start with `levels=["Error"]`, a recent `start_date`, and `limit=1`; add `metadata_type`, `user`, `application`, or `comment_contains` when the log is noisy. Avoids guessing what the user "probably saw". Skip when the failing scenario is not yet reproduced in the connected IB.
 2. **diagnostics** — syntax and analyzer errors.
 3. **check_1c_code** — logic, performance, style, and ITS compliance issues.
-4. **rlm-tools-bsl** (`search_methods`; fallback `find_module` + `extract_procedures`) — locate the failing procedure/function.
+4. **rlm-tools-bsl** (`find_definition`, `search_methods`; fallback `find_module` + `extract_procedures`) — locate the failing procedure/function.
 5. **search_code** → **rlm-tools-bsl** (`search`, `git_search`, `read_procedure`) — related patterns and the minimal routine body needed.
-6. **rlm-tools-bsl** (`find_module` + `extract_procedures` + `code_metrics`) — module context around the error.
-7. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — how the error propagates through the call chain.
+6. **rlm-tools-bsl** (`find_module` + `get_module_outline` + `extract_procedures` + `code_metrics`) — module context around the error.
+7. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — how the error propagates through the call chain.
 8. **get_function_info** — verify function/method names; **search_syntax / suggest_completion** — fallback by name or prefix.
 9. **rlm-tools-bsl** (`search_objects`, `get_object_full_structure`, `find_attributes`) — verify metadata names and attributes.
 10. **execute_code** query parse wrapper (`1c-mcp-toolkit`, if available) — when the suspect path is a query string, parse-check it through `Новый Запрос(<query>).НайтиПараметры()` before deeper investigation.
@@ -75,7 +75,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 ## Performance Optimization
 
 1. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — locate slow patterns ("медленный запрос", "цикл по выборке").
-2. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — identify hot call chains.
+2. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — identify hot call chains and reachability between routines.
 3. **search_metadata** call-graph / usage templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — objects that cause cascading issues.
 4. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_register_movements`) — verify indexes and metadata structure.
 5. **check_1c_code** — bottleneck analysis.
@@ -88,7 +88,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 1. **search_metadata** — passport of the object being refactored (`object_structure` plus focused facets).
 2. **search_metadata** usage / movement / call-graph templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — what breaks on change.
-3. **search_metadata** (`list_callers_of_routine` / `call_graph_subtree`) → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`) — all callers.
+3. **search_metadata** (`list_callers_of_routine` / `call_graph_subtree`) → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — all callers and reachability where needed.
 4. **search_metadata** (`find_objects_using_object` / `find_usages_of_object`) — every type reference before renaming/removing.
 5. **search_code** → **rlm-tools-bsl** (`search`, `git_search`, `find_code_usages`) — every code pattern related to the object.
 6. **search_code** → **rlm-tools-bsl** (`git_search`, `find_code_usages`) — post-refactor verification that no old references remain.
@@ -130,7 +130,7 @@ Use this playbook when writing HTTP services / clients, REST integrations, file 
 
 1. **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — find code to document.
 2. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `find_references_to_object`) — metadata structure.
-3. **rlm-tools-bsl** (`find_module`, `extract_procedures`) — list of procedures/functions.
+3. **rlm-tools-bsl** (`find_module`, `get_module_outline`, `extract_procedures`, `find_definition`) — module outline and list of procedures/functions.
 4. **get_function_info** — syntax-reference information by exact name; **search_syntax** — search by name fragment.
 5. **search_1c_documentation** — existing help articles.
 6. **search_its** → **fetch_its** — methodological ITS articles.
