@@ -1227,6 +1227,57 @@ function Invoke-OpenSpecScaffold {
 # `update` refreshes them, `remove` deletes them, and `userModified` is
 # honoured. The OpenSpec CLI version of the snapshot is recorded in
 # `manifest.integrations.openspec.artifactsBundleVersion` for diagnostics.
+function Remove-LegacyKilocodeOpenSpecArtifacts {
+    param(
+        [string]$Root,
+        [System.Collections.IDictionary]$Manifest
+    )
+    $legacyTargets = @(
+        '.kilocode/skills/openspec-apply-change/SKILL.md',
+        '.kilocode/skills/openspec-archive-change/SKILL.md',
+        '.kilocode/skills/openspec-explore/SKILL.md',
+        '.kilocode/skills/openspec-propose/SKILL.md',
+        '.kilocode/workflows/opsx-apply.md',
+        '.kilocode/workflows/opsx-archive.md',
+        '.kilocode/workflows/opsx-explore.md',
+        '.kilocode/workflows/opsx-propose.md'
+    )
+
+    $removed = 0
+    foreach ($rel in $legacyTargets) {
+        $entry = $null
+        if ($Manifest.files -and $Manifest.files.Contains($rel)) { $entry = $Manifest.files[$rel] }
+        if ($entry -and $entry.userModified) { continue }
+
+        $abs = Join-Path $Root $rel
+        if (Test-Path $abs) {
+            Remove-Item -LiteralPath $abs -Force -ErrorAction SilentlyContinue
+            $removed++
+        }
+        if ($Manifest.files -and $Manifest.files.Contains($rel)) { [void]$Manifest.files.Remove($rel) }
+    }
+
+    foreach ($dirRel in @(
+        '.kilocode/skills/openspec-apply-change',
+        '.kilocode/skills/openspec-archive-change',
+        '.kilocode/skills/openspec-explore',
+        '.kilocode/skills/openspec-propose',
+        '.kilocode/skills',
+        '.kilocode/workflows',
+        '.kilocode'
+    )) {
+        $dir = Join-Path $Root $dirRel
+        if (-not (Test-Path $dir)) { continue }
+        $remaining = @(Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue)
+        if ($remaining.Count -eq 0) {
+            Remove-Item -LiteralPath $dir -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    if ($removed -gt 0) {
+        Write-Info "  [kilocode] OpenSpec legacy removed: $removed file(s)"
+    }
+}
 function Invoke-OpenSpecArtifacts {
     param(
         [string]$Root,
@@ -1249,6 +1300,9 @@ function Invoke-OpenSpecArtifacts {
     $totalCopied = 0
     $totalKept = 0
     foreach ($tool in $ActiveTools) {
+        if ($tool -eq 'kilocode') {
+            Remove-LegacyKilocodeOpenSpecArtifacts -Root $Root -Manifest $Manifest
+        }
         $toolBundle = Join-Path $bundleRoot $tool
         if (-not (Test-Path $toolBundle)) { continue }
         $toolBundleFull = (Resolve-Path $toolBundle).Path.TrimEnd('\', '/')
