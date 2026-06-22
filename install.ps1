@@ -903,7 +903,7 @@ function New-McpConfig-Codex {
         $lines += 'enabled = true'
         if ($s.url) { $lines += 'url = ' + (Format-TomlString $s.url) }
         if ($s.headers) {
-            $lines += 'headers = ' + (Format-TomlInlineTable $s.headers)
+            $lines += 'http_headers = ' + (Format-TomlInlineTable $s.headers)
         }
         if ($s.command) {
             $lines += 'command = ' + (Format-TomlString $s.command)

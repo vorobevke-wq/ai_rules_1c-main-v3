@@ -12,7 +12,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 | id | Port | Docker image | Purpose | Requires data |
 |---|---|---|---|---|
-| `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — configured `lsp-skill-server` project id in the active MCP config `x-project-id` header |
+| `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — replace the generated `x-project-id` placeholder with the `lsp-skill-server` project id |
 | `1c-templates-mcp` | 8004 | `desko77/1c-templates-mcp` | BSL code-template search and template browsing (`templatesearch`, `list_templates`, `get_template`) | No |
 | `1c-ssl-mcp` | 8008 | `comol/mcp_ssl_server:latest` | BSP/SSL search | No (`SSL_VERSION`) |
 | `1c-syntax` | local | native local Python / `1c-syntax-mcp` | 1C platform syntax reference (`search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax`) | Yes — installed 1C platform with `shcntx_ru.hbk`, 7z, and the configured local server path |
@@ -150,7 +150,7 @@ Possible outcomes:
 - Local data paths for servers that need them:
   - `1c-syntax` — local server path (`C:/Users/Lenovo PC/1c-syntax-mcp-master/server.py`), virtual-environment Python path (`C:/Users/Lenovo PC/1c-syntax-mcp-master/venv/Scripts/python.exe`), installed 1C platform containing `shcntx_ru.hbk`, and 7z for first-run extraction.
   - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
-  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the `x-project-id` header configured manually in the active MCP client config for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
+  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the generated `x-project-id` header placeholder replaced with the real project id in the active MCP client config for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
   - `onec-buddy-mcp` — 1C.ai token and a running 1C Buddy service, if it will be used.
@@ -198,7 +198,7 @@ chmod +x simple-install-from-pip.sh
 # 1. Install Java/JVM and download bsl-language-server JAR.
 # 2. Start lsp-skill-server and configure the JAR path.
 # 3. Add the 1C project in the web UI and enable MCP.
-# 4. Put the project id into the active MCP client config:
+# 4. Replace the generated <project-id> placeholder in the active MCP client config:
 #    "1c-lsp-diagnostics": { "type": "http", "url": "http://127.0.0.1:9011/mcp", "headers": { "x-project-id": "<project-id>" } }
 
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs
