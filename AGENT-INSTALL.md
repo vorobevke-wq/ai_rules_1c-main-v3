@@ -58,7 +58,7 @@ Use this lean sequence:
    - `content/agents/` → `<agents.copyTo dir>/`
    - `content/commands/` → `<commands.copyTo dir>/`
    - `content/skills/` → `<skills.copyTo dir>/` (mode `verbatim` — copy **every** skill folder as-is, no transformation). Copy the whole `content/skills/` directory; do **not** cherry-pick a subset. All skills are required, including the non-1C-domain ones (`caveman`, `prompt-enhancer`, `handoff`, `mermaid-diagrams`, `transcribe`, `md-to-docx`, `img-grid-analysis`) — `AGENTS.md` references them and silently skipping any of them leaves a degraded ruleset. Use a single directory copy, not per-skill judgement calls.
-   - `content/openspec-bundle/<tool>/` → at the locations encoded in that snapshot, **skip-if-exists**.
+   - `content/openspec-bundle/<tool>/` → at the locations encoded in that snapshot, **skip-if-exists**. Include dot-prefixed directories and files when enumerating this bundle (`.kilo/`, `.cursor/`, `.claude/`, etc.); for example use `Get-ChildItem -Force` or `rg --hidden --files`. Plain `rg --files` hides `.kilo/` and makes the Kilo OpenSpec bundle look empty.
 
 4. **Apply frontmatter operations only where needed.** For sections that have `frontmatter.keep` / `drop` / `rename` / `addIf` / `toolsToPermission`:
    - For each placed file, read **only** the YAML frontmatter block (between the leading `---` markers — typically the first 5–20 lines). Do not read the body.

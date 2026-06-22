@@ -1308,7 +1308,7 @@ function Invoke-OpenSpecArtifacts {
         $toolBundleFull = (Resolve-Path $toolBundle).Path.TrimEnd('\', '/')
         $toolCopied = 0
         $toolKept = 0
-        Get-ChildItem -Recurse -File -Path $toolBundle -ErrorAction SilentlyContinue | ForEach-Object {
+        Get-ChildItem -Recurse -File -Force -Path $toolBundle -ErrorAction SilentlyContinue | ForEach-Object {
             $rel = $_.FullName.Substring($toolBundleFull.Length + 1).Replace('\', '/')
             if ($Manifest.files.Contains($rel)) {
                 $existing = $Manifest.files[$rel]

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Refreshes content/openspec-bundle/ from a locally installed OpenSpec CLI.
@@ -46,7 +46,7 @@ $script:DotMap = @{
     'claude-code' = '.claude'
     'codex'       = '.codex'
     'opencode'    = '.opencode'
-    'kilocode'    = '.kilocode'
+    'kilocode'    = '.kilo'
 }
 
 function Resolve-RepoRoot {
@@ -102,7 +102,7 @@ function Get-RelativeFiles {
     param([string]$BaseDir)
     if (-not (Test-Path $BaseDir)) { return @() }
     $base = (Resolve-Path $BaseDir).Path.TrimEnd('\', '/')
-    return @(Get-ChildItem -Recurse -File $BaseDir -ErrorAction SilentlyContinue | ForEach-Object {
+    return @(Get-ChildItem -Recurse -File -Force $BaseDir -ErrorAction SilentlyContinue | ForEach-Object {
         $_.FullName.Substring($base.Length + 1).Replace('\', '/')
     } | Sort-Object)
 }
@@ -117,6 +117,26 @@ function Sync-ToolBundle {
     $dot = $script:DotMap[$Tool]
     $sourceDir = Join-Path $ProbeRoot $dot
     $targetDir = Join-Path $BundleRoot "$Tool\$dot"
+    $normalizedTemp = $null
+
+    if ($Tool -eq 'kilocode' -and -not (Test-Path $sourceDir)) {
+        $legacySourceDir = Join-Path $ProbeRoot '.kilocode'
+        if (Test-Path $legacySourceDir) {
+            $normalizedTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("openspec-kilo-normalized-" + [guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $normalizedTemp | Out-Null
+            $legacyWorkflows = Join-Path $legacySourceDir 'workflows'
+            $legacySkills = Join-Path $legacySourceDir 'skills'
+            if (Test-Path $legacyWorkflows) {
+                New-Item -ItemType Directory -Path (Join-Path $normalizedTemp 'commands') -Force | Out-Null
+                Copy-Item -Path (Join-Path $legacyWorkflows '*') -Destination (Join-Path $normalizedTemp 'commands') -Recurse -Force
+            }
+            if (Test-Path $legacySkills) {
+                New-Item -ItemType Directory -Path (Join-Path $normalizedTemp 'skills') -Force | Out-Null
+                Copy-Item -Path (Join-Path $legacySkills '*') -Destination (Join-Path $normalizedTemp 'skills') -Recurse -Force
+            }
+            $sourceDir = $normalizedTemp
+        }
+    }
 
     if (-not (Test-Path $sourceDir)) {
         Write-Warning "  [$Tool] no $dot in probe output - skipped"
@@ -125,8 +145,10 @@ function Sync-ToolBundle {
 
     $sourceFiles = Get-RelativeFiles $sourceDir
     $targetFiles = Get-RelativeFiles $targetDir
-    $sourceSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$sourceFiles)
-    $targetSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$targetFiles)
+    $sourceSet = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($file in $sourceFiles) { [void]$sourceSet.Add($file) }
+    $targetSet = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($file in $targetFiles) { [void]$targetSet.Add($file) }
 
     $added = @($sourceFiles | Where-Object { -not $targetSet.Contains($_) })
     $removed = @($targetFiles | Where-Object { -not $sourceSet.Contains($_) })
@@ -141,6 +163,10 @@ function Sync-ToolBundle {
     if (-not $DryRun) {
         if (Test-Path $targetDir) { Remove-Item -Recurse -Force $targetDir }
         Copy-Item -Recurse -Force -Path $sourceDir -Destination $targetDir
+    }
+
+    if ($normalizedTemp -and (Test-Path $normalizedTemp)) {
+        Remove-Item -Recurse -Force $normalizedTemp
     }
 
     return [pscustomobject]@{
