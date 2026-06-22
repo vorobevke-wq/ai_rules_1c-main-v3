@@ -8,7 +8,9 @@
 # Notes:
 #   - Current Kilo Code (VSCode extension and CLI, built on the Kilo CLI core)
 #     loads project content from the `.kilo/` directory:
-#       rules    -> .kilo/rules/         (legacy `.kilocode/rules/` still works
+#       rules    -> .kilo/rules-1c/      (wired through the project
+#                                         `instructions` array in `.kilo/kilo.json`;
+#                                         legacy `.kilocode/rules/` still works
 #                                         via backward compatibility)
 #       agents   -> .kilo/agents/        (markdown subagent files; the legacy
 #                                         extension did not expose a folder for
@@ -93,10 +95,11 @@ mcp:
   format: json
   # `.kilo/kilo.json` is the SHARED Kilo config (instructions, skills.paths,
   # custom permissions, agent overrides…), not an MCP-only file. The
-  # installer therefore deep-merges only the top-level `mcp` key into the
-  # existing file when present, preserving every other key the user added.
+  # installer therefore deep-merges the top-level `mcp` key and adds
+  # `.kilo/rules-1c/*.md` to `instructions`, preserving every other key and
+  # every user-authored instruction entry.
   # If `.kilo/kilo.json` does not yet exist, the installer writes a fresh
-  # file containing just `{ "mcp": { … } }`.
+  # file containing `mcp` plus the generated `instructions` entry.
   merge: true
   # On `update`, remove any leftover `.kilocode/mcp.json` from older
   # installs (Kilo CLI / Kilo Code v7.x+ no longer reads it; an extra copy

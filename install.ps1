@@ -2041,6 +2041,57 @@ function Convert-AgentsMdPaths {
 # SECTION 11: MCP PHASE
 # ============================================================================
 
+function Get-KilocodeRulesInstructionGlob {
+    param([System.Collections.IDictionary]$Adapter)
+    if (-not $Adapter -or -not $Adapter.Contains('rules')) { return $null }
+    $rules = $Adapter['rules']
+    if (-not $rules -or -not $rules.Contains('copyTo')) { return $null }
+    $copyTo = [string]$rules['copyTo']
+    if ([string]::IsNullOrWhiteSpace($copyTo) -or -not $copyTo.Contains('{name}')) { return $null }
+    return ($copyTo -replace '\{name\}', '*')
+}
+
+function Add-KilocodeRulesInstructionToJson {
+    param(
+        [string]$JsonContent,
+        [System.Collections.IDictionary]$Adapter
+    )
+    $instructionGlob = Get-KilocodeRulesInstructionGlob -Adapter $Adapter
+    if ([string]::IsNullOrWhiteSpace($instructionGlob)) { return $JsonContent }
+
+    try {
+        $obj = $JsonContent | ConvertFrom-Json -ErrorAction Stop
+        $config = [ordered]@{}
+        foreach ($prop in $obj.PSObject.Properties) {
+            $config[$prop.Name] = $prop.Value
+        }
+
+        $instructions = @()
+        if ($config.Contains('instructions') -and $null -ne $config['instructions']) {
+            $current = $config['instructions']
+            if ($current -is [string]) {
+                $instructions = @($current)
+            }
+            elseif ($current -is [System.Collections.IEnumerable]) {
+                foreach ($item in $current) {
+                    if ($null -ne $item) { $instructions += [string]$item }
+                }
+            }
+            else {
+                return $JsonContent
+            }
+        }
+
+        if ($instructions -notcontains $instructionGlob) {
+            $instructions += $instructionGlob
+        }
+        $config['instructions'] = @($instructions)
+        return (ConvertTo-Json $config -Depth 20)
+    }
+    catch {
+        return $JsonContent
+    }
+}
 function Invoke-McpPhase {
     param(
         [string]$Root,
@@ -2130,6 +2181,10 @@ function Invoke-McpPhase {
                 Write-Info "  [$tool] MCP merge: existing $target не парсится как JSON — пишу заново. Ошибка: $($_.Exception.Message)"
                 $finalContent = $content
             }
+        }
+
+        if ($tool -eq 'kilocode') {
+            $finalContent = Add-KilocodeRulesInstructionToJson -JsonContent $finalContent -Adapter $adapter
         }
 
         Write-TextFile -Path $absTarget -Content ($finalContent + "`n")
