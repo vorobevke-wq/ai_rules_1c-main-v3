@@ -2147,6 +2147,64 @@ function Get-KilocodeRulesInstructionGlob {
     return ($copyTo -replace '\{name\}', '*')
 }
 
+function Remove-LegacyKilocodeSharedConfig {
+    param(
+        [string]$Root,
+        [System.Collections.IDictionary]$Adapter,
+        [System.Collections.IDictionary]$Manifest
+    )
+    $legacy = '.kilo/kilo.json'
+    $absLegacy = Join-Path $Root $legacy
+    if (-not (Test-Path $absLegacy)) { return }
+
+    try {
+        $raw = Get-Content -Path $absLegacy -Raw -ErrorAction Stop
+        $obj = $raw | ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        Write-Info "  [kilocode] MCP legacy: $legacy не парсится как JSON — оставляю без изменений."
+        return
+    }
+
+    $instructionGlob = Get-KilocodeRulesInstructionGlob -Adapter $Adapter
+    $kept = [ordered]@{}
+    foreach ($prop in $obj.PSObject.Properties) {
+        if ($prop.Name -eq 'mcp') { continue }
+
+        if ($prop.Name -eq 'instructions' -and -not [string]::IsNullOrWhiteSpace($instructionGlob)) {
+            $remaining = @()
+            if ($prop.Value -is [string]) {
+                if ([string]$prop.Value -ne $instructionGlob) { $remaining = @([string]$prop.Value) }
+            }
+            elseif ($prop.Value -is [System.Collections.IEnumerable]) {
+                foreach ($item in $prop.Value) {
+                    if ($null -ne $item -and [string]$item -ne $instructionGlob) { $remaining += [string]$item }
+                }
+            }
+            else {
+                $kept[$prop.Name] = $prop.Value
+                continue
+            }
+
+            if ($remaining.Count -gt 0) { $kept[$prop.Name] = @($remaining) }
+            continue
+        }
+
+        $kept[$prop.Name] = $prop.Value
+    }
+
+    $meaningful = @($kept.Keys | Where-Object { $_ -ne '$schema' })
+    if ($meaningful.Count -eq 0) {
+        Remove-Item -Path $absLegacy -Force -ErrorAction SilentlyContinue
+        Write-Info "  [kilocode] MCP legacy removed: $legacy"
+    }
+    else {
+        Write-TextFile -Path $absLegacy -Content ((ConvertTo-Json $kept -Depth 20) + "`n")
+        Write-Info "  [kilocode] MCP legacy migrated: stripped generated mcp/instructions from $legacy"
+    }
+
+    if ($Manifest.files.Contains($legacy)) { [void]$Manifest.files.Remove($legacy) }
+}
 function Add-KilocodeRulesInstructionToJson {
     param(
         [string]$JsonContent,
@@ -2209,6 +2267,10 @@ function Invoke-McpPhase {
         $content = New-McpConfig -ToolId $tool -Servers $servers
         $absTarget = Join-Path $Root $target
 
+        if ($tool -eq 'kilocode' -and $target -ne '.kilo/kilo.json') {
+            Remove-LegacyKilocodeSharedConfig -Root $Root -Adapter $adapter -Manifest $Manifest
+        }
+
         # `mcp.legacyTargets` (set in adapter yaml) — list of relative paths
         # that previous installer versions wrote to and that the current
         # tool no longer reads. Delete them so they do not confuse
@@ -2237,7 +2299,7 @@ function Invoke-McpPhase {
         }
 
         # `mcp.merge: true` (set in adapter yaml) — when the target file is
-        # a SHARED tool config (e.g. `.kilo/kilo.json` carries not only MCP
+        # a SHARED tool config (e.g. `kilo.json` carries not only MCP
         # but also `instructions`, `skills.paths`, custom permissions),
         # do not overwrite the whole file. Instead read existing JSON,
         # replace the top-level `mcp` key with our rendered value, keep
@@ -2288,7 +2350,7 @@ function Invoke-McpPhase {
             source        = 'content/mcp-servers.json'
             installedHash = (Get-FileSha256 $absTarget)
         }
-        # `merged` marks a SHARED config (opencode.json / .kilo/kilo.json) that
+        # `merged` marks a SHARED config (opencode.json / kilo.json) that
         # carries user keys besides `mcp`. On `remove`, such a file must NOT be
         # deleted — only its top-level `mcp` key is stripped (see Invoke-Remove).
         if ($mergeRequested) { $mcpEntry['merged'] = $true }
@@ -3085,13 +3147,16 @@ function Invoke-Add {
 }
 
 # Strip ONLY the top-level `mcp` key from a SHARED tool config that the
-# installer deep-merged into (opencode.json / .kilo/kilo.json). Deleting the
+# installer deep-merged into (opencode.json / kilo.json). Deleting the
 # whole file on `remove` would destroy the user's own config (model, theme,
-# instructions, skills.paths, permissions…). If after removing `mcp` nothing
-# meaningful is left (empty, or only a `$schema` marker the installer added),
-# delete the now-pointless file.
+# instructions, skills.paths, permissions…). For Kilo, the generated rules
+# instruction is stripped at the same time. If nothing meaningful is left
+# (empty, or only a `$schema` marker the installer added), delete the now-pointless file.
 function Remove-McpKeyFromConfig {
-    param([string]$Path)
+    param(
+        [string]$Path,
+        [string]$InstructionGlob
+    )
     if (-not (Test-Path $Path)) { return }
     try {
         $raw = Get-Content -Path $Path -Raw -ErrorAction Stop
@@ -3104,6 +3169,26 @@ function Remove-McpKeyFromConfig {
     $kept = [ordered]@{}
     foreach ($prop in $obj.PSObject.Properties) {
         if ($prop.Name -eq 'mcp') { continue }
+
+        if ($prop.Name -eq 'instructions' -and -not [string]::IsNullOrWhiteSpace($InstructionGlob)) {
+            $remaining = @()
+            if ($prop.Value -is [string]) {
+                if ([string]$prop.Value -ne $InstructionGlob) { $remaining = @([string]$prop.Value) }
+            }
+            elseif ($prop.Value -is [System.Collections.IEnumerable]) {
+                foreach ($item in $prop.Value) {
+                    if ($null -ne $item -and [string]$item -ne $InstructionGlob) { $remaining += [string]$item }
+                }
+            }
+            else {
+                $kept[$prop.Name] = $prop.Value
+                continue
+            }
+
+            if ($remaining.Count -gt 0) { $kept[$prop.Name] = @($remaining) }
+            continue
+        }
+
         $kept[$prop.Name] = $prop.Value
     }
     $meaningful = @($kept.Keys | Where-Object { $_ -ne '$schema' })
@@ -3138,7 +3223,7 @@ function Invoke-Remove {
             'claude-code' { $toolPrefixes = @('.claude/', 'CLAUDE.md', '.mcp.json') }
             'codex'       { $toolPrefixes = @('.codex/') }
             'opencode'    { $toolPrefixes = @('.opencode/', 'opencode.json') }
-            'kilocode'    { $toolPrefixes = @('.kilo/', '.kilocode/') }
+            'kilocode'    { $toolPrefixes = @('.kilo/', '.kilocode/', 'kilo.json') }
             'cursor'      { $toolPrefixes = @('.cursor/') }
             'other'       { $toolPrefixes = @('.ai-agent/') }
         }
@@ -3153,9 +3238,11 @@ function Invoke-Remove {
         foreach ($rel in $toRemove) {
             $abs = Join-Path $Root $rel
             if (Test-MergedMcpEntry $manifest.files[$rel]) {
-                # Shared config (opencode.json / .kilo/kilo.json): strip the
+                # Shared config (opencode.json / kilo.json): strip the
                 # `mcp` key only, never delete the user's whole config.
-                Remove-McpKeyFromConfig -Path $abs
+                $instructionGlob = $null
+                if ($rel -eq 'kilo.json' -or $rel -eq '.kilo/kilo.json') { $instructionGlob = '.kilo/rules-1c/*.md' }
+                Remove-McpKeyFromConfig -Path $abs -InstructionGlob $instructionGlob
             }
             elseif (Test-Path $abs) {
                 Remove-Item -Force $abs -ErrorAction SilentlyContinue
@@ -3182,9 +3269,11 @@ function Invoke-Remove {
         foreach ($rel in @($manifest.files.Keys)) {
             $abs = Join-Path $Root $rel
             if (Test-MergedMcpEntry $manifest.files[$rel]) {
-                # Shared config (opencode.json / .kilo/kilo.json): strip the
+                # Shared config (opencode.json / kilo.json): strip the
                 # `mcp` key only, never delete the user's whole config.
-                Remove-McpKeyFromConfig -Path $abs
+                $instructionGlob = $null
+                if ($rel -eq 'kilo.json' -or $rel -eq '.kilo/kilo.json') { $instructionGlob = '.kilo/rules-1c/*.md' }
+                Remove-McpKeyFromConfig -Path $abs -InstructionGlob $instructionGlob
             }
             elseif (Test-Path $abs) {
                 Remove-Item -Force $abs -ErrorAction SilentlyContinue
