@@ -1740,20 +1740,24 @@ function Resolve-CopyToPath {
     return $p
 }
 
-# Resolve a manifest key (relative or already-absolute) to an absolute filesystem
-# path. Manifest keys for adapters whose `copyTo` starts with `~/` (currently
-# codex `commands`) are stored as absolute paths by `Invoke-PlaceArtifactFile`;
-# every other key is project-relative. Iteration over `$manifest.files.Keys`
-# must go through this helper instead of `Join-Path $Root $rel`, otherwise
-# absolute keys turn into garbage like `C:\Project\C:\Users\...` and Test-Path
-# falsely reports the files as missing.
+# Resolve a manifest key (project-relative or already-absolute) to an absolute
+# filesystem path. Manifest keys for adapters whose `copyTo` starts with `~/`
+# (currently Codex `commands`) are stored as real absolute paths such as
+# `C:\Users\...`; every other key is project-relative.
+#
+# Important Windows edge case: .NET treats `/foo` and `\foo` as rooted paths
+# on the current drive, but in `.ai-rules.json` such keys are malformed
+# project-relative entries. Normalize a single leading slash before joining,
+# otherwise verification looks in `D:\.kilo\...` instead of `$Root\.kilo\...`.
 function Resolve-ManifestPath {
     param(
         [string]$Root,
         [string]$Rel
     )
-    if ([System.IO.Path]::IsPathRooted($Rel)) { return $Rel }
-    return (Join-Path $Root $Rel)
+    if ([string]::IsNullOrWhiteSpace($Rel)) { return $Root }
+    if ($Rel -match '^[A-Za-z]:[\\/]' -or $Rel.StartsWith('\\')) { return $Rel }
+    $normalized = $Rel.TrimStart('/', '\')
+    return (Join-Path $Root $normalized)
 }
 
 function Invoke-PlaceArtifactFile {
