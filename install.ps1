@@ -1352,7 +1352,7 @@ function Invoke-OpenSpecArtifacts {
 # SECTION 9b: 1C PROJECT DETECTION + openspec/project.md GENERATOR
 # ============================================================================
 #
-# Inspects the project root for 1C metadata signals (Configuration.xml,
+# Inspects common 1C source locations for metadata signals (Configuration.xml,
 # CommonModules/СтандартныеПодсистемыСервер, top-level subsystems, kind
 # subdirectories) and renders a Russian-language openspec/project.md.
 #
@@ -1393,6 +1393,49 @@ function Get-1cSynonymRu {
     return ''
 }
 
+function ConvertTo-ProjectRelativePath {
+    param(
+        [string]$Root,
+        [string]$Path
+    )
+    $rootFull = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
+    $pathFull = [System.IO.Path]::GetFullPath($Path)
+    $prefix = $rootFull + [System.IO.Path]::DirectorySeparatorChar
+    if ($pathFull.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $pathFull.Substring($prefix.Length).Replace('\', '/')
+    }
+    return (Split-Path -Leaf $pathFull)
+}
+
+function Find-1cConfigurationXml {
+    param([string]$Root)
+    $candidates = @(
+        @{ Rel = 'Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'ConfigurationExtension.xml'; IsExtension = $true },
+        @{ Rel = 'src\cf\Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'src\cf\ConfigurationExtension.xml'; IsExtension = $true },
+        @{ Rel = 'src\cfe\ConfigurationExtension.xml'; IsExtension = $true },
+        @{ Rel = 'src\cfe\Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'cf\Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'cf\ConfigurationExtension.xml'; IsExtension = $true },
+        @{ Rel = 'cfe\ConfigurationExtension.xml'; IsExtension = $true },
+        @{ Rel = 'cfe\Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'src\Configuration.xml'; IsExtension = $false },
+        @{ Rel = 'src\ConfigurationExtension.xml'; IsExtension = $true }
+    )
+    foreach ($candidate in $candidates) {
+        $candidatePath = Join-Path $Root $candidate.Rel
+        if (Test-Path $candidatePath) {
+            $resolved = (Resolve-Path $candidatePath).Path
+            return [ordered]@{
+                Path        = $resolved
+                ConfigRoot  = (Split-Path -Parent $resolved)
+                IsExtension = [bool]$candidate.IsExtension
+            }
+        }
+    }
+    return $null
+}
 function Get-1cProjectInfo {
     param([string]$Root)
 
@@ -1416,15 +1459,14 @@ function Get-1cProjectInfo {
         Counts          = [ordered]@{}
     }
 
-    $configXml = Join-Path $Root 'Configuration.xml'
-    $extXml = Join-Path $Root 'ConfigurationExtension.xml'
-    $xmlPath = $null
-    if (Test-Path $configXml) { $xmlPath = $configXml }
-    elseif (Test-Path $extXml) { $xmlPath = $extXml; $info.IsExtension = $true }
-    if (-not $xmlPath) { return $info }
+    $configFile = Find-1cConfigurationXml -Root $Root
+    if (-not $configFile) { return $info }
+    $xmlPath = $configFile.Path
+    $configRoot = $configFile.ConfigRoot
 
     $info.Detected = $true
-    $info.ConfigPath = (Split-Path -Leaf $xmlPath)
+    $info.IsExtension = [bool]$configFile.IsExtension
+    $info.ConfigPath = ConvertTo-ProjectRelativePath -Root $Root -Path $xmlPath
 
     $xml = ''
     try { $xml = Get-Content -Raw -Path $xmlPath -ErrorAction Stop }
@@ -1474,12 +1516,12 @@ function Get-1cProjectInfo {
     )
     $bspFile = $null
     foreach ($c in $bspCandidates) {
-        $p = Join-Path $Root $c
+        $p = Join-Path $configRoot $c
         if (Test-Path $p) { $bspFile = $p; break }
     }
     if (-not $bspFile) {
         foreach ($n in @('СтандартныеПодсистемы.xml', 'StandardSubsystems.xml')) {
-            if (Test-Path (Join-Path $Root "Subsystems\$n")) { $info.BspDetected = $true; break }
+            if (Test-Path (Join-Path $configRoot "Subsystems\$n")) { $info.BspDetected = $true; break }
         }
     }
     if ($bspFile) {
@@ -1495,7 +1537,7 @@ function Get-1cProjectInfo {
         catch {}
     }
 
-    $subsDir = Join-Path $Root 'Subsystems'
+    $subsDir = Join-Path $configRoot 'Subsystems'
     if (Test-Path $subsDir) {
         $info.Subsystems = @(
             Get-ChildItem -File $subsDir -Filter *.xml -ErrorAction SilentlyContinue |
@@ -1520,7 +1562,7 @@ function Get-1cProjectInfo {
         'Tasks'                       = 'Задачи'
     }
     foreach ($k in $kinds.Keys) {
-        $d = Join-Path $Root $k
+        $d = Join-Path $configRoot $k
         if (Test-Path $d) {
             $count = @(Get-ChildItem -File $d -Filter *.xml -ErrorAction SilentlyContinue).Count
             if ($count -gt 0) { $info.Counts[$kinds[$k]] = $count }
@@ -1622,7 +1664,7 @@ function Invoke-OpenSpecProjectMd {
     $info = Get-1cProjectInfo -Root $Root
 
     if (-not $info.Detected) {
-        Write-Info '  OpenSpec project.md: 1С-сигналов не найдено (нет Configuration.xml) — пропуск'
+        Write-Info '  OpenSpec project.md: 1С-сигналов не найдено (нет Configuration.xml / ConfigurationExtension.xml в известных путях) — пропуск'
         return
     }
 
@@ -2394,7 +2436,7 @@ function Place-RootTemplates {
 #   - If the file already exists in the project root — DO NOT overwrite.
 #     Just register it in the manifest so future updates know it is present.
 #   - If missing — render from the source `.dev.env.example` template,
-#     auto-fill what we can detect (PLATFORM_VERSION from Configuration.xml,
+#     auto-fill what we can detect (PLATFORM_VERSION from Configuration.xml in common 1C source paths,
 #     PLATFORM_PATH from C:\Program Files\1cv8\, PREFIX from extension's
 #     NamePrefix), and either prompt the user for the rest (interactive
 #     mode) or leave them empty with a console WARNING (non-interactive).
