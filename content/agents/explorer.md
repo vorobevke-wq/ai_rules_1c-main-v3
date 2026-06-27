@@ -1,6 +1,6 @@
 ---
 name: 1c-explorer
-description: "Read-only 1C codebase exploration specialist. Quickly finds files, code patterns, metadata objects, dependencies, and answers questions about the configuration without modifying anything. Strictly follows the project's MCP fallback chain (metacode → rlm-tools-bsl → templates → SSL → docs → ITS → grep) and returns structured findings with file/line references and qualified 1C names. Supports thoroughness levels: quick, medium, thorough. Use PROACTIVELY when the parent needs to gather context across many files, locate code, map a subsystem, or answer 'where is X / how does Y work / who calls Z' questions before planning, coding, or refactoring."
+description: "Read-only 1C codebase exploration specialist. Quickly finds files, code patterns, metadata objects, dependencies, and answers questions about the configuration without modifying anything. Strictly follows the project's MCP fallback chain (metacode → rlm-tools-bsl → templates → БСП skills → docs → ITS → grep) and returns structured findings with file/line references and qualified 1C names. Supports thoroughness levels: quick, medium, thorough. Use PROACTIVELY when the parent needs to gather context across many files, locate code, map a subsystem, or answer 'where is X / how does Y work / who calls Z' questions before planning, coding, or refactoring."
 modelTier: coding
 tools: ["Read", "Grep", "Glob", "MCP"]
 allowParallel: true
@@ -37,7 +37,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 2. **`rlm-tools-bsl`** (fallback when Metacode is unavailable or returns nothing)
    - Start with `rlm_start`, call `rlm_help` for non-trivial exploration, then use batched `rlm_execute` helpers such as `search`, `search_objects`, `search_methods`, `find_module`, `get_object_full_structure`, `parse_form`, `find_call_hierarchy`, `find_references_to_object`, `find_code_usages`, `git_search`, and `safe_grep`.
 3. **`1c-templates-mcp`** — `templatesearch` to find canonical implementation patterns.
-4. **`1c-ssl-mcp`** — `ssl_search` to check whether a standard SSL/БСП function already covers the need.
+4. **Local БСП skills (`bsp-*`)** — when installed, read the relevant skill docs to check whether a standard БСП function or pattern already covers the need.
 5. **`1c-syntax`** — `get_function_info` for known names, `search_syntax` / `suggest_completion` for name-based lookup of platform APIs.
 6. **`onec-buddy-mcp`** — `search_its` → **always follow up with** `fetch_its` to read full ITS articles.
 7. **Grep / Glob** — only as an absolute last resort.
@@ -54,7 +54,7 @@ The parent specifies the thoroughness level in the task. If unspecified, assume 
 |-------|--------|----------|
 | **quick** | 1–3 MCP calls | Single targeted lookup. Good for "where is procedure X" or "does object Y exist". One-paragraph answer. |
 | **medium** | 4–10 MCP calls | One pass through the relevant tools (focused `search_metadata` templates + 1–2 code/usage searches + brief structure read). Default. |
-| **thorough** | 10–25 MCP calls | Multi-angle exploration: object-structure templates + usage/call-graph analysis + canonical templates + SSL check + cross-references. Used before refactoring or large feature work. |
+| **thorough** | 10–25 MCP calls | Multi-angle exploration: object-structure templates + usage/call-graph analysis + canonical templates + SSL (БСП) skill check + cross-references. Used before refactoring or large feature work. |
 
 Stop as soon as the question is answered with verified evidence. Do not pad.
 
@@ -84,7 +84,7 @@ If the question is ambiguous and cannot be sharpened from context, ask **one** c
 | List objects in a category | `search_metadata({"operation": "list_objects_by_category", ...})` |
 | Impact of a change | `search_metadata` usage / movement / call-graph templates, then fallback `rlm-tools-bsl` references / usages / movement helpers |
 | Who calls a routine | `search_metadata({"operation": "list_callers_of_routine", ...})` or `rlm-tools-bsl` `find_call_hierarchy(...)` |
-| Reuse check | `templatesearch(query)` + `ssl_search(query)` |
+| Reuse check | `templatesearch(query)` + installed `bsp-*` skill docs when relevant |
 | Platform API verification | `get_function_info(name)` or `search_syntax(query)` |
 | ITS standards lookup | `search_its(query)` → `fetch_its(id)` for every relevant article |
 

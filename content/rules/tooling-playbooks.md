@@ -30,7 +30,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 6. **rlm-tools-bsl** (`get_object_full_structure`, `find_attributes`, `parse_object_xml`) — verify metadata structure and attribute types.
 7. **get_function_info / search_syntax** for platform APIs; **rlm-tools-bsl** (`search_methods`, `find_exports`) for project routines.
 8. **get_function_info** — verify built-in functions by exact name; **search_syntax / suggest_completion** — find candidates by name or prefix.
-9. **ssl_search** — find reusable БСП functions.
+9. **Installed `bsp-*` skills** — find reusable БСП functions and patterns; confirm project-specific availability through source search when needed.
 10. **diagnostics** — verify touched `.bsl` files after writing.
 11. **check_1c_code** — find syntax, logic, performance, style, and ITS-compliance defects.
 12. **execute_code** query parse wrapper (`1c-mcp-toolkit`, if available) — when the change introduces a new / non-trivial query string (module code, DCS data set, dynamic list), parse-check it against the live IB by running `Новый Запрос(<query>).НайтиПараметры()` inside a read-only `execute_code` fragment before delivery. Especially important after non-deterministic AI generation (`modify_1c_code` / `ask_1c_ai`). Use `execute_query` with an intentionally empty result only when the query can be safely rewritten to return no rows.
@@ -116,7 +116,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 Use this playbook when writing HTTP services / clients, REST integrations, file or message-queue exchanges, webhooks. Domain rules — `integrations-add.md`.
 
-1. **ssl_search** — check for ready-made БСП subsystems ("Интернет-поддержка пользователей", "Обмен данными", "Получение файлов из Интернета", "Цифровая подпись").
+1. **Installed `bsp-*` skills** — check for ready-made БСП subsystems ("Интернет-поддержка пользователей", "Обмен данными", "Получение файлов из Интернета", "Цифровая подпись"); confirm availability in this project through `search_code` / `rlm-tools-bsl` when the implementation will rely on them.
 2. **templatesearch** — integration templates (HTTP request, JSON parsing, signed payloads, retry policy).
 3. **search_code** → **rlm-tools-bsl** (`find_http_services`, `find_web_services`, `search`, `git_search`) — existing integrations in the configuration ("HTTP запрос", "отправка JSON", "парсинг ответа").
 4. **get_function_info** — verify platform types by exact name (`HTTPСоединение`, `HTTPЗапрос`, `ЧтениеJSON`, `ЗаписьJSON`, `ЗаписьXML`, `ЧтениеXML`).

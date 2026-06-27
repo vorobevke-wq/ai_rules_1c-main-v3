@@ -41,7 +41,6 @@ If `docs/<server>.md` conflicts with the descriptor exposed by the current envir
 | **1c-mcp-metacode** | Graph metadata and BSL code search (Neo4j): structure, usage, call graph, forms, rights, routines, semantic metadata/code search. Default id; per-project MCP keys may be suffixed when installing multiple Metacode project IDs, as long as the same tools are exposed. | [`docs/1c-mcp-metacode.md`](docs/1c-mcp-metacode.md) |
 | **rlm-tools-bsl** | Intent-first 1C BSL repository search and navigation through an RLM sandbox: project registry, optional SQLite index, metadata/code/form/usages/call-graph/data-path helpers | [`docs/rlm-tools-bsl.md`](docs/rlm-tools-bsl.md) |
 | **1c-templates-mcp** | 1C BSL code-template library: semantic search and read-only template browsing tools | [`docs/1c-templates-mcp.md`](docs/1c-templates-mcp.md) |
-| **1c-ssl-mcp** | Standard Subsystems Library (БСП / SSL) search | [`docs/1c-ssl-mcp.md`](docs/1c-ssl-mcp.md) |
 | **1c-syntax** | 1C platform syntax reference from the local Syntax Assistant (`shcntx_ru.hbk`): functions, methods, completions, call syntax checks | [`docs/1c-syntax-mcp.md`](docs/1c-syntax-mcp.md) |
 | **onec-buddy-mcp** | 1С:Напарник via 1C Buddy — AI advice, syntax explanation, code check / targeted modify, platform documentation, ITS documentation | [`docs/onec-buddy-mcp.md`](docs/onec-buddy-mcp.md) |
 | **1c-lsp-diagnostics** | BSL diagnostics via `1c-lsp-mcp-skill` / BSL Language Server | [`docs/1c-lsp-mcp-skill.md`](docs/1c-lsp-mcp-skill.md) |
@@ -65,11 +64,10 @@ Use only the applicable branch; stop as soon as the collected evidence is suffic
 These servers have no `Grep` / `rg` equivalent; call them only when their knowledge is needed:
 
 1. `1c-templates-mcp` — 1C code templates (`templatesearch`; read-only browsing tools only when exact template contents are needed).
-2. `1c-ssl-mcp` — БСП / SSL reusable APIs and patterns.
-3. `1c-syntax` — local platform syntax reference for exact function / method names and call syntax.
-4. `onec-buddy-mcp` — 1С:Напарник checks, ITS standards (`search_its` → `fetch_its` for every document used), AI drafts.
-5. `1c-lsp-diagnostics` — BSL syntax / analyzer diagnostics after edits.
-6. `1c-mcp-toolkit` — live infobase access through Toolkit processing / proxy: run a query, run a read-only BSL fragment, emulate query parse-checking through `execute_code`, inspect event-log records, metadata, links, references and access rights. No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-mcp-toolkit.md`](docs/1c-mcp-toolkit.md).
+2. `1c-syntax` — local platform syntax reference for exact function / method names and call syntax.
+3. `onec-buddy-mcp` — 1С:Напарник checks, ITS standards (`search_its` → `fetch_its` for every document used), AI drafts.
+4. `1c-lsp-diagnostics` — BSL syntax / analyzer diagnostics after edits.
+5. `1c-mcp-toolkit` — live infobase access through Toolkit processing / proxy: run a query, run a read-only BSL fragment, emulate query parse-checking through `execute_code`, inspect event-log records, metadata, links, references and access rights. No `Grep` / `rg` equivalent — there is no offline substitute for "what does this running IB do right now". Call only when the question genuinely requires the live IB; default to read-only fragments and ask before any mutation. Details — [`docs/1c-mcp-toolkit.md`](docs/1c-mcp-toolkit.md).
 
 ## Quick map: "task → MCP tool"
 

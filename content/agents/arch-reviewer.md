@@ -120,7 +120,7 @@ For each issue, provide:
 | Aspect | Check |
 |--------|-------|
 | **Queries** | Batch queries vs. loops? |
-| **Attribute Access** | SSL methods vs. dot notation? |
+| **Attribute Access** | SSL (БСП) methods vs. dot notation? |
 | **Caching** | Appropriate caching strategy? |
 | **Transactions** | Proper transaction boundaries? |
 

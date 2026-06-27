@@ -29,7 +29,7 @@ This agent owns the **design**: architectural decisions with trade-offs, compone
 
 Extract existing patterns, conventions, and architectural decisions:
 
-- Identify technology stack (1C platform version, subsystems used, SSL version)
+- Identify technology stack (1C platform version, subsystems used, SSL (БСП) version)
 - Study module boundaries and abstraction layers
 - Find similar modifications to understand established approaches
 - Study metadata structure: catalogs, documents, registers, common modules, handlers, forms
@@ -104,9 +104,9 @@ Follow the canonical region structure from `content/rules/module-structure.md` (
 - Auto-numbering
 - Concurrent access
 
-### Standard Subsystem Library (SSL / БСП)
+### Standard Subsystems Library (SSL / БСП)
 
-- SSL common modules
+- SSL (БСП) common modules
 - Standard subsystems
 - Extension mechanisms
 

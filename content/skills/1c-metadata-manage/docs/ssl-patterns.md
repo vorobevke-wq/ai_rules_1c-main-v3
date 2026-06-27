@@ -17,21 +17,21 @@ Invoke this skill when:
 
 **ALWAYS check if SSL has a solution before writing custom code.**
 
-## SSL Search Workflow
+## БСП Skill Workflow
 
 When implementing new functionality:
 
-1. **First, search SSL** — use `ssl_search` MCP tool with keywords describing your need
-   - Example: `ssl_search("фоновое задание прогресс")`
-   - Example: `ssl_search("копирование структуры")`
+1. **First, check БСП skills** — use locally installed skill packages whose folder names contain `bsp-`; search/read their docs with keywords describing your need
+   - Example: find "фоновое задание прогресс" in installed `bsp-*` skill docs
+   - Example: find "копирование структуры" in installed `bsp-*` skill docs
 
 2. **Check existing patterns** — use `search_code` / `rlm-tools-bsl` (`search`, `git_search`) to find how similar tasks are solved in the codebase
 
-3. **Use SSL if available** — it's tested, optimized, and maintained
+3. **Use БСП if available** — it is tested, optimized, and maintained
 
-4. **Only then write custom code** — and document why SSL wasn't suitable
+4. **Only then write custom code** — and document why БСП was not suitable
 
-## Key SSL Modules
+## Key БСП Modules
 
 - **Пользователи** — users, roles, access rights
 - **РаботаСФайлами** — file storage and attachments
@@ -44,4 +44,4 @@ When implementing new functionality:
 
 ---
 
-**Remember**: SSL is your first stop for common functionality. Writing custom code when SSL has a solution is technical debt.
+**Remember**: БСП is your first stop for common functionality. Writing custom code when БСП has a solution is technical debt.

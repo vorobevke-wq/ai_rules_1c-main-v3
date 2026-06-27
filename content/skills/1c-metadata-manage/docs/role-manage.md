@@ -384,7 +384,7 @@ The PowerShell scripts under `tools/1c-role-{compile,info,validate}/scripts/` we
 - **rlm-tools-bsl** `search_objects` — Verify metadata object names when defining rights; verify objects referenced in role rights exist in the configuration.
 - **rlm-tools-bsl** `get_object_full_structure` — Get full object structure to understand which attributes/tabular parts need specific access rights.
 - **role-validate** — Validate generated role XML.
-- **ssl_search** — Find SSL role patterns.
+- **Installed `bsp-*` skills** — Find BSP role patterns; verify project-specific role helpers through project-source search when needed.
 
 ## SDD Integration
 

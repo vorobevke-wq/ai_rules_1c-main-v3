@@ -98,7 +98,6 @@ Check MCP at two levels:
 1. **Current session tools** — verify that expected tools are visible in the current agent tool schema when the server is configured:
    - `diagnostics` for `1c-lsp-diagnostics`;
    - `templatesearch`, `list_templates`, `get_template` for `1c-templates-mcp`;
-   - `ssl_search` for `1c-ssl-mcp`;
    - `search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax` for `1c-syntax`;
    - `rlm_start`, `rlm_execute`, `rlm_end` for `rlm-tools-bsl` (`rlm_help`, `rlm_projects`, `rlm_index` when exposed by the server mode);
    - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;

@@ -97,7 +97,7 @@ See `content/rules/anti-patterns.md` for detailed patterns.
 - Incorrect compilation directive usage
 - Client-server architecture violations
 - Improper transaction handling
-- Missing SSL function usage
+- Missing SSL (БСП) function usage
 - Module region violations
 
 ## Confidence Scoring

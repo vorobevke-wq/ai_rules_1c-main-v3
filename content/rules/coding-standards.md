@@ -24,7 +24,7 @@ After any code edit, perform an internal review: style, readability, correctness
 
 ## Code Reuse
 
-Before writing new code — check common and manager modules for an existing export method that can be reused. Use `rlm-tools-bsl` helpers (`search_methods`, `find_module`, `find_exports`), `ssl_search`, `templatesearch`, and `search_code` **before** writing.
+Before writing new code — check common and manager modules for an existing export method that can be reused. Use `rlm-tools-bsl` helpers (`search_methods`, `find_module`, `find_exports`), locally installed БСП skills whose folder names contain `bsp-`, `templatesearch`, and `search_code` **before** writing.
 
 ## Module Regions
 

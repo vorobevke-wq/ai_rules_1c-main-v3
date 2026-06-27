@@ -68,14 +68,6 @@
       "required": false
     },
     {
-      "id": "1c-ssl-mcp",
-      "description": "Standard Subsystems Library (БСП / SSL) function search",
-      "transport": "http",
-      "url": "http://localhost:8008/mcp",
-      "connectionId": "1c_ssl_service_001",
-      "required": false
-    },
-    {
       "id": "1c-mcp-toolkit",
       "description": "Live infobase access through ROCTUP/1c-mcp-toolkit processing in TOON mode: execute_query, execute_code, get_metadata, get_event_log, object link helpers, reference search, access rights, BSL syntax help, screenshots and session helpers",
       "transport": "http",

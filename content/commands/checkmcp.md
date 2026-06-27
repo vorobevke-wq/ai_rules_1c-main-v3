@@ -14,7 +14,6 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 |---|---|---|---|---|
 | `1c-lsp-diagnostics` | 9011 | native service / `lsp-skill-server` from `1c-lsp-mcp-skill` | BSL diagnostics (BSL Language Server) | Yes — replace the generated `x-project-id` placeholder with the `lsp-skill-server` project id |
 | `1c-templates-mcp` | 8004 | `desko77/1c-templates-mcp` | BSL code-template search and template browsing (`templatesearch`, `list_templates`, `get_template`) | No |
-| `1c-ssl-mcp` | 8008 | `comol/mcp_ssl_server:latest` | BSP/SSL search | No (`SSL_VERSION`) |
 | `1c-syntax` | local | native local Python / `1c-syntax-mcp` | 1C platform syntax reference (`search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax`) | Yes — installed 1C platform with `shcntx_ru.hbk`, 7z, and the configured local server path |
 | `rlm-tools-bsl` | 9000 | native service / `rlm-tools-bsl` package | Token-efficient BSL source exploration (RLM sandbox, optional SQLite index) | Yes — 1C source directory or registered project |
 | `1c-mcp-metacode` | 6001 | `roctup/1c-mcp-metacode` | Graph metadata/code search (Neo4j) | Yes — configuration report + code dump + Neo4j |
@@ -37,7 +36,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 For each `id`, determine **TOOLS_OK** / **TOOLS_MISSING**:
 
-- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `diagnostics` for `1c-lsp-diagnostics`, `templatesearch`/`list_templates`/`get_template` for `1c-templates-mcp`, `ssl_search` for `1c-ssl-mcp`, `search_syntax`/`get_function_info` for `1c-syntax`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`search_its` for `onec-buddy-mcp`, `execute_query`/`execute_code`/`get_event_log` for `1c-mcp-toolkit`).
+- **TOOLS_OK** — this server's tools are visible in the current session tool schema (for example, `diagnostics` for `1c-lsp-diagnostics`, `templatesearch`/`list_templates`/`get_template` for `1c-templates-mcp`, `search_syntax`/`get_function_info` for `1c-syntax`, `rlm_start`/`rlm_execute` for `rlm-tools-bsl`, `search_metadata`/`search_code` for `1c-mcp-metacode`, `check_1c_code`/`search_its` for `onec-buddy-mcp`, `execute_query`/`execute_code`/`get_event_log` for `1c-mcp-toolkit`).
 - **TOOLS_MISSING** — no tools are visible in the schema.
 
 If status is **TOOLS_OK**, treat the server as working and do not check it further.
@@ -53,8 +52,7 @@ $servers = @(
     @{ Id = '1c-templates-mcp';       Port = 8004 },
     @{ Id = '1c-mcp-metacode';        Port = 6001 },
     @{ Id = 'onec-buddy-mcp';         Port = 6002 },
-    @{ Id = '1c-mcp-toolkit';         Port = 6003 },
-    @{ Id = '1c-ssl-mcp';             Port = 8008 }
+    @{ Id = '1c-mcp-toolkit';         Port = 6003 }
 )
 foreach ($s in $servers) {
     $url = "http://localhost:$($s.Port)/mcp"
@@ -135,7 +133,7 @@ Possible outcomes:
   docker start <container_name>
   ```
 
-  Default names: `template_search_mcp` / `template_search_mcp_gpu` for `1c-templates-mcp`, `mcp_ssl_server`, `1c-metacode-<METACODE_PROJECT_ID>` (check the actual name in `docker ps -a`). `rlm-tools-bsl`, `1c-syntax`, `1c-lsp-mcp-skill`, `onec-buddy-mcp`, and `1c-mcp-toolkit` are usually user-managed native services / local processes / 1C processings / containers; check them through upstream service scripts or the Toolkit processing before assuming Docker is involved.
+  Default names: `template_search_mcp` / `template_search_mcp_gpu` for `1c-templates-mcp`, `1c-metacode-<METACODE_PROJECT_ID>` (check the actual name in `docker ps -a`). `rlm-tools-bsl`, `1c-syntax`, `1c-lsp-mcp-skill`, `onec-buddy-mcp`, and `1c-mcp-toolkit` are usually user-managed native services / local processes / 1C processings / containers; check them through upstream service scripts or the Toolkit processing before assuming Docker is involved.
 
 - The container is absent from `docker ps -a` → **CONTAINER_MISSING**. The image may already be cached (`docker images`), but the container was not created. Create and start it — see Step 5.
 
@@ -152,7 +150,6 @@ Possible outcomes:
   - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
   - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the generated `x-project-id` header placeholder replaced with the real project id in the active MCP client config for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
-  - `1c-ssl-mcp` — BSP/SSL version (`SSL_VERSION`, for example `3.1.11`).
   - `onec-buddy-mcp` — 1C.ai token and a running 1C Buddy service, if it will be used.
   - `1c-mcp-toolkit` — `MCP_Toolkit.epf` opened in the target infobase, embedded-server mode or proxy mode running on port `6003`, and TOON response format enabled.
   - `1c-templates-mcp` — upstream deploy files or a user-managed container exposing `/mcp` on port `8004`; runtime data directory is controlled by that server's `DATA_DIR` setting.
@@ -163,13 +160,6 @@ Command templates (minimal set without data preparation):
 ```powershell
 # 1c-templates-mcp is user-managed.
 # Follow https://github.com/Desko77/1c-templates-mcp and expose http://localhost:8004/mcp.
-
-# 1c-ssl-mcp
-docker run -d -p 8008:8008 --name mcp_ssl_server `
-  -e LICENSE_KEY={LICENSE_KEY} `
-  -e SSL_VERSION={SSL_VERSION} `
-  -v "{DATA_ROOT}\mcp_ssl:/app/chroma_db" `
-  comol/mcp_ssl_server:latest
 
 # 1c-syntax — user-managed local server
 # Active MCP config entry:
@@ -224,7 +214,6 @@ Exact current commands for each server are on the server-specific documentation 
 - [rlm-tools-bsl](https://github.com/Dach-Coin/rlm-tools-bsl)
 - [1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill)
 - [Graph Metadata Search](https://docs.onerpa.ru/mcp-servery-1c/servery/graph-metadata-search.md)
-- [SSLSearchServer](https://docs.onerpa.ru/mcp-servery-1c/servery/ssl-search-server.md)
 - [Desko77/1c-templates-mcp](https://github.com/Desko77/1c-templates-mcp)
 - [1C Buddy](https://github.com/ROCTUP/1c-buddy)
 - [1C MCP Toolkit](https://github.com/ROCTUP/1c-mcp-toolkit)
@@ -253,4 +242,4 @@ Under the table, list clear next steps with copy-ready commands. Do not list ite
 
 - The command does not run `docker run` or upstream service installers without user confirmation. Docker servers need `LICENSE_KEY`, data paths, and consent to download images (several GB). `rlm-tools-bsl` does not use the shared `LICENSE_KEY`, but installing it still downloads and registers a local service.
 - Metacode MCP (`1c-mcp-metacode`) requires separate Neo4j setup and indexing. This is a multi-step process; execute it by the GitHub repository instructions, not from this command.
-- Indexed servers (`1c-syntax` while it builds `syntax_tree.json`, `1c-mcp-metacode`, `1c-ssl-mcp`, `rlm-tools-bsl` when its SQLite index is building, and `1c-lsp-mcp-skill` while `bsl-language-server` is warming up) may be configured before becoming useful while primary indexing is still running. This is normal; monitor Docker services with `docker logs -f <name>`, `1c-syntax` through the MCP client/server stderr logs, `rlm-tools-bsl` through `rlm_index(action="info", project="...")` / service logs, and `1c-lsp-mcp-skill` through its web UI / service logs.
+- Indexed servers (`1c-syntax` while it builds `syntax_tree.json`, `1c-mcp-metacode`, `rlm-tools-bsl` when its SQLite index is building, and `1c-lsp-mcp-skill` while `bsl-language-server` is warming up) may be configured before becoming useful while primary indexing is still running. This is normal; monitor Docker services with `docker logs -f <name>`, `1c-syntax` through the MCP client/server stderr logs, `rlm-tools-bsl` through `rlm_index(action="info", project="...")` / service logs, and `1c-lsp-mcp-skill` through its web UI / service logs.
