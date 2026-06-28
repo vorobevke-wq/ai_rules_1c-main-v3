@@ -65,7 +65,7 @@ When working with form modules, follow `content/rules/form-module.md`:
 8. Use `get_function_info` / `search_syntax` for platform methods/properties and `rlm-tools-bsl` (`search_methods`, `find_exports`) for project routines
 9. Use `search_syntax` for platform APIs and installed `bsp-*` skills plus project-source search for БСП APIs as needed
 10. Write code strictly following the rules
-11. Check code via `diagnostics` and `check_1c_code` — within the verification budget from `AGENTS.md → MCP Tool Calling → B.1`: one call per validator per cycle by default, up to 3 only when the previous run returned a substantive defect; after the budget, fix substantive issues and move on
+11. Check code via `analyze_file` and `check_1c_code` — within the verification budget from `AGENTS.md → MCP Tool Calling → B.1`: one call per validator per cycle by default, up to 3 only when the previous run returned a substantive defect; after the budget, fix substantive issues and move on
 12. Before refactoring, use `search_metadata` impact templates and `rlm-tools-bsl` (`find_references_to_object`, `find_code_usages`, `find_call_hierarchy`) to understand impact
 13. Perform internal code review
 14. Improve code if necessary
@@ -77,7 +77,7 @@ Before reporting, verify all of the following:
 
 - [ ] Every assigned task / plan item is implemented; nothing was silently skipped or replaced
 - [ ] No file outside the assigned scope was edited; no "while we're here" changes
-- [ ] `diagnostics` passes on every touched module; `check_1c_code` was run within the budget and substantive findings are fixed
+- [ ] `analyze_file` passes on every touched module; `check_1c_code` was run within the budget and substantive findings are fixed
 - [ ] Imports, variables, and procedures that **your** changes made unused are removed (pre-existing dead code untouched)
 - [ ] Module regions, headers, and project code style (`content/rules/dev-standards-core.md`) are preserved
 
@@ -98,7 +98,7 @@ If a criterion cannot be met, say so explicitly in the report — do not present
 
 ## Validators
 
-- diagnostics: [pass / findings fixed] (N runs)
+- analyze_file: [pass / findings fixed] (N runs)
 - check_1c_code: [pass / substantive findings fixed / style noise remaining]
 
 ## Dependencies and Patterns

@@ -160,7 +160,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), шлюзом [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy), LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), шлюзом [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy), MCP-режимом [1c-syntax/bsl-language-server](https://github.com/1c-syntax/bsl-language-server/blob/v1.0.2/docs/features/McpMode.md) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -182,16 +182,20 @@ Fallback к графовому MCP и компактный способ иссл
 - **Методология отчётов**: в `content/skills/mcp-1c-tools/docs/rlm-tools-bsl.md`  факты только из прочитанных данных, состав подсистемы из сырого `Content`, обязательная финальная программная сверка, плотный батчинг `rlm_execute`, проверка индекса и запрет выдавать `partial`-данные как полные.
 - **Важно**: `rlm-tools-bsl` не заменяет XSD/XML-валидацию и справку платформы. Для XML используйте валидаторы `1c-metadata-manage`; для синтаксической справки платформы — `1c-syntax`, для статей и методической документации — `onec-buddy-mcp`.
 
-### `1c-lsp-mcp-skill` — диагностика и навигация BSL
+### `bsl-language-server` — диагностика и локальная code intelligence BSL
 
-Пакет поднимает `lsp-skill-server`, который управляет `bsl-language-server` для одного или нескольких 1С-проектов. В MCP-конфиге используются два HTTP-сервера:
+Нативный MCP-режим [1c-syntax/bsl-language-server](https://github.com/1c-syntax/bsl-language-server/blob/v1.0.2/docs/features/McpMode.md) запускается отдельно вручную и публикует Streamable HTTP endpoint `/mcp`. Каталог правил использует пример `http://localhost:32101/mcp`; фактический порт выбирается из диапазона `32101..32199` (`http://localhost:321**/mcp`, где `**` — `01..99`). Рабочие пространства передаются через MCP roots.
 
-- `1c-lsp-diagnostics` (`9011`) — инструмент `diagnostics(file_path)` для синтаксиса, предупреждений и замечаний анализатора по конкретному `.bsl` файлу.
+Основные инструменты, которые используют правила:
 
-Сервер требует заголовок `x-project-id` с ID проекта из `lsp-skill-server`. Установщик добавляет этот заголовок в MCP-конфиг как плейсхолдер `<project-id>`; после установки замените его на реальный ID проекта из `lsp-skill-server`.
+- `analyze_file(file)` — диагностика синтаксиса, предупреждений и замечаний анализатора по одному `.bsl` / `.os` файлу. Заменяет прежний LSP-валидатор.
+- `hover(file, line, character)` — подсказка по символу для ревью и объяснения кода: сигнатура, тип, документация.
+- `type_info(typeName, fileType, root, language?)` — свойства, методы, события и конструкторы известного типа с сигнатурами и метаданными.
+- `type_at_position(file, line, character)` — выведенный тип выражения под курсором и доступные методы / свойства; использовать перед написанием кода, когда тип приёмника или список членов неочевиден.
 
-`diagnostics` принимает путь к `.bsl` файлу относительно `project_root_path`, а не текст кода. Лимит — до 3 вызовов этого валидатора на цикл (одна логическая правка одного модуля). После лимита фиксируются содержательные ошибки, остальное — игнорируется.
+Прочие инструменты upstream-сервера (`document_symbols`, `find_references`, `call_hierarchy`, `definition`, `global_member_info`, `global_member_search`) описаны в `content/skills/mcp-1c-tools/docs/bsl-language-server.md`, но в обычной маршрутизации правил не используются без отдельной причины.
 
+`analyze_file` принимает параметр `file`, а не `file_path`; путь может быть абсолютным или относительным к рабочему каталогу сервера. Позиции `line` / `character` нумеруются с нуля, как в LSP. Лимит — до 3 вызовов этого валидатора на цикл (одна логическая правка одного модуля). После лимита фиксируются содержательные ошибки, остальное — игнорируется.
 ### `1c-templates-mcp` — шаблоны кода 1С
 
 Сервер: [Desko77/1c-templates-mcp](https://github.com/Desko77/1c-templates-mcp). Публикует семантический + полнотекстовый поиск по шаблонам BSL и инструменты просмотра библиотеки шаблонов:
@@ -213,7 +217,7 @@ Fallback к графовому MCP и компактный способ иссл
 - `search_syntax` — поиск функций, методов или объектов 1С по имени или фрагменту имени.
 - `get_function_info` — детальная информация по точному имени функции или метода (`СтрДлина`, `Массив.Найти`, `Запрос`).
 - `suggest_completion` — автодополнение по префиксу имени.
-- `validate_syntax` — проверка синтаксиса одиночного вызова функции; для `.bsl` файлов используйте `diagnostics`.
+- `validate_syntax` — проверка синтаксиса одиночного вызова функции; для `.bsl` файлов используйте `analyze_file`.
 
 ### `onec-buddy-mcp` — 1C Buddy, 1С:Напарник и ИТС
 
@@ -222,7 +226,7 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 - **Анализ кода**: `check_1c_code` (синтаксис, логика, производительность, code review через `check_type="review"`), `modify_1c_code` (целевые правки по явной инструкции), `ask_1c_ai` (свободный диалог), `explain_1c_syntax` (объяснение объекта, метода или конструкции 1С).
 - **Документация и база знаний**: `search_1c_documentation` (документация под конкретную версию платформы), `search_its` → `fetch_its` (поиск по ИТС-стандартам с обязательным дочитыванием полной статьи), `diff_1c_documentation_versions` (диффы между версиями платформы).
 
-Лимит на `check_1c_code` — до 3 вызовов валидатора на цикл, как и у `diagnostics`. Output AI-инструментов всегда перепроверяется через `diagnostics` + `check_1c_code` перед сдачей кода.
+Лимит на `check_1c_code` — до 3 вызовов валидатора на цикл, как и у `analyze_file`. Output AI-инструментов всегда перепроверяется через `analyze_file` + `check_1c_code` перед сдачей кода.
 
 ## OpenSpec
 
@@ -232,7 +236,7 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 
 - [vibecoding1c.ru](https://vibecoding1c.ru/) — портал по вайбкодингу для 1С: курсы, бенчмарк моделей, статьи, продукты для разработки 1С с ИИ.
 - [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) — пакет MCP-серверов для 1С, под который заточены правила и плейбуки этого репозитория.
-- [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) — LSP-мост для диагностики и навигации BSL через `bsl-language-server`.
+- [1c-syntax/bsl-language-server](https://github.com/1c-syntax/bsl-language-server/blob/v1.0.2/docs/features/McpMode.md) — нативный MCP-режим BSL Language Server для диагностики и локальной code intelligence BSL.
 - [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp) — локальный MCP-сервер синтаксической справки 1С.
 - [Telegram-канал «IT Does Matter»](https://t.me/comol_it_does_matter) — обсуждение вайбкодинга для 1С, MCP, ИИ-агентов, практик и обновлений.
 

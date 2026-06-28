@@ -30,7 +30,7 @@ Source repository: <https://github.com/ROCTUP/1c-buddy>. The documented MCP endp
 
 ## Notes on AI tools
 
-`ask_1c_ai` and `modify_1c_code` are non-deterministic. Their output is a draft hint, not authority. Generated / modified code is **always** re-validated: `diagnostics` + `check_1c_code`.
+`ask_1c_ai` and `modify_1c_code` are non-deterministic. Their output is a draft hint, not authority. Generated / modified code is **always** re-validated: `analyze_file` + `check_1c_code`.
 
 ## Call limit
 

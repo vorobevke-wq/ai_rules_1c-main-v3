@@ -96,7 +96,7 @@ Pass criterion: OpenSpec exists, and `openspec/project.md` is present and meanin
 Check MCP at two levels:
 
 1. **Current session tools** — verify that expected tools are visible in the current agent tool schema when the server is configured:
-   - `diagnostics` for `1c-lsp-diagnostics`;
+   - `analyze_file`, `hover`, `type_info`, and `type_at_position` for `bsl-language-server`;
    - `templatesearch`, `list_templates`, `get_template` for `1c-templates-mcp`;
    - `search_syntax`, `get_function_info`, `suggest_completion`, `validate_syntax` for `1c-syntax`;
    - `rlm_start`, `rlm_execute`, `rlm_end` for `rlm-tools-bsl` (`rlm_help`, `rlm_projects`, `rlm_index` when exposed by the server mode);

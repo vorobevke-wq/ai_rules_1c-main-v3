@@ -16,9 +16,9 @@ The checklist is adapted from the `verification-before-completion` skill of [obr
 
 You MUST run all five gates in order. Each gate has an explicit pass / fail criterion and an explicit retry budget.
 
-### Gate 1 — BSL Diagnostics (`diagnostics`)
+### Gate 1 — BSL Diagnostics (`analyze_file`)
 
-- Run `diagnostics` on every touched `.bsl` module. No exceptions.
+- Run `analyze_file` on every touched `.bsl` module. No exceptions.
 - Pass criterion: zero `error` items. `warning` items are reviewed in Gate 3.
 - Retry budget: **1 call by default, up to 3 only if the previous run returned a substantive defect** (per `AGENTS.md → MCP Tool Calling → B. Limits and non-determinism`). Gates 2 and 3 share the same per-validator policy. A "cycle" is one logical edit of one module; every new edit starts a new cycle. Style / formatting / BSLLS noise alone does **not** justify a re-run.
 
@@ -128,8 +128,8 @@ Do not include in the delivery summary:
 
 ## Anti-patterns
 
-- **Skipping Gate 1** "because the edit was tiny" — `diagnostics` is the cheapest BSL gate; skipping it never saves time.
-- **Running gates in the wrong order** — running `check_1c_code` before `diagnostics` wastes the AI checker on syntax-broken code.
+- **Skipping Gate 1** "because the edit was tiny" — `analyze_file` is the cheapest BSL gate; skipping it never saves time.
+- **Running gates in the wrong order** — running `check_1c_code` before `analyze_file` wastes the AI checker on syntax-broken code.
 - **Looping on AI non-determinism** — if `check_1c_code` returns different items each run on the **same** code, take the strictest set and stop. Do not burn the 3-call budget on noise.
 - **Marking the task done** with un-removed `Debug.*` log entries or temporary `ПоказатьЗначение` calls — soft gate A failure.
 - **Auto-running `1c-code-reviewer`** when the user did not ask — soft gate C failure, and a direct violation of `subagents.md`.

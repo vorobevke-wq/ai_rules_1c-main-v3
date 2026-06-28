@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     1c-rules installer (PowerShell channel)
@@ -844,7 +844,7 @@ function ConvertTo-OpenCodeMcpKey {
     # outside [a-zA-Z0-9_-] with `_`, it does NOT force a leading letter). Some
     # providers — Moonshot/Kimi in particular — reject any function name that
     # does not start with a letter (`^[a-zA-Z_][a-zA-Z0-9-_]{2,63}$`), so a key
-    # like `1c-lsp-diagnostics` produces `1c-lsp-diagnostics_diagnostics`
+    # like `1c-syntax` produces `1c-syntax_search_syntax`
     # and the whole request fails with "function name is invalid, must start
     # with a letter". Normalize the well-known `1c`/`1C` prefix to the readable
     # `onec`; guarantee any other non-letter-leading id also starts with a
@@ -1650,7 +1650,7 @@ function Format-1cProjectMd {
     [void]$lines.Add('- Стандарты ИТС, расширенные правилами проекта (см. `AGENTS.md` и каталог on-demand правил активного инструмента)')
     [void]$lines.Add('- Запрет на тернарный оператор `?(...)`, `Сообщить()`, обращение к реквизитам через точку')
     [void]$lines.Add('- Перед написанием кода — поиск по `templatesearch` / `search_code` / `rlm-tools-bsl` (`rlm_start` → `rlm_execute`)')
-    [void]$lines.Add('- После написания кода — `diagnostics` → `check_1c_code` (≤ 3 раза за цикл)')
+    [void]$lines.Add('- После написания кода — `analyze_file` → `check_1c_code` (≤ 3 раза за цикл)')
     [void]$lines.Add('- Полный список запретов и стандартов — `AGENTS.md`, раздел *Forbidden Calls and Constructs*')
     return ($lines -join "`n") + "`n"
 }

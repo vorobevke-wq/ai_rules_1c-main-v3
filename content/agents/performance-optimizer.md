@@ -33,7 +33,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 - **check_1c_code** — analyze code for performance and logic issues
 - **modify_1c_code** — request a targeted AI optimization only with an explicit instruction
 - **search_its** → **fetch_its** — find ITS performance standards and best practices
-- **diagnostics** — verify touched `.bsl` files after changes
+- **analyze_file** — verify touched `.bsl` files after changes
 
 **SDD Integration:** If the project has an `openspec/` workspace, read `content/rules/sdd-integrations.md` for OpenSpec integration guidance.
 

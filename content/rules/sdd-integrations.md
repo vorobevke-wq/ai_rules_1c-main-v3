@@ -83,11 +83,11 @@ Multi-line form — only when more than 5 confirmations are listed, or when a si
 - Project memory: no prior notes on AI / OpenAI integration in this configuration (greenfield).
 ```
 
-This block is the artifact-level analogue of the "list context sources actually used" rule from `AGENTS.md → Tooling & Standards → A.3`. Its absence on a non-trivial spec is a defect, the same way a missing `diagnostics` run is a defect for BSL changes. Bloating it with skipped-tool entries or per-call narration is the opposite defect — it carries noise into every downstream phase that re-reads the artifact.
+This block is the artifact-level analogue of the "list context sources actually used" rule from `AGENTS.md → Tooling & Standards → A.3`. Its absence on a non-trivial spec is a defect, the same way a missing `analyze_file` run is a defect for BSL changes. Bloating it with skipped-tool entries or per-call narration is the opposite defect — it carries noise into every downstream phase that re-reads the artifact.
 
 ### Subagent obligations
 
-The subagents that own OpenSpec artifacts (`1c-analytic`, `1c-architect`, `1c-planner`, `1c-explorer` — see the mapping table below) inherit this discipline. Their prompts in `content/agents/` do not have to repeat these rules; they are bound by this file and by `AGENTS.md`. A subagent that delivers a non-trivial spec without the `Context sources` block, or with a TODO that an exposed MCP tool could have closed, has failed the same way a developer subagent fails if it skips `diagnostics`.
+The subagents that own OpenSpec artifacts (`1c-analytic`, `1c-architect`, `1c-planner`, `1c-explorer` — see the mapping table below) inherit this discipline. Their prompts in `content/agents/` do not have to repeat these rules; they are bound by this file and by `AGENTS.md`. A subagent that delivers a non-trivial spec without the `Context sources` block, or with a TODO that an exposed MCP tool could have closed, has failed the same way a developer subagent fails if it skips `analyze_file`.
 
 ## Question-asking discipline across phases — overview
 
@@ -195,7 +195,7 @@ That is it. Two categories. Everything else that previously looked like a legiti
 - **`design.md → ## Open Questions` item that was not in the preflight round because its dependent task was not in the session plan, but a later task on the queue triggered it.** If you genuinely could not have foreseen this at preflight time, raise a `CONFUSION` block now — but this is rare; almost always the original session plan was wrong. The correct response is to widen the preflight scope on the next apply session, not to make a habit of mid-loop pauses.
 - **Routine task ambiguity** ("what name should I use for this private helper?", "should this be a function or a procedure?", "what level of logging here?") — **never** a legitimate mid-loop pause. These are propose-phase defects: the design did not pin enough. Make a reasonable choice consistent with the codebase, record it in the relevant task artifact if it matters for the next step, and move on. The user did not sign up for a clarification on every line.
 
-Anything outside the two narrowly-defined categories above is an apply-phase defect, equivalent to skipping `diagnostics` after a BSL edit.
+Anything outside the two narrowly-defined categories above is an apply-phase defect, equivalent to skipping `analyze_file` after a BSL edit.
 
 ### Forbidden at apply time
 
@@ -204,11 +204,11 @@ Anything outside the two narrowly-defined categories above is an apply-phase def
 - Asking "what to do with default X" when `design.md` already names the default. Use the named default.
 - Pausing on a non-blocking item just to "confirm" — confirmation is not a question. If the artifact says X, do X.
 - Asking the user to choose between options A / B / C when `design.md → ## Architecture decisions` already picked one of them with a written rationale — the choice is closed, the rationale is the answer.
-- **Closing an item from `design.md → ## Open Questions` with a self-justifying paragraph instead of a `CONFUSION` block.** Open Questions are by definition unresolved at design time; the agent does not have authority to close them unilaterally. A 1-2 paragraph rationale that picks an option (even a "minimal and reversible" one) is a defect of the same severity as bypassing `diagnostics`, and is doubly so when the picked option modifies typical (standard) configuration objects (typical roles, typical forms, typical modules, typical event subscriptions). The only legitimate closure path is a `CONFUSION` block per `AGENTS.md → 1. Think Before Coding`, followed by the user's explicit choice. Implementation of the dependent task block does not start until that choice arrives.
+- **Closing an item from `design.md → ## Open Questions` with a self-justifying paragraph instead of a `CONFUSION` block.** Open Questions are by definition unresolved at design time; the agent does not have authority to close them unilaterally. A 1-2 paragraph rationale that picks an option (even a "minimal and reversible" one) is a defect of the same severity as bypassing `analyze_file`, and is doubly so when the picked option modifies typical (standard) configuration objects (typical roles, typical forms, typical modules, typical event subscriptions). The only legitimate closure path is a `CONFUSION` block per `AGENTS.md → 1. Think Before Coding`, followed by the user's explicit choice. Implementation of the dependent task block does not start until that choice arrives.
 
 ### Banned questions at apply time — hard list
 
-These questions MUST NEVER be asked during `/opsx:apply`, regardless of whether the corresponding `.dev.env` field is empty. Asking any of them is an apply-phase defect of the same severity as skipping `diagnostics` after a BSL edit. The fallback is documented and applied silently — no question, no pause, no `AskUserQuestion` round.
+These questions MUST NEVER be asked during `/opsx:apply`, regardless of whether the corresponding `.dev.env` field is empty. Asking any of them is an apply-phase defect of the same severity as skipping `analyze_file` after a BSL edit. The fallback is documented and applied silently — no question, no pause, no `AskUserQuestion` round.
 
 | Banned question | Why banned | What to do instead |
 |---|---|---|

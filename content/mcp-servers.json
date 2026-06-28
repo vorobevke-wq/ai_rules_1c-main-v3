@@ -9,15 +9,18 @@
       "required": false
     },
     {
-      "id": "1c-lsp-diagnostics",
-      "description": "BSL diagnostics via 1c-lsp-mcp-skill and bsl-language-server: syntax errors, warnings, analyzer remarks",
+      "id": "bsl-language-server",
+      "description": "BSL Language Server MCP mode: analyze_file diagnostics, hover, type_info, type_at_position, plus document_symbols, find_references, call_hierarchy, definition, global_member_info and global_member_search when exposed by the server",
       "transport": "http",
-      "url": "http://127.0.0.1:9011/mcp",
-      "headers": {
-        "x-project-id": "<project-id>"
-      },
-      "connectionId": "1c_lsp_diagnostics_service_001",
-      "required": false
+      "url": "http://localhost:32101/mcp",
+      "connectionId": "bsl_language_server_mcp_001",
+      "required": false,
+      "enabledTools": [
+        "analyze_file",
+        "hover",
+        "type_info",
+        "type_at_position"
+      ]
     },
     {
       "id": "1c-syntax",

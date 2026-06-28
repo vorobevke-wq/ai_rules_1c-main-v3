@@ -9,7 +9,7 @@
 | **search_syntax** | `query` (string, required), `limit` (number, optional, default `10`) | Search 1C functions, methods, or objects by Russian or English name. Use when the exact full name is not known, but a name fragment is available. |
 | **get_function_info** | `name` (string, required) | Get detailed information for an exact function or method name (`"СтрДлина"`, `"StrLen"`, `"ТаблицаЗначений"`, `"Массив.Найти"`). |
 | **suggest_completion** | `prefix` (string, required), `limit` (number, optional, default `10`) | Get completion candidates by a partial function name or prefix. |
-| **validate_syntax** | `code` (string, required) | Validate a single function-call expression, for example `СтрДлина("текст")`. This is not a full `.bsl` module validator; use `diagnostics` for BSL files. |
+| **validate_syntax** | `code` (string, required) | Validate a single function-call expression, for example `СтрДлина("текст")`. This is not a full `.bsl` module validator; use `analyze_file` for BSL files. |
 
 ## Notes
 

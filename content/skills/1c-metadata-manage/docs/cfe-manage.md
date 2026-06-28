@@ -182,7 +182,7 @@ The PowerShell scripts under `tools/1c-cfe-manage/scripts/` were refreshed from 
 - **search_metadata** / **search_code** — Focused comparison of base and extension structure, forms, modules, and routines after borrowing.
 - **search_metadata** usage / call-graph templates — Impact analysis of extension changes on the base configuration (fallback to `rlm-tools-bsl` references / code usages / call hierarchy helpers).
 - **rlm-tools-bsl** `find_references_to_object` / `find_code_usages` — Dependency overview before borrowing.
-- **diagnostics** — Verify generated `.bsl` files.
+- **analyze_file** — Verify generated `.bsl` files.
 
 ## SDD Integration
 

@@ -68,7 +68,7 @@ Routing rules:
 - **Good candidates for the `light` tier** (when the active tool supports a per-invocation model override, the parent may route these down even to a `coding`-tier agent): initial project-source scouting and candidate lists; navigation / reference gathering for objects, modules, forms, procedures; impact lists ("where is X used"); mechanical verification after edits; small bounded edits in strictly assigned files.
 - **Never use the `light` tier as the final authority** for architecture, metadata / form design, transactions, registers, complex queries, security, data integrity, or release-critical decisions. Output of a light-tier run is working material, not a source of truth — the parent agent owns decomposition, source boundaries, the final decision, verification, and integration.
 - **Do not delegate trivial single-step tasks at all** — the launch overhead exceeds the saving.
-- The tier system does not change the validation obligations: whatever tier produced the change, the standard validators (`diagnostics` → `check_1c_code`) and the verification gate still apply.
+- The tier system does not change the validation obligations: whatever tier produced the change, the standard validators (`analyze_file` → `check_1c_code`) and the verification gate still apply.
 
 ## Bounded sidecar task templates
 
@@ -114,7 +114,7 @@ validation risks, and a suggested write scope for the implementation step.
 ```text
 Bounded implementation. You are not alone in the codebase; do not revert or overwrite edits
 outside your scope. Edit only: <files>. Implement <specific change> per the approved plan.
-Follow project rules (`content/rules/dev-standards-core.md`, `content/rules/module-structure.md`). Run diagnostics on every touched module.
+Follow project rules (`content/rules/dev-standards-core.md`, `content/rules/module-structure.md`). Run `analyze_file` on every touched module.
 Return: changed files, diff summary against the plan, checks performed, unresolved risks.
 ```
 
