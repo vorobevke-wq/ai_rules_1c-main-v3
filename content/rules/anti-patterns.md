@@ -68,22 +68,57 @@ category: quality
 |ИЗ
 |   Документ.Заказ КАК Заказы"
 
-// ✅ OPTIMIZED: Single join with aggregation
+// ✅ OPTIMIZED: Pre-aggregate once into an indexed temp table, then join
 "ВЫБРАТЬ
+|   Оплаты.Заказ КАК Заказ,
+|   СУММА(Оплаты.Сумма) КАК СуммаОплат
+|ПОМЕСТИТЬ ВТ_Оплаты
+|ИЗ
+|   Документ.Оплата КАК Оплаты
+|СГРУППИРОВАТЬ ПО
+|   Оплаты.Заказ
+|ИНДЕКСИРОВАТЬ ПО
+|   Заказ
+|;
+|ВЫБРАТЬ
 |   Заказы.Ссылка КАК Ссылка,
 |   ЕСТЬNULL(Оплаты.СуммаОплат, 0) КАК СуммаОплат
 |ИЗ
 |   Документ.Заказ КАК Заказы
-|       ЛЕВОЕ СОЕДИНЕНИЕ (
-|           ВЫБРАТЬ
-|               Оплаты.Заказ КАК Заказ,
-|               СУММА(Оплаты.Сумма) КАК СуммаОплат
-|           ИЗ
-|               Документ.Оплата КАК Оплаты
-|           СГРУППИРОВАТЬ ПО
-|               Оплаты.Заказ) КАК Оплаты
+|       ЛЕВОЕ СОЕДИНЕНИЕ ВТ_Оплаты КАК Оплаты
 |       ПО Заказы.Ссылка = Оплаты.Заказ"
 ```
+
+### 3a. Correlated Subquery in WHERE (Per-row Semi-join)
+
+**Impact:** Subquery executed for every row of the outer source — quadratic on large tables
+**Severity:** CRITICAL
+
+```bsl
+// ❌ CRITICAL: ИСТИНА В (ВЫБРАТЬ ПЕРВЫЕ 1 …) runs per row
+"ВЫБРАТЬ ...
+|ИЗ
+|   РегистрСведений.ЗначенияПоУмолчанию КАК Значения
+|ГДЕ
+|   ИСТИНА В (ВЫБРАТЬ ПЕРВЫЕ 1 ИСТИНА
+|       ИЗ Справочник.ГруппыДоступа.Пользователи КАК ГП
+|       ГДЕ ГП.Ссылка = Значения.ГруппаДоступа
+|           И ГП.Пользователь = &Пользователь)"
+
+// ✅ OPTIMIZED: collect the independent set once → index → inner join
+"ВЫБРАТЬ РАЗЛИЧНЫЕ ГП.Ссылка КАК ГруппаДоступа
+|ПОМЕСТИТЬ ВТ_ГруппыПользователя
+|ИЗ Справочник.ГруппыДоступа.Пользователи КАК ГП
+|ГДЕ ГП.Пользователь = &Пользователь
+|ИНДЕКСИРОВАТЬ ПО ГруппаДоступа
+|;
+|ВЫБРАТЬ ...
+|ИЗ РегистрСведений.ЗначенияПоУмолчанию КАК Значения
+|   ВНУТРЕННЕЕ СОЕДИНЕНИЕ ВТ_ГруппыПользователя КАК Группы
+|   ПО Группы.ГруппаДоступа = Значения.ГруппаДоступа"
+```
+
+Full pattern, including join-before-grouping — `query-optimization.md → Pre-collect and Index Before Join / Group`.
 
 ## High Priority Anti-Patterns
 
@@ -128,6 +163,25 @@ category: quality
 |ИЗ
 |   Справочник.Контрагенты КАК Контрагенты"
 ```
+
+### 5a. Unindexed Temp Table in Join or Union
+
+**Impact:** Scan of the temp table per joined row; expensive deduplication in `ОБЪЕДИНИТЬ`
+**Severity:** HIGH
+
+A temp table has no indexes by default. If it later participates in a `СОЕДИНЕНИЕ`, an `ОБЪЕДИНИТЬ` deduplication, or a `В (ВЫБРАТЬ …)` filter, create it with `ИНДЕКСИРОВАТЬ ПО` on the join or deduplication keys. Index the **2–3 most selective fields**, not the whole column list.
+
+```bsl
+// ❌ HIGH: ВТ joined in the next batch, no index
+"ВЫБРАТЬ ... ПОМЕСТИТЬ ВТ_Ключи ИЗ &Таблица КАК Т"
+
+// ✅ OPTIMIZED
+"ВЫБРАТЬ ... ПОМЕСТИТЬ ВТ_Ключи ИЗ &Таблица КАК Т
+|ИНДЕКСИРОВАТЬ ПО
+|   Номенклатура, Склад"
+```
+
+Mandatory cases and selectivity guidance — `query-optimization.md → Temporary Table Indexing`.
 
 ### 6. Excessive Client-Server Calls
 
@@ -204,6 +258,27 @@ category: quality
 ```
 
 ## Medium Priority Anti-Patterns
+
+### 7b. Redundant `РАЗЛИЧНЫЕ` (Union or Grouping Already Deduplicates)
+
+**Impact:** Extra sort/group passes over the same data
+**Severity:** MEDIUM
+
+`ОБЪЕДИНИТЬ` without `ВСЕ` collapses duplicates over the combined result, so `РАЗЛИЧНЫЕ` inside its operands is redundant. `РАЗЛИЧНЫЕ` together with `СГРУППИРОВАТЬ ПО` over the same fields is equally redundant. When duplicates are impossible, use `ОБЪЕДИНИТЬ ВСЕ`.
+
+```bsl
+// ❌ MEDIUM: triple deduplication
+"ВЫБРАТЬ РАЗЛИЧНЫЕ ... ИЗ ВТ_Движения
+|ОБЪЕДИНИТЬ
+|ВЫБРАТЬ РАЗЛИЧНЫЕ ... ИЗ РегистрНакопления.Запасы"
+
+// ✅ OPTIMIZED: single deduplication by the union itself
+"ВЫБРАТЬ ... ИЗ ВТ_Движения
+|ОБЪЕДИНИТЬ
+|ВЫБРАТЬ ... ИЗ РегистрНакопления.Запасы"
+```
+
+Details — `query-optimization.md → No РАЗЛИЧНЫЕ Inside ОБЪЕДИНИТЬ Operands`.
 
 ### 8. Missing Caching
 

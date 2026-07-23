@@ -8,6 +8,8 @@ category: tooling
 
 The MCP server catalog, fallback order (`metacode → rlm-tools-bsl → RLM literal / narrowed retry → Grep` for project-source search), and per-server tool descriptors live in the `mcp-1c-tools` skill (`content/skills/mcp-1c-tools/SKILL.md`, `docs/<server>.md`). `AGENTS.md` only defines the short obligation rules and points here.
 
+Load `content/rules/coding-standards.md` first; for non-trivial query work load `query-design.md`.
+
 ## Minimum Evidence Matrix
 
 Use the smallest set that closes the real context gaps. Do not promote a task to a heavier path just to satisfy a generic checklist.
@@ -74,6 +76,7 @@ Use the smallest set that closes the real context gaps. Do not promote a task to
 
 ## Performance Optimization
 
+0. **Query tuning?** If the slow artifact is or contains a query, load `query-design.md` and `content/skills/1c-metadata-manage/docs/query-optimization.md`, then walk its *Mandatory Optimization Checklist* item by item. This applies to every "optimize this query" task even when no MCP server is exposed.
 1. **search_code** → **rlm-tools-bsl** (`search`, `search_methods`, `git_search`) — locate slow patterns ("медленный запрос", "цикл по выборке").
 2. **search_metadata** call-graph templates → **rlm-tools-bsl** (`find_call_hierarchy`, `find_callers_context`, `find_path`) — identify hot call chains and reachability between routines.
 3. **search_metadata** call-graph / usage templates → **rlm-tools-bsl** (`find_references_to_object`, `find_code_usages`, `find_register_movements`) — objects that cause cascading issues.

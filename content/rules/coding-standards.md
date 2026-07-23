@@ -6,7 +6,7 @@ category: development
 
 # Coding Standards (headlines)
 
-Authoritative content for code style, naming, comments, queries, data access and performance lives in the detailed on-demand rules: `dev-standards-core.md`, `dev-standards-architecture.md`, `dev-standards-forms.md`, `module-structure.md`, `anti-patterns.md`, `platform-solutions.md`, `locks-and-transactions.md`, `logging-strategy.md`. This file is the index of headlines and anchors. **Before writing or reviewing code, load the relevant detail file.**
+Authoritative content for code style, naming, comments, queries, data access and performance lives in the detailed on-demand rules: `dev-standards-core.md`, `dev-standards-architecture.md`, `dev-standards-forms.md`, `module-structure.md`, `anti-patterns.md`, `platform-solutions.md`, `locks-and-transactions.md`, `logging-strategy.md`. Query work starts at the `query-design.md` router. This file is the index of headlines and anchors. **Before writing or reviewing code, load the relevant detail file.**
 
 ## Forbidden Calls and Constructs (project-wide)
 
@@ -32,7 +32,7 @@ Canonical region names — Russian, БСП-style. Templates per module type (com
 
 ## Queries
 
-Authoritative rules and the formatting template — `dev-standards-architecture.md §3 → "Queries"`. Headlines:
+Entry point — `query-design.md` (load first for every non-trivial query task). Authoritative rules and the formatting template — `dev-standards-architecture.md §3 → "Queries"`. Headlines:
 
 - Verify metadata before writing a query (`search_metadata` templates or `rlm-tools-bsl` helpers such as `get_object_full_structure` and `find_attributes`).
 - No queries inside loops — use batch queries with temporary tables (`ВТ_*`).
@@ -40,6 +40,7 @@ Authoritative rules and the formatting template — `dev-standards-architecture.
 - Always use `КАК` aliases. Use `ПЕРВЫЕ N` when only a subset is needed.
 - Filter virtual tables by parameters, not by `ГДЕ`.
 - Always use an intermediate variable for the query result (`РезультатЗапроса = Запрос.Выполнить();`); method chaining is forbidden.
+- For query optimization and every new non-trivial multi-batch query, complete `query-optimization.md → Mandatory Optimization Checklist` before delivery.
 
 ## Data Access — Reference Attributes
 

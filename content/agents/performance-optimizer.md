@@ -43,13 +43,22 @@ See `content/rules/anti-patterns.md` for complete list with code examples.
 
 **Development standards:** Follow `content/rules/dev-standards-core.md` (project parameters, code style, naming).
 
+## Query Optimization Gate
+
+For every task that optimizes an existing query or introduces a non-trivial multi-batch query:
+
+1. Load `content/rules/query-design.md`.
+2. Load `content/skills/1c-metadata-manage/docs/query-optimization.md`.
+3. Walk its **Mandatory Optimization Checklist** item by item before editing and again before delivery.
+4. Report any checklist item that does not apply with a one-line reason; silently skipping an item is forbidden.
+
 **Priority detection order:**
 
 | Severity | Anti-Patterns |
 |----------|---------------|
-| CRITICAL | Query in loop, Dot notation access, Subquery in SELECT |
-| HIGH | Virtual table WHERE filter, Missing ПЕРВЫЕ N, Excessive server calls, &НаСервере misuse |
-| MEDIUM | Missing cache, O(n²) algorithms, Deep nesting |
+| CRITICAL | Query in loop, Dot notation access, Subquery in SELECT, Correlated Subquery in WHERE |
+| HIGH | Virtual table WHERE filter, Missing ПЕРВЫЕ N, Unindexed Temp Table in Join or Union, Excessive server calls, &НаСервере misuse |
+| MEDIUM | Redundant `РАЗЛИЧНЫЕ`, Missing cache, O(n²) algorithms, Deep nesting |
 
 ## Performance Analysis Workflow
 
@@ -64,6 +73,10 @@ Search for anti-patterns:
 Review queries for:
 - Subqueries in SELECT
 - Virtual table conditions in WHERE
+- Virtual-table periodicity that does not match the join granularity
+- Temp tables used in joins, unions, or large `В (ВЫБРАТЬ …)` filters without `ИНДЕКСИРОВАТЬ ПО`
+- Correlated or per-row subqueries that should be pre-collected into an indexed temp table
+- Redundant `РАЗЛИЧНЫЕ` inside `ОБЪЕДИНИТЬ` operands or over the same fields as `СГРУППИРОВАТЬ ПО`
 - Missing indexes on filter columns
 
 
@@ -153,6 +166,7 @@ After optimization:
 - ✅ No functionality regressions
 - ✅ Code remains maintainable
 - ✅ Changes documented
+- ✅ Mandatory Optimization Checklist completed for every optimized or non-trivial multi-batch query
 
 ## When to Use This Agent
 

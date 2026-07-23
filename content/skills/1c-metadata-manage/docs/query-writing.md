@@ -2,9 +2,11 @@
 
 Covers **writing** new 1C queries: structure, parameters, virtual tables, temporary tables, totals, joins with tabular sections, and the small set of patterns you need 90% of the time.
 
+Entry point for every non-trivial query task — `content/rules/query-design.md`.
+
 For tuning existing queries, joins versus subqueries, composite-type dereferencing, index alignment and DCS specifics — see [query-optimization.md](query-optimization.md).
 
-For project-wide query rules (formatting, aliases, parameters, no queries in loops) — see `dev-standards-core.md` and `anti-patterns.md` in the rules folder.
+For project-wide query rules (formatting, aliases, parameters, no queries in loops) — see `dev-standards-architecture.md §3 → "Queries"` and `anti-patterns.md`.
 
 ## When to Use This Skill
 

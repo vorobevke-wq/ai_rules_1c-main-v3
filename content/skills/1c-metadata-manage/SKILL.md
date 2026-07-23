@@ -59,7 +59,7 @@ The subagent already knows how to read the skill docs, execute PowerShell script
 | Help pages — add, manage | help, built-in help, documentation | [help-manage.md](docs/help-manage.md) |
 | SSL/BSP subsystems patterns | SSL patterns, standard subsystems, BSP events | [ssl-patterns.md](docs/ssl-patterns.md) |
 | Query writing — compose new queries from scratch | write query, build query, query template, ВЫБРАТЬ, ИЗ, СОЕДИНЕНИЕ, virtual tables, batch queries | [query-writing.md](docs/query-writing.md) |
-| Query optimization | query, temporary table, join, DCS optimization | [query-optimization.md](docs/query-optimization.md) |
+| Query optimization — mandatory checklist | query, temporary table, join, DCS optimization | [query-optimization.md](docs/query-optimization.md) → `Mandatory Optimization Checklist` |
 | Web publishing — publish, unpublish, status, smoke test | web, publish, Apache, IIS, web client, webdav, default.vrd | [web-manage.md](docs/web-manage.md) |
 | Unpack / rebuild CF, CFE, EPF binaries without 1C platform | v8unpack, binary unpack, headless extract, no platform | [v8unpack-cf.md](docs/v8unpack-cf.md) |
 

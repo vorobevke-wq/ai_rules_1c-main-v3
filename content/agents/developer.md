@@ -53,6 +53,12 @@ When working with form modules, follow `content/rules/form-module.md`:
 - Prefer `&НаСервереБезКонтекста` over `&НаСервере` when form context is not needed
 - Prefer `Асинх` (async) methods over `ОписаниеОповещения`
 
+### Query Rules
+
+- Load `content/rules/query-design.md` first for every non-trivial query task.
+- For query optimization or a new non-trivial multi-batch query, load `content/skills/1c-metadata-manage/docs/query-optimization.md` and complete its **Mandatory Optimization Checklist** before delivery.
+- Use the server-specific metadata/search chain from `query-design.md`: `1c-mcp-metacode` → `rlm-tools-bsl`; use `1c-mcp-toolkit` only when the live infobase is the required source of truth.
+
 ## Development Workflow
 
 1. Study the task and context. **If the parent's prompt contains a `## Upstream Handoff` block** (a previous implementation subagent in the same change has already produced artifacts), treat its `### Artifacts`, `### Public surface`, and `### Locked decisions` as authoritative — do not re-read those files via `Read` / broad RLM helpers (`find_module`, `extract_procedures`, `get_object_full_structure`, `parse_form`) to "verify what is there". Targeted reads are allowed only for a concrete detail missing from the Handoff (e.g. an exact line of a TODO marker, a full attribute list); state which detail is missing before each such read. Full rules: `content/rules/subagent-pipeline.md → Stage 3 — Handoff between implementation subagents`.

@@ -8,7 +8,7 @@ category: development
 
 Registers are the spine of any non-trivial 1C configuration; mistakes here are expensive to undo because they are usually wired into document posting, RLS, and reports. This file consolidates the design decisions worth thinking through **before** running the metadata skill.
 
-> **Scope.** This file owns *design* rules. XML / schema mechanics live in `content/skills/1c-metadata-manage/docs/meta-manage.md`. Anti-patterns of queries against registers — `anti-patterns.md` and `dev-standards-architecture.md §3 → "Queries"`.
+> **Scope.** This file owns *design* rules. XML / schema mechanics live in `content/skills/1c-metadata-manage/docs/meta-manage.md`. Query work against registers starts at `query-design.md`; hard rules and anti-patterns live in `dev-standards-architecture.md §3 → "Queries"` and `anti-patterns.md`.
 
 ## 1. Choosing the register type
 
