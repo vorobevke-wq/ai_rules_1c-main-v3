@@ -1,6 +1,6 @@
 # 1c-mcp-toolkit - tool catalog
 
-Live infobase access through [ROCTUP/1c-mcp-toolkit](https://github.com/ROCTUP/1c-mcp-toolkit). The server is expected at `http://localhost:6003/mcp` and is started by the user through the `MCP_Toolkit.epf` processing, either in embedded-server mode or through the Python proxy. This ruleset assumes TOON output is enabled in the processing / proxy configuration.
+Live infobase access through [ROCTUP/1c-mcp-toolkit](https://github.com/ROCTUP/1c-mcp-toolkit). (https://github.com/ROCTUP/1c-mcp-toolkit/releases/tag/v1.8.0). The server is expected at `http://localhost:6003/mcp` and is started by the user through the `MCP_Toolkit.epf` processing, either in embedded-server mode or through the Python proxy. This ruleset assumes TOON output is enabled in the processing / proxy configuration.
 
 > Load this file only if the `1c-mcp-toolkit` server is actually available in the current session. The catalog entry alone does not count as availability - the Toolkit processing/proxy must be running and the tools must be visible in the agent tool schema.
 
