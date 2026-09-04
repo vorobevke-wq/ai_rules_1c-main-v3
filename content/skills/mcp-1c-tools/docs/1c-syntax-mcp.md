@@ -1,6 +1,7 @@
 # 1c-syntax-mcp — tool catalog
 
 1C platform syntax reference built from the local `shcntx_ru.hbk` file by `Starik2005/1c-syntax-mcp`.
+Upstream: <https://github.com/Starik2005/1c-syntax-mcp>.
 
 > Load this file only if the `1c-syntax` server is actually available in the current session.
 

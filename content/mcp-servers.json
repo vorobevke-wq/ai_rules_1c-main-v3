@@ -2,7 +2,7 @@
   "servers": [
     {
       "id": "rlm-tools-bsl",
-      "description": "Intent-first 1C/BSL code search and navigation backend through an RLM sandbox; prefer over raw grep for modules, methods, object profiles, metadata references, forms/XML, call graphs, data paths and full-text search. Includes project registry, optional SQLite index and 62 sandbox helpers",
+      "description": "Intent-first 1C/BSL code search and navigation backend through an RLM sandbox; prefer over raw grep for modules, methods, object profiles, metadata references, forms/XML, call graphs, data paths, extension overrides and full-text search. Includes project registry, optional SQLite index, sandbox helpers, and coverage/provenance metadata",
       "transport": "http",
       "url": "http://127.0.0.1:9000/mcp",
       "connectionId": "rlm_tools_bsl_service_001",

@@ -1,6 +1,7 @@
 # 1c-lsp-mcp-skill — MCP tool catalog
 
 `1c-lsp-mcp-skill` is the upstream package that runs `bsl-language-server` for indexed 1C projects. This ruleset uses its diagnostics MCP server as the BSL validation gate.
+Upstream: <https://github.com/fserg/1c-lsp-mcp-skill>.
 
 | MCP server id | Default endpoint | Purpose |
 |---|---:|---|
