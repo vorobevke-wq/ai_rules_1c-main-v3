@@ -65,6 +65,7 @@
       "transport": "http",
       "url": "http://localhost:6002/mcp",
       "connectionId": "1c_buddy_service_001",
+      "defaultToolsApprovalMode": "approve",
       "required": false
     },
     {
