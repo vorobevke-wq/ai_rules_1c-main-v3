@@ -50,7 +50,7 @@ See the **MCP Tool Calling** section in the project's `AGENTS.md` and the `mcp-1
 a) Identify refactoring candidates
    - Unused procedures/functions
    - Duplicate code blocks
-   - Long methods — review trigger >100 lines, hard limit >200 lines (see `content/rules/dev-standards-core.md §2 → "Quality Metrics"`; exception: query texts)
+   - Long methods — review trigger >400 lines, hard limit >500 lines (see `content/rules/dev-standards-core.md §2 → "Quality Metrics"`; exception: query texts)
    - Deep nesting (>4 levels — see `content/rules/dev-standards-core.md §2 → "Quality Metrics"`)
    - Performance issues (queries in loops)
 

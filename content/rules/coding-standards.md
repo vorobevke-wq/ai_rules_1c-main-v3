@@ -8,6 +8,10 @@ category: development
 
 Authoritative content for code style, naming, comments, queries, data access and performance lives in the detailed on-demand rules: `dev-standards-core.md`, `dev-standards-architecture.md`, `dev-standards-forms.md`, `module-structure.md`, `anti-patterns.md`, `platform-solutions.md`, `locks-and-transactions.md`, `logging-strategy.md`. Query work starts at the `query-design.md` router. This file is the index of headlines and anchors. **Before writing or reviewing code, load the relevant detail file.**
 
+## Readability and Method Decomposition
+
+**Readability is the primary priority.** Do not atomize cohesive linear algorithms into small single-use methods merely to reduce method length. Dedicated helpers are expected for large query texts and constructor functions that create and return structures, value tables, and other composite values.
+
 ## Forbidden Calls and Constructs (project-wide)
 
 Single source of truth — `dev-standards-core.md §2 → "Forbidden Calls and Constructs"` (ternary `?(...)`, `Выполнить()` / `Вычислить()`, hardcoded credentials, `Сообщить()`, `ЗаписьЖурналаРегистрации()` without explicit task, `Попытка ... Исключение` around DB reads/writes, boolean comparison against `Истина` / `Ложь`, Yoda syntax). Naming bans (Hungarian notation, names from the 1C global context, magic numbers, negative boolean names) and the `[Project rule — stricter than ITS standard]` markers also live there. The `COMОбъект` ban is owned by `dev-standards-architecture.md §3 → "Cross-Platform Compatibility"`.

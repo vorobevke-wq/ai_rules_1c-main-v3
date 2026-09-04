@@ -77,7 +77,7 @@ See `content/rules/anti-patterns.md` for detailed patterns.
 - Improper use of privileged mode
 
 ### Code Quality (HIGH)
-- Method length — see `content/rules/dev-standards-core.md §2 → "Quality Metrics"` (review trigger >100 lines, hard limit >200 lines, exception: query texts)
+- Method length — see `content/rules/dev-standards-core.md §2 → "Quality Metrics"` (review trigger >400 lines, hard limit >500 lines, exception: query texts)
 - Deep nesting (>4 levels — see `content/rules/dev-standards-core.md §2 → "Quality Metrics"`)
 - Using `Сообщить()` instead of `ОбщегоНазначения.СообщитьПользователю`
 - Accessing attributes via dot notation

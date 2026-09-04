@@ -75,7 +75,7 @@ See `.dev.env.example` for the template.
 
 ### Formatting
 - **Indentation:** TAB only (not spaces).
-- **Line length:** ≤ 120 characters when the line can be wrapped correctly. Don't introduce a line break that leaves a single variable on a new line.
+- **Line length:** ≤ 140 characters when the line can be wrapped correctly. Don't introduce a line break that leaves a single variable on a new line.
 - **One statement per line.** Single-line constructs with complex logic are prohibited.
 - In conditions and loops, add blank lines before and after the code inside the block for better readability.
 - Follow linter / BSL Language Server recommendations. Use `//BSLLS:` comments for targeted, justified suppressions.
@@ -84,12 +84,16 @@ See `.dev.env.example` for the template.
 - For groups of similar assignments **into local variables** — align `=` with spaces.
 - **DO NOT** align when setting object properties via dot notation — use single space around `=`.
 
+### Readability and Method Decomposition
+
+**Excellent code readability is the primary priority.** Avoid excessive method extraction: do not split a cohesive linear algorithm into small single-use procedures or functions unless extraction materially improves readability or isolates independent business logic. Extract large query texts and constructor functions that create and return structures, value tables, and other composite values. Keep short, straightforward code in the calling method when extraction would make the control flow harder to follow. Decisions about method boundaries must be guided by readability, not by method length or the number of methods alone.
+
 ### Quality Metrics
 
 | Metric | Limit | Strictness |
 |---|---|---|
-| Method length | ≤ 200 lines (exception: query texts) | hard limit |
-| Method length | > 100 lines — candidate for decomposition | review trigger |
+| Method length | ≤ 500 lines (exception: query texts) | hard limit |
+| Method length | > 400 lines — candidate for decomposition | review trigger |
 | Control structure nesting | < 5 levels | hard limit |
 | Cognitive complexity | < 15 | review trigger |
 | Method parameters | ≤ 5 (additional via Structure as 6th) | hard limit |
@@ -120,7 +124,7 @@ Exception: simple `Prefix + Suffix` is acceptable when it reads better.
 - **String value enumerations** — in alphabetical order.
 
 ### Conditions
-- Complex conditions (3+ constructs) — extract into a separate method.
+- Complex conditions (5+ constructs) — extract into a separate method.
 
 ### Function Parameters
 - Function parameter MUST NOT be used as additional output — all output via return value.

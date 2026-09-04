@@ -151,7 +151,7 @@ The mechanism is a fixed-format **Handoff** block that every upstream implementa
 - <CONFUSION-id> — <one-line summary> — <status: resolved / pending>
 ```
 
-The block is **not** a marketing summary — it is a machine-readable inventory. Keep each line short (≤120 chars), one fact per line, no prose paragraphs inside the block.
+The block is **not** a marketing summary — it is a machine-readable inventory. Keep each line short (≤140 chars), one fact per line, no prose paragraphs inside the block.
 
 **Parent agent obligations:**
 
