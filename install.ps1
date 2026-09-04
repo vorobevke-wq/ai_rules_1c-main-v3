@@ -1180,6 +1180,8 @@ function Invoke-OpenSpecScaffold {
     param(
         [string]$Root,
         [string]$SourceRoot,
+        [string[]]$ActiveTools,
+        [hashtable]$Adapters,
         [System.Collections.IDictionary]$Manifest
     )
     $sourceOpenSpec = Join-Path $SourceRoot 'openspec'
@@ -1189,13 +1191,29 @@ function Invoke-OpenSpecScaffold {
     }
 
     $sourceFull = (Resolve-Path $sourceOpenSpec).Path.TrimEnd('\', '/')
+    $layouts = Resolve-CanonicalArtifactLayouts -ActiveTools $ActiveTools -Adapters $Adapters
     $copied = 0
     $skipped = 0
+    $migrated = 0
     Get-ChildItem -Recurse -File -Path $sourceOpenSpec -ErrorAction SilentlyContinue | ForEach-Object {
         $rel = $_.FullName.Substring($sourceFull.Length + 1).Replace('\', '/')
         $targetRel = "openspec/$rel"
         $targetAbs = Join-Path $Root $targetRel
         if (Test-Path $targetAbs) {
+            # Migrate untouched scaffold Markdown from older installers. An
+            # exact source-text match proves that the project copy has no user
+            # edits; every other existing file remains strictly preserved.
+            if ($_.Extension -ieq '.md') {
+                $sourceText = Read-TextFile $_.FullName
+                $currentText = Read-TextFile $targetAbs
+                if ($currentText -ceq $sourceText) {
+                    $rewritten = Convert-InstalledContentPaths -Text $currentText -Layouts $layouts
+                    if ($rewritten -cne $currentText) {
+                        Write-TextFile -Path $targetAbs -Content $rewritten
+                        $migrated++
+                    }
+                }
+            }
             $skipped++
             return
         }
@@ -1204,6 +1222,10 @@ function Invoke-OpenSpecScaffold {
             New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
         }
         Copy-Item -Path $_.FullName -Destination $targetAbs -Force
+        if ($_.Extension -ieq '.md') {
+            $rewritten = Convert-InstalledContentPaths -Text (Read-TextFile $targetAbs) -Layouts $layouts
+            Write-TextFile -Path $targetAbs -Content $rewritten
+        }
         $copied++
     }
 
@@ -1214,14 +1236,15 @@ function Invoke-OpenSpecScaffold {
     $Manifest.integrations['openspec']['scaffolded'] = $true
     $Manifest.integrations['openspec']['detected'] = $true
 
-    Write-Info "  OpenSpec scaffold: $copied file(s) copied, $skipped preserved"
+    $migrationTag = if ($migrated -gt 0) { ", $migrated path-migrated" } else { '' }
+    Write-Info "  OpenSpec scaffold: $copied file(s) copied, $skipped preserved$migrationTag"
 }
 
 # Place OpenSpec artefacts (slash commands / workflows + SKILLs) bundled under
 # `content/openspec-bundle/<tool>/...`. Each file under a tool's bundle is
-# copied verbatim to the same relative path in the project root, so the
-# resulting layout exactly matches what `openspec init` would produce — but
-# without requiring npm or the OpenSpec CLI at install time.
+# copied to the same relative path in the project root, so the resulting
+# layout exactly matches what `openspec init` would produce. Markdown source
+# paths are then rewritten for the owning tool; other files stay verbatim.
 #
 # Files are tracked in `manifest.files` like any other managed content, so
 # `update` refreshes them, `remove` deletes them, and `userModified` is
@@ -1283,6 +1306,7 @@ function Invoke-OpenSpecArtifacts {
         [string]$Root,
         [string]$SourceRoot,
         [string[]]$ActiveTools,
+        [hashtable]$Adapters,
         [System.Collections.IDictionary]$Manifest
     )
     $bundleRoot = Join-Path $SourceRoot 'content/openspec-bundle'
@@ -1300,6 +1324,7 @@ function Invoke-OpenSpecArtifacts {
     $totalCopied = 0
     $totalKept = 0
     foreach ($tool in $ActiveTools) {
+        $layouts = Resolve-CanonicalArtifactLayouts -ActiveTools @($tool) -Adapters $Adapters
         if ($tool -eq 'kilocode') {
             Remove-LegacyKilocodeOpenSpecArtifacts -Root $Root -Manifest $Manifest
         }
@@ -1323,6 +1348,10 @@ function Invoke-OpenSpecArtifacts {
                 New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
             }
             Copy-Item -Path $_.FullName -Destination $absTarget -Force
+            if ($_.Extension -ieq '.md') {
+                $rewritten = Convert-InstalledContentPaths -Text (Read-TextFile $absTarget) -Layouts $layouts
+                Write-TextFile -Path $absTarget -Content $rewritten
+            }
             $Manifest.files[$rel] = [ordered]@{
                 source        = "content/openspec-bundle/$tool/$rel"
                 installedHash = (Get-FileSha256 $absTarget)
@@ -1770,6 +1799,7 @@ function Invoke-PlaceArtifactFile {
         [System.Collections.IDictionary]$FrontmatterOps,
         [string]$Mode,
         [string]$Template,
+        [System.Collections.IDictionary]$Layouts,
         [System.Collections.IDictionary]$Manifest,
         [string]$ContentSource
     )
@@ -1789,14 +1819,21 @@ function Invoke-PlaceArtifactFile {
     }
     if ($Mode -eq 'rebuild-toml') {
         $rendered = Invoke-CodexAgentTemplate -Template $Template -Fm $SourceFm -Body $SourceBody
+        $rendered = Convert-InstalledContentPaths -Text $rendered -Layouts $Layouts
         Write-TextFile -Path $absTarget -Content $rendered
     }
     elseif ($Mode -eq 'verbatim') {
-        $parentDir = Split-Path -Parent $absTarget
-        if ($parentDir -and -not (Test-Path $parentDir)) {
-            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        if ([System.IO.Path]::GetExtension($SourcePath) -ieq '.md') {
+            $rendered = Convert-InstalledContentPaths -Text (Read-TextFile $SourcePath) -Layouts $Layouts
+            Write-TextFile -Path $absTarget -Content $rendered
         }
-        Copy-Item -Path $SourcePath -Destination $absTarget -Force
+        else {
+            $parentDir = Split-Path -Parent $absTarget
+            if ($parentDir -and -not (Test-Path $parentDir)) {
+                New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+            }
+            Copy-Item -Path $SourcePath -Destination $absTarget -Force
+        }
     }
     else {
         $newFm = Invoke-FrontmatterOps -Source $SourceFm -Ops $FrontmatterOps
@@ -1807,6 +1844,7 @@ function Invoke-PlaceArtifactFile {
         else {
             $full = $SourceBody
         }
+        $full = Convert-InstalledContentPaths -Text $full -Layouts $Layouts
         Write-TextFile -Path $absTarget -Content $full
     }
     $hash = Get-FileSha256 $absTarget
@@ -1821,6 +1859,7 @@ function Invoke-PlaceSkill {
         [string]$Root,
         [string]$SourceDir,
         [string]$TargetDir,
+        [System.Collections.IDictionary]$Layouts,
         [System.Collections.IDictionary]$Manifest,
         [string]$ContentSource
     )
@@ -1829,6 +1868,10 @@ function Invoke-PlaceSkill {
     Copy-Item -Path $SourceDir -Destination $absTarget -Recurse -Force
     $rootFull = (Resolve-Path $Root).Path.TrimEnd('\', '/')
     Get-ChildItem -Recurse -File -Path $absTarget | ForEach-Object {
+        if ($_.Extension -ieq '.md') {
+            $rewritten = Convert-InstalledContentPaths -Text (Read-TextFile $_.FullName) -Layouts $Layouts
+            Write-TextFile -Path $_.FullName -Content $rewritten
+        }
         $rel = $_.FullName.Substring($rootFull.Length + 1).Replace('\', '/')
         $Manifest.files[$rel] = [ordered]@{
             source        = $ContentSource
@@ -1918,6 +1961,7 @@ function Invoke-PlacePhase {
     )
     foreach ($tool in $ActiveTools) {
         $adapter = $Adapters[$tool]
+        $layouts = Resolve-CanonicalArtifactLayouts -ActiveTools @($tool) -Adapters $Adapters
         Write-Info "  [$tool] placing files"
 
         # rules
@@ -1932,6 +1976,7 @@ function Invoke-PlacePhase {
                 Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
                     -TargetRel $target -SourceFm $parts.Frontmatter -SourceBody $parts.Body `
                     -FrontmatterOps $fmOps -Mode $mode `
+                    -Layouts $layouts `
                     -Manifest $Manifest -ContentSource ("content/rules/" + $f.Name)
             }
         }
@@ -1950,6 +1995,7 @@ function Invoke-PlacePhase {
                 Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
                     -TargetRel $target -SourceFm $agentFm -SourceBody $parts.Body `
                     -FrontmatterOps $fmOps -Mode $mode -Template $template `
+                    -Layouts $layouts `
                     -Manifest $Manifest -ContentSource ("content/agents/" + $f.Name)
             }
         }
@@ -1968,6 +2014,7 @@ function Invoke-PlacePhase {
                     Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
                         -TargetRel $targetRaw -SourceFm $parts.Frontmatter -SourceBody $parts.Body `
                         -FrontmatterOps $fmOps -Mode $mode `
+                        -Layouts $layouts `
                         -Manifest $Manifest -ContentSource ("content/commands/" + $f.Name)
                     Write-Warn "  command written to user scope: $targetRaw (shared across projects)"
                 }
@@ -1975,6 +2022,7 @@ function Invoke-PlacePhase {
                     Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
                         -TargetRel $targetRaw -SourceFm $parts.Frontmatter -SourceBody $parts.Body `
                         -FrontmatterOps $fmOps -Mode $mode `
+                        -Layouts $layouts `
                         -Manifest $Manifest -ContentSource ("content/commands/" + $f.Name)
                 }
             }
@@ -1989,6 +2037,7 @@ function Invoke-PlacePhase {
                 $name = $sd.Name
                 $targetDir = Resolve-CopyToPath $dirTpl $name
                 Invoke-PlaceSkill -Root $Root -SourceDir $sd.FullName -TargetDir $targetDir `
+                    -Layouts $layouts `
                     -Manifest $Manifest -ContentSource ("content/skills/" + $name)
             }
         }
@@ -2035,10 +2084,11 @@ function Resolve-CanonicalRulesLayout {
 }
 
 # Compute the canonical installed location for every artefact section (rules,
-# agents, commands, skills) by walking the same priority order as
+# agents, commands, skills, MCP config) by walking the same priority order as
 # Resolve-CanonicalRulesLayout and picking, per section, the highest-priority
 # active tool whose adapter declares `<section>.copyTo`. Returns an ordered
-# hashtable `{ rules = @{Dir=..; Ext=..}; agents = ...; commands = ...; skills = ... }`.
+# hashtable `{ rules = @{Dir=..; Ext=..}; agents = ...; commands = ...;
+# skills = ...; mcp = @{Target=..} }`.
 # Sections without a defined canonical layout are simply omitted.
 #
 # Used by Update-AgentsMd to rewrite `content/<section>/...` paths in the
@@ -2066,25 +2116,34 @@ function Resolve-CanonicalArtifactLayouts {
             break
         }
     }
+    foreach ($tool in $script:RulesDirPriority) {
+        if ($ActiveTools -notcontains $tool) { continue }
+        $adapter = $Adapters[$tool]
+        if (-not $adapter -or -not $adapter.Contains('mcp')) { continue }
+        $target = [string]$adapter['mcp'].target
+        if (-not $target) { continue }
+        $layouts['mcp'] = [ordered]@{ Target = $target; Tool = $tool }
+        break
+    }
     return $layouts
 }
 
 # Rewrite source-repo paths (`content/<section>/<name>.md`,
-# `content/skills/<rest>`) to the per-section canonical installed paths. The
-# source AGENTS.md is maintained with readable repo-relative paths; the
-# installer substitutes them so that the file copied into the project root
-# points at files that actually exist on disk for the active tool(s).
+# `content/skills/<rest>`, `content/mcp-servers.json`) to the per-section
+# installed paths. Source files stay readable and portable; every installed
+# text artefact points at files for the tool that owns that installed copy.
 #
 # Substitutions performed (when the corresponding section layout is known):
 #   content/rules/<name>.md     -> <rulesDir>/<name>.<rulesExt>
 #   content/agents/<name>.md    -> <agentsDir>/<name>.<agentsExt>
 #   content/commands/<name>.md  -> <commandsDir>/<name>.<commandsExt>
 #   content/skills/<rest>       -> <skillsDir>/<rest>      (verbatim subpath)
+#   content/mcp-servers.json    -> <mcp.target>
 #
-# The name regex accepts `<` and `>` so placeholder paths like
-# `content/agents/<name>.md` in prose are also rewritten to the installed
-# directory but keep the literal `<name>` token.
-function Convert-AgentsMdPaths {
+# The name regex accepts placeholders and wildcards, so paths like
+# `content/agents/<name>.md` and `content/rules/*.md` are rewritten to the
+# installed directory while preserving the token.
+function Convert-InstalledContentPaths {
     param(
         [string]$Text,
         [System.Collections.IDictionary]$Layouts
@@ -2094,9 +2153,9 @@ function Convert-AgentsMdPaths {
 
     $result = $Text
     $sectionRegexes = @(
-        @{ Section = 'rules';    Pattern = 'content/rules/([\w\-<>]+)\.md' },
-        @{ Section = 'agents';   Pattern = 'content/agents/([\w\-<>]+)\.md' },
-        @{ Section = 'commands'; Pattern = 'content/commands/([\w\-<>]+)\.md' }
+        @{ Section = 'rules';    Pattern = 'content/rules/([\w\-<>*?]+)\.md' },
+        @{ Section = 'agents';   Pattern = 'content/agents/([\w\-<>*?]+)\.md' },
+        @{ Section = 'commands'; Pattern = 'content/commands/([\w\-<>*?]+)\.md' }
     )
     foreach ($entry in $sectionRegexes) {
         $section = $entry.Section
@@ -2125,12 +2184,19 @@ function Convert-AgentsMdPaths {
     if ($Layouts.Contains('skills')) {
         $skillsDir = [string]$Layouts['skills'].Dir
         if ($skillsDir) {
-            # Skills are copied verbatim — anything after `content/skills/`
-            # (SKILL.md, docs/<file>.md, tools/<…>) is preserved by the
+            # Skill subpaths are preserved — anything after `content/skills/`
+            # (SKILL.md, docs/<file>.md, tools/<…>) stays the same during the
             # place phase, so a single prefix swap covers both file
             # references (`content/skills/<name>/SKILL.md`) and bare
             # directory references (`content/skills/`).
             $result = $result.Replace('content/skills/', "$skillsDir/")
+        }
+    }
+
+    if ($Layouts.Contains('mcp')) {
+        $mcpTarget = [string]$Layouts['mcp'].Target
+        if ($mcpTarget) {
+            $result = $result.Replace('content/mcp-servers.json', $mcpTarget)
         }
     }
 
@@ -2255,7 +2321,7 @@ function Invoke-McpPhase {
 # `content/skills/...`). The installer copies it into the project root and,
 # in the same step, rewrites every `content/<section>/...` path to the
 # per-section canonical installed path resolved from the active tool set
-# (see Resolve-CanonicalArtifactLayouts + Convert-AgentsMdPaths). The result
+# (see Resolve-CanonicalArtifactLayouts + Convert-InstalledContentPaths). The result
 # is that every path in the project-root AGENTS.md resolves to an existing
 # file for the active tool(s) — no broken links.
 #
@@ -2296,7 +2362,7 @@ function Update-AgentsMd {
 
     $sourceText = Read-TextFile $sourceAgentsPath
     # 1) Rewrite content/<section>/... → <canonical installed dir>/...
-    $rendered = Convert-AgentsMdPaths -Text $sourceText -Layouts $layouts
+    $rendered = Convert-InstalledContentPaths -Text $sourceText -Layouts $layouts
     # 2) Backward-compat: still substitute the legacy {{ rulesDir }} /
     #    {{ rulesExt }} placeholders for source revisions that pre-date the
     #    rewriter (no-op when the source already uses content/<section>/ paths).
@@ -2735,7 +2801,7 @@ function Invoke-Init {
     Invoke-PlacePhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     Write-Section 'Phase 6b: OpenSpec scaffold'
-    Invoke-OpenSpecScaffold -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
+    Invoke-OpenSpecScaffold -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
     # Re-scan integrations now that openspec/ may have been created/extended
     # by scaffold; preserve the `scaffolded` flag set by the scaffold step.
     $rescanned = Invoke-ScanIntegrations -Root $Root
@@ -2749,7 +2815,7 @@ function Invoke-Init {
     $manifest.integrations = $rescanned
 
     Write-Section 'Phase 6c: OpenSpec artefacts (slash commands + skills)'
-    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Manifest $manifest
+    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     Write-Section 'Phase 6d: OpenSpec project.md (1C autodetect)'
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
@@ -2939,7 +3005,7 @@ function Invoke-Update {
     # Merge userModified preservations (they may have been overwritten by Place if source names collide; guard at place time is not implemented in v1)
 
     Write-Section 'OpenSpec scaffold (update)'
-    Invoke-OpenSpecScaffold -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
+    Invoke-OpenSpecScaffold -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
     $rescanned = Invoke-ScanIntegrations -Root $Root
     if ($rescanned.Contains('openspec')) {
         $wasScaffolded = $false
@@ -2951,7 +3017,7 @@ function Invoke-Update {
     $manifest.integrations = $rescanned
 
     Write-Section 'OpenSpec artefacts (update)'
-    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Manifest $manifest
+    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     Write-Section 'OpenSpec project.md (update / 1C autodetect)'
     Invoke-OpenSpecProjectMd -Root $Root -Manifest $manifest
@@ -3005,7 +3071,7 @@ function Invoke-Add {
 
     Write-Section "Placing files for tool: $NewTool"
     Invoke-PlacePhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
-    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Manifest $manifest
+    Invoke-OpenSpecArtifacts -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     # Place .dev.env before MCP so project parameters exist before rendering
     # the newly-added tool's MCP config.

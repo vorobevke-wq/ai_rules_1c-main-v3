@@ -86,6 +86,8 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 `AGENTS.md` ссылается на on-demand правила по пути одного канонического каталога (приоритет `cursor → claude-code → kilocode → opencode → codex → other`; `other` становится каноном только когда выбран без «реального» инструмента). При установке только под один инструмент в проекте появится ровно одна тулзовая директория плюс `AGENTS.md`/`USER-RULES.md`/`memory.md` в корне — без дополнительных общих папок.
 
+Пути `content/rules/...`, `content/agents/...`, `content/commands/...`, `content/skills/...` и `content/mcp-servers.json` существуют только в исходном репозитории. В установленных правилах, субагентах, командах и Markdown-файлах навыков установщик заменяет их на реальные пути выбранного инструмента; для каждого инструмента преобразование выполняется отдельно.
+
 Если активен ровно один инструмент, агент-установщик не задаёт уточняющих вопросов. PowerShell-fallback дополнительно поддерживает флаги `-Tools cursor,claude-code`, `-NonInteractive`, `-AssumeYes`. Полный протокол и описание манифеста — в [`AGENT-INSTALL.md`](AGENT-INSTALL.md).
 
 ## Свод on-demand правил (`content/rules/`)
