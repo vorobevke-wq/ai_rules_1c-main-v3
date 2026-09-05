@@ -163,7 +163,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 ## MCP-серверы экосистемы 1С
 
-Правила рассчитаны на работу совместно с пакетом MCP-серверов от [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server), графовым сервером [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode), шлюзом [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy), LSP-мостом [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) и локальной синтаксической справкой [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp). Все серверы опциональны: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+Правила рассчитаны на работу с MCP-серверами, используемыми в этом фреймворке: `rlm-tools-bsl`, `1c-mcp-metacode`, `1c-lsp-diagnostics`, `1c-templates-mcp`, `1c-syntax`, `onec-buddy-mcp` и `1c-mcp-toolkit`. Все серверы опциональны, кроме отмеченных в каталоге: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -231,13 +231,15 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 
 Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.codex/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
 
-## Ссылки
+## Ссылки и благодарности
 
-- [vibecoding1c.ru](https://vibecoding1c.ru/) — портал по вайбкодингу для 1С: курсы, бенчмарк моделей, статьи, продукты для разработки 1С с ИИ.
-- [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server) — пакет MCP-серверов для 1С, под который заточены правила и плейбуки этого репозитория.
-- [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) — LSP-мост для диагностики и навигации BSL через `bsl-language-server`.
-- [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp) — локальный MCP-сервер синтаксической справки 1С.
-- [Telegram-канал «IT Does Matter»](https://t.me/comol_it_does_matter) — обсуждение вайбкодинга для 1С, MCP, ИИ-агентов, практик и обновлений.
+- [ROCTUP/1c-mcp-metacode](https://github.com/ROCTUP/1c-mcp-metacode) — за графовый анализ метаданных и кода 1С.
+- [Dach-Coin/rlm-tools-bsl](https://github.com/Dach-Coin/rlm-tools-bsl) — за intent-first поиск и навигацию по исходникам BSL.
+- [fserg/1c-lsp-mcp-skill](https://github.com/fserg/1c-lsp-mcp-skill) — за LSP-мост для диагностики BSL.
+- [Desko77/1c-templates-mcp](https://github.com/Desko77/1c-templates-mcp) — за библиотеку шаблонов кода 1С.
+- [Starik2005/1c-syntax-mcp](https://github.com/Starik2005/1c-syntax-mcp) — за локальную синтаксическую справку 1С.
+- [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) — за шлюз к 1С:Напарнику, документации платформы и ИТС.
+- [ROCTUP/1c-mcp-toolkit](https://github.com/ROCTUP/1c-mcp-toolkit) — за инструменты работы с информационной базой 1С.
 
 ## Лицензия
 
