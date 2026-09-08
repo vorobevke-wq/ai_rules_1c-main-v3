@@ -23,9 +23,9 @@
 #     Mapping: Read->read, Write/Edit->edit, Grep->grep, Glob->glob, Shell->bash.
 #     MCP has no single permission key (MCP tools are gated by their own names),
 #     so it is intentionally not mapped — MCP tools stay enabled by default.
-#   - OpenCode natively reads skills from `.claude/skills/` (besides its own
-#     `.opencode/skills/`). To avoid duplicate skill folders, we write skills
-#     to `.claude/skills/` — shared with Claude Code when both are installed.
+#   - OpenCode discovers the Agent Skills compatibility path
+#     `.agents/skills/` natively. Project skills are installed there instead
+#     of borrowing Claude Code's `.claude/skills/` namespace.
 #   - MCP config goes into `opencode.json` at the PROJECT ROOT (NOT
 #     `.opencode/opencode.json` — `.opencode/` only holds agents / commands /
 #     modes / plugins / skills / tools / themes, never the main config file).
@@ -102,7 +102,7 @@ commands:
     drop: [argumentHint, allowedTools]
 
 skills:
-  copyTo: ".claude/skills/{name}/"
+  copyTo: ".agents/skills/{name}/"
   mode: verbatim
 
 mcp:

@@ -5,8 +5,11 @@
 #
 # Schema: closed adapter schema described in AGENT-INSTALL.md (Lean placement)
 # and implemented by install.ps1.
-# Note: Cursor is the only tool that supports glob-based rule activation,
-# so "globs" and "alwaysApply" are kept verbatim in the rules frontmatter.
+# Notes:
+#   - Cursor is the only tool that supports glob-based rule activation, so
+#     "globs" and "alwaysApply" are kept verbatim in rule frontmatter.
+#   - Cursor discovers the shared Agent Skills path `.agents/skills/`
+#     natively, so project skills do not need a Cursor-specific copy.
 
 tool: cursor
 schemaVersion: 1
@@ -35,7 +38,7 @@ commands:
     drop: [allowedTools]
 
 skills:
-  copyTo: ".cursor/skills/{name}/"
+  copyTo: ".agents/skills/{name}/"
   mode: verbatim
 
 mcp:

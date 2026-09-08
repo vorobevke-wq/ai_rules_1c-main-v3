@@ -5,8 +5,9 @@
 
 .DESCRIPTION
     Maintainer-only utility. Runs `openspec init` in a temporary directory
-    against the five tools supported by 1c-rules, then mirrors the resulting
-    files into content/openspec-bundle/<tool>/ and refreshes
+    against the five tools supported by 1c-rules, normalizes project skills
+    to `.agents/skills/` for every tool except Claude Code, then mirrors the
+    resulting files into content/openspec-bundle/<tool>/ and refreshes
     content/openspec-bundle/version.txt with the CLI's reported version.
 
     Bumps the static snapshot that the installer ships, so end-users continue
@@ -116,25 +117,26 @@ function Sync-ToolBundle {
     )
     $dot = $script:DotMap[$Tool]
     $sourceDir = Join-Path $ProbeRoot $dot
-    $targetDir = Join-Path $BundleRoot "$Tool\$dot"
-    $normalizedTemp = $null
+    $targetDir = Join-Path $BundleRoot $Tool
+    $legacyNormalizedTemp = $null
+    $bundleSourceRoot = $null
 
     if ($Tool -eq 'kilocode' -and -not (Test-Path $sourceDir)) {
         $legacySourceDir = Join-Path $ProbeRoot '.kilocode'
         if (Test-Path $legacySourceDir) {
-            $normalizedTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("openspec-kilo-normalized-" + [guid]::NewGuid().ToString('N'))
-            New-Item -ItemType Directory -Path $normalizedTemp | Out-Null
+            $legacyNormalizedTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("openspec-kilo-normalized-" + [guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $legacyNormalizedTemp | Out-Null
             $legacyWorkflows = Join-Path $legacySourceDir 'workflows'
             $legacySkills = Join-Path $legacySourceDir 'skills'
             if (Test-Path $legacyWorkflows) {
-                New-Item -ItemType Directory -Path (Join-Path $normalizedTemp 'commands') -Force | Out-Null
-                Copy-Item -Path (Join-Path $legacyWorkflows '*') -Destination (Join-Path $normalizedTemp 'commands') -Recurse -Force
+                New-Item -ItemType Directory -Path (Join-Path $legacyNormalizedTemp 'commands') -Force | Out-Null
+                Copy-Item -Path (Join-Path $legacyWorkflows '*') -Destination (Join-Path $legacyNormalizedTemp 'commands') -Recurse -Force
             }
             if (Test-Path $legacySkills) {
-                New-Item -ItemType Directory -Path (Join-Path $normalizedTemp 'skills') -Force | Out-Null
-                Copy-Item -Path (Join-Path $legacySkills '*') -Destination (Join-Path $normalizedTemp 'skills') -Recurse -Force
+                New-Item -ItemType Directory -Path (Join-Path $legacyNormalizedTemp 'skills') -Force | Out-Null
+                Copy-Item -Path (Join-Path $legacySkills '*') -Destination (Join-Path $legacyNormalizedTemp 'skills') -Recurse -Force
             }
-            $sourceDir = $normalizedTemp
+            $sourceDir = $legacyNormalizedTemp
         }
     }
 
@@ -142,6 +144,27 @@ function Sync-ToolBundle {
         Write-Warning "  [$Tool] no $dot in probe output - skipped"
         return [pscustomobject]@{ Tool = $Tool; Added = 0; Updated = 0; Removed = 0 }
     }
+
+    # OpenSpec emits skills under each tool's private directory. The framework
+    # uses the portable `.agents/skills/` project path for Cursor, Codex,
+    # OpenCode and Kilo Code; Claude Code keeps its required `.claude/skills/`.
+    # Normalize a temporary project-shaped tree before comparing or copying the
+    # bundle so future refreshes preserve the installer layout.
+    $bundleSourceRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("openspec-bundle-normalized-" + [guid]::NewGuid().ToString('N'))
+    $bundleDotDir = Join-Path $bundleSourceRoot $dot
+    New-Item -ItemType Directory -Path $bundleDotDir -Force | Out-Null
+    Get-ChildItem -LiteralPath $sourceDir -Force | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination $bundleDotDir -Recurse -Force
+    }
+    if ($Tool -ne 'claude-code') {
+        $toolSkillsDir = Join-Path $bundleDotDir 'skills'
+        if (Test-Path $toolSkillsDir) {
+            $sharedSkillsParent = Join-Path $bundleSourceRoot '.agents'
+            New-Item -ItemType Directory -Path $sharedSkillsParent -Force | Out-Null
+            Move-Item -LiteralPath $toolSkillsDir -Destination (Join-Path $sharedSkillsParent 'skills')
+        }
+    }
+    $sourceDir = $bundleSourceRoot
 
     $sourceFiles = Get-RelativeFiles $sourceDir
     $targetFiles = Get-RelativeFiles $targetDir
@@ -162,11 +185,17 @@ function Sync-ToolBundle {
 
     if (-not $DryRun) {
         if (Test-Path $targetDir) { Remove-Item -Recurse -Force $targetDir }
-        Copy-Item -Recurse -Force -Path $sourceDir -Destination $targetDir
+        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+        Get-ChildItem -LiteralPath $sourceDir -Force | ForEach-Object {
+            Copy-Item -LiteralPath $_.FullName -Destination $targetDir -Recurse -Force
+        }
     }
 
-    if ($normalizedTemp -and (Test-Path $normalizedTemp)) {
-        Remove-Item -Recurse -Force $normalizedTemp
+    if ($legacyNormalizedTemp -and (Test-Path $legacyNormalizedTemp)) {
+        Remove-Item -Recurse -Force $legacyNormalizedTemp
+    }
+    if ($bundleSourceRoot -and (Test-Path $bundleSourceRoot)) {
+        Remove-Item -Recurse -Force $bundleSourceRoot
     }
 
     return [pscustomobject]@{

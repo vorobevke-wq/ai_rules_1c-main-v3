@@ -18,9 +18,8 @@
 #       commands -> .kilo/commands/      (formerly "workflows"; the new extension
 #                                         auto-migrates `.kilocode/workflows/`
 #                                         to `.kilo/commands/` on startup)
-#       skills   -> .kilo/skills/        (per the Agent Skills specification;
-#                                         `.kilocode/skills/` is not a recognised
-#                                         skill directory)
+#       skills   -> .agents/skills/      (portable Agent Skills project path;
+#                                         discovered by current Kilo Code)
 #   - MCP project-level config is written to project-root `kilo.json` and is
 #     written under the top-level `mcp` key, with per-server entries of
 #     shape `{ "type": "remote"|"local", "url"|"command": ..., "headers"?,
@@ -83,7 +82,7 @@ commands:
     drop: [argumentHint, allowedTools]
 
 skills:
-  copyTo: ".kilo/skills/{name}/"
+  copyTo: ".agents/skills/{name}/"
   mode: verbatim
 
 mcp:

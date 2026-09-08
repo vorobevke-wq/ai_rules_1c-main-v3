@@ -48,7 +48,7 @@ Output files:
 
 - Python packages: `google-genai`, `python-dotenv`
 - System: `ffmpeg`, `ffprobe` in PATH
-- API key: `~/.cursor/skills/transcribe/.env` (or your tool's skill folder) with `GEMINI_API_KEY=...`
+- API key: `GEMINI_API_KEY` in the environment or a `.env` file in this skill's directory
 
 ## Procedure
 

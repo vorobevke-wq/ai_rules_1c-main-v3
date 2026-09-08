@@ -34,11 +34,11 @@ After the table, list only actionable fixes. Do not include secret values from `
    - in an installed project, report **FAIL** and recommend `install.ps1 init`;
    - in the source repository of `1c-rules`, report **WARN** and continue with source-layout checks.
 6. Verify that the current tool has the files it can actually load:
-   - Cursor: `.cursor/rules/`, `.cursor/commands/`, `.cursor/mcp.json` when installed;
-   - Claude Code: `.claude/rules-1c/`, `.claude/agents/`, `.claude/commands/`, MCP config when installed;
-   - Codex: `.codex/skills/`, `.codex/config.toml` when installed;
-   - OpenCode: `.opencode/command/`, `.opencode/agent/`, `.opencode/rules/`, and `opencode.json` at the **project root** (top-level `mcp` key) when installed — MCP lives in the root `opencode.json`, **not** `.opencode/opencode.json` (OpenCode does not read a config file under `.opencode/`); a leftover `.opencode/opencode.json` from older installs is **legacy** and the `update` flow removes it;
-   - Kilo Code: `.kilo/rules/`, `.kilo/commands/`, `.kilo/agents/`, `.kilo/skills/`, `.kilo/kilo.json` (top-level `mcp` key) when installed; a leftover `.kilocode/mcp.json` from older installs is **legacy** — current Kilo CLI / Kilo Code v7.x+ no longer reads it and the `update` flow removes it;
+   - Cursor: `.cursor/rules/`, `.cursor/agents/`, `.cursor/commands/`, `.agents/skills/`, `.cursor/mcp.json` when installed;
+   - Claude Code: `.claude/rules-1c/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.mcp.json` when installed;
+   - Codex: `.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `.codex/config.toml` when installed;
+   - OpenCode: `.opencode/command/`, `.opencode/agent/`, `.opencode/rules/`, `.agents/skills/`, and `opencode.json` at the **project root** (top-level `mcp` key) when installed — MCP lives in the root `opencode.json`, **not** `.opencode/opencode.json` (OpenCode does not read a config file under `.opencode/`); a leftover `.opencode/opencode.json` from older installs is **legacy** and the `update` flow removes it;
+   - Kilo Code: `.kilo/rules-1c/`, `.kilo/commands/`, `.kilo/agents/`, `.agents/skills/`, and `kilo.json` at the **project root** (top-level `mcp` key) when installed; a leftover `.kilocode/mcp.json` from older installs is **legacy** — current Kilo CLI / Kilo Code v7.x+ no longer reads it and the `update` flow removes it;
    - other: `.ai-agent/rules/`, `.ai-agent/agents/`, `.ai-agent/commands/`, `.ai-agent/skills/`, `.ai-agent/mcp.json`.
 
 Pass criterion: the root always-on files exist, and either the installed tool layout is present or the repository is clearly the `1c-rules` source repository being edited directly.

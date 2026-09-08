@@ -3183,6 +3183,17 @@ function Invoke-Remove {
             'cursor'      { $toolPrefixes = @('.cursor/') }
             'other'       { $toolPrefixes = @('.ai-agent/') }
         }
+        # `.agents/skills/` is shared by Cursor, Codex, OpenCode and Kilo Code.
+        # Remove it only when the selected tool is the last installed consumer.
+        $sharedSkillTools = @('cursor', 'codex', 'opencode', 'kilocode')
+        if ($ScopeTool -in $sharedSkillTools) {
+            $remainingSharedTools = @($manifest.tools | Where-Object {
+                $_ -ne $ScopeTool -and $_ -in $sharedSkillTools
+            })
+            if ($remainingSharedTools.Count -eq 0) {
+                $toolPrefixes += '.agents/'
+            }
+        }
         $toRemove = @()
         foreach ($rel in @($manifest.files.Keys)) {
             foreach ($p in $toolPrefixes) {
@@ -3233,7 +3244,7 @@ function Invoke-Remove {
         }
         Remove-Item -Force (Join-Path $Root $script:ManifestFileName) -ErrorAction SilentlyContinue
         # Clean up empty per-tool directories
-        $cleanupDirs = @('.ai-rules')
+        $cleanupDirs = @('.ai-rules', '.agents')
         foreach ($t in $manifest.tools) {
             if ($t -eq 'other') { $cleanupDirs += '.ai-agent' }
             else { $cleanupDirs += ".$t" }

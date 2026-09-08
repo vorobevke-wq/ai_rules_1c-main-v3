@@ -9,6 +9,9 @@
 #   - Codex is the only tool that expects agents as TOML files with a
 #     `developer_instructions` string field. Agents are fully rebuilt via
 #     `mode: rebuild-toml` + a `template` rather than plain frontmatter edits.
+#   - Project skills use the Agent Skills repository path `.agents/skills/`.
+#     Codex discovers this directory natively and loads full SKILL.md content
+#     only when the skill is selected.
 #   - On-demand rules are placed under `.codex/rules/` and referenced from
 #     AGENTS.md by file path. Codex itself does not auto-discover them — the
 #     directory is just a stable, predictable location that the agent reads
@@ -56,7 +59,7 @@ commands:
     drop: [argumentHint, allowedTools]
 
 skills:
-  copyTo: ".codex/skills/{name}/"
+  copyTo: ".agents/skills/{name}/"
   mode: verbatim
 
 mcp:

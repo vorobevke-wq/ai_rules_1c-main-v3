@@ -73,29 +73,31 @@ After installation you should already see, depending on which tools are active:
 
 - Cursor — `.cursor/commands/opsx-{apply,archive,explore,propose}.md`
 - Claude Code — `.claude/commands/opsx/{apply,archive,explore,propose}.md`
-- Codex — only SKILLs under `.codex/skills/openspec-*/SKILL.md` (Codex has no project slash commands)
+- Codex — only SKILLs under `.agents/skills/openspec-*/SKILL.md` (Codex has no project slash commands)
 - OpenCode — `.opencode/command/opsx-{apply,archive,explore,propose}.md`
-- Kilo Code — `.kilocode/workflows/opsx-{apply,archive,explore,propose}.md`
+- Kilo Code — `.kilo/commands/opsx-{apply,archive,explore,propose}.md`
 
 …plus matching `openspec-{propose,apply-change,archive-change,explore}/SKILL.md`
-folders under each tool's `skills/` directory. Restart your IDE for the
-slash commands to take effect.
+folders under `.agents/skills/` for Cursor, Codex, OpenCode and Kilo Code, or
+under `.claude/skills/` for Claude Code. Restart your IDE for the slash commands
+to take effect.
 
 ### Refreshing to a newer OpenSpec version (optional)
 
-The bundled snapshot is updated together with `1c-rules` releases. If you
-want to jump ahead to a newer OpenSpec CLI version without waiting for the
-next `1c-rules` release, install the official CLI once and run it inside
-the project — it will overwrite the bundled files in place:
+The bundled snapshot is updated together with `1c-rules` releases. Maintainers
+who need a newer OpenSpec CLI version should refresh the source snapshot with
+`tools/refresh-openspec-bundle.ps1`; that script normalizes skills to the paths
+used by this installer. Running `openspec update` directly in an installed
+project may recreate tool-specific skill directories and is therefore not the
+recommended update path.
 
-```bash
+```powershell
 npm install -g @fission-ai/openspec@latest
-openspec update      # refresh slash commands and SKILLs to the current CLI version
+.\tools\refresh-openspec-bundle.ps1
 ```
 
-This is purely optional. After a subsequent `1c-rules` update, the bundled
-snapshot's version takes over again (unless you've marked the affected files
-as user-modified, in which case `1c-rules` preserves your edits).
+This maintainer step is optional. End users receive the normalized snapshot on
+the next `1c-rules` update; user-modified managed files remain preserved.
 
 ## Workflow (default core profile)
 

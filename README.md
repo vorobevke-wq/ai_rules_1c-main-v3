@@ -8,14 +8,14 @@
 
 Правила и команды собираются под конкретный инструмент адаптерами из `adapters/*.yaml`. Поддерживаются:
 
-- **Cursor** (`.cursor/rules/`, `.cursor/commands/`)
-- **Claude Code** (`.claude/rules-1c/`, `.claude/agents/`, `.claude/commands/`)
-- **OpenAI Codex** (`.codex/rules/`, `.codex/agents/`, `.codex/skills/`, `.codex/config.toml`; slash-команды ставятся в пользовательский `~/.codex/prompts/`)
-- **OpenCode** (`.opencode/command/`)
-- **Kilo Code** (`.kilo/rules/`, `.kilo/commands/`, `.kilo/agents/`, `.kilo/skills/`)
+- **Cursor** (`.cursor/rules/`, `.cursor/agents/`, `.cursor/commands/`, `.agents/skills/`, `.cursor/mcp.json`)
+- **Claude Code** (`.claude/rules-1c/`, `.claude/agents/`, `.claude/commands/`, `.claude/skills/`, `.mcp.json`)
+- **OpenAI Codex** (`.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `.codex/config.toml`; slash-команды ставятся в пользовательский `~/.codex/prompts/`)
+- **OpenCode** (`.opencode/rules/`, `.opencode/agent/`, `.opencode/command/`, `.agents/skills/`, корневой `opencode.json`)
+- **Kilo Code** (`.kilo/rules-1c/`, `.kilo/commands/`, `.kilo/agents/`, `.agents/skills/`, корневой `kilo.json`)
 - **Прочее (`other`, универсальный fallback)** (`.ai-agent/rules/`, `.ai-agent/agents/`, `.ai-agent/commands/`, `.ai-agent/skills/`, `.ai-agent/mcp.json`) — для любого ИИ-клиента, которого нет в списке выше (Aider, Cline, Continue, Cody и т.п.). Ничего не автодетектится — выбирается вручную при установке. На диск пишутся максимально портабельные правила: `AGENTS.md` в корне (де-факто стандарт для современных агентов), а on-demand-правила и описания субагентов — по нейтральным путям под `.ai-agent/` с минимальной frontmatter (`description` + `alwaysApply`).
 
-Один и тот же исходный набор правил из `content/` раскладывается во все активные инструменты одновременно, поэтому `AGENTS.md`, on-demand правила и описания субагентов остаются согласованными независимо от того, в каком клиенте вы работаете.
+Один и тот же исходный набор правил из `content/` адаптируется под выбранный инструмент. Совместимые клиенты используют `.agents/skills/`, а остальные артефакты остаются в нативном каталоге клиента.
 
 ## Как попросить агента поставить правила
 
@@ -80,13 +80,14 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 Независимо от канала установки (агент или `install.ps1`) на диске будет:
 
 - `AGENTS.md`, `USER-RULES.md`, `memory.md` — **в корне проекта**. Это требование инструментов: Cursor, Claude Code, Codex, OpenCode, Kilo Code читают `AGENTS.md` именно из корня; перенос в `.cursor/`/`.claude/` отключит загрузку.
-- директории активных инструментов (`.cursor/`, `.claude/`, `.codex/`, `.opencode/`, `.kilo/` — для Kilo Code MCP пишется в корневой `kilo.json` под ключом `mcp`; legacy `.kilocode/mcp.json` больше не используется и автоматически удаляется при `update`) — для каждого детектированного. On-demand правила лежат в `<tool>/rules/` соответствующего инструмента, не дублируются в отдельный «общий» каталог.
+- директория выбранного инструмента (`.cursor/`, `.claude/`, `.codex/`, `.opencode/` или `.kilo/`). Для Kilo Code MCP пишется в корневой `kilo.json` под ключом `mcp`; legacy `.kilocode/mcp.json` больше не используется и автоматически удаляется при `update`. On-demand правила остаются в каталоге выбранного инструмента и не дублируются в отдельный общий каталог;
+- `.agents/skills/` — проектные skills для Cursor, Codex, OpenCode и Kilo Code. При установке Claude Code вместо неё используется `.claude/skills/`; адаптер `other` сохраняет `.ai-agent/skills/`.
 - `openspec/` — OpenSpec-воркспейс (если ещё не было).
 - `.ai-rules.json` — манифест с перечнем размещённых файлов, активных инструментов, выбранным каноническим каталогом on-demand правил и версией.
 
-`AGENTS.md` ссылается на on-demand правила по пути одного канонического каталога (приоритет `cursor → claude-code → kilocode → opencode → codex → other`; `other` становится каноном только когда выбран без «реального» инструмента). При установке только под один инструмент в проекте появится ровно одна тулзовая директория плюс `AGENTS.md`/`USER-RULES.md`/`memory.md` в корне — без дополнительных общих папок.
+`AGENTS.md` ссылается на on-demand правила по пути одного канонического каталога (приоритет `cursor → claude-code → kilocode → opencode → codex → other`; `other` становится каноном только когда выбран без «реального» инструмента). При установке только под один инструмент появится его директория и корневые файлы; для Cursor, Codex, OpenCode и Kilo Code дополнительно создаётся общий стандартный каталог `.agents/skills/`, для Claude skills остаются внутри `.claude/skills/`.
 
-Пути `content/rules/...`, `content/agents/...`, `content/commands/...`, `content/skills/...` и `content/mcp-servers.json` существуют только в исходном репозитории. В установленных правилах, субагентах, командах и Markdown-файлах навыков установщик заменяет их на реальные пути выбранного инструмента; для каждого инструмента преобразование выполняется отдельно.
+Пути `content/rules/...`, `content/agents/...`, `content/commands/...`, `content/skills/...` и `content/mcp-servers.json` существуют только в исходном репозитории. В установленных правилах, субагентах, командах и Markdown-файлах навыков установщик заменяет их на реальные пути выбранного инструмента, включая `.agents/skills/` для совместимых клиентов.
 
 Если активен ровно один инструмент, агент-установщик не задаёт уточняющих вопросов. PowerShell-fallback дополнительно поддерживает флаги `-Tools cursor,claude-code`, `-NonInteractive`, `-AssumeYes`. Полный протокол и описание манифеста — в [`AGENT-INSTALL.md`](AGENT-INSTALL.md).
 
@@ -127,7 +128,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 ## SKILL-пакеты (`content/skills/`)
 
-Скиллы — это самодостаточные подключаемые модули с собственной документацией и (опционально) скриптами/инструментами. Активный инструмент подхватывает их из своего `skills/`-каталога. В поставке:
+Скиллы — это самодостаточные подключаемые модули с собственной документацией и (опционально) скриптами/инструментами. Cursor, Codex, OpenCode и Kilo Code подхватывают их из `.agents/skills/`; Claude Code — из `.claude/skills/`; `other` — из `.ai-agent/skills/`. В поставке:
 
 ### `1c-metadata-manage` — управление структурой метаданных 1С
 
@@ -207,7 +208,7 @@ Fallback к графовому MCP и компактный способ иссл
 
 ### БСП-скиллы
 
-Для справки по БСП используйте локальные скиллы, папки которых содержат `bsp-`; после установки правил в проект их можно вручную скопировать в skills-каталог активного инструмента (`.codex/skills/`, `.kilo/skills/`, `.ai-agent/skills/` и т.п.).
+Для справки по БСП используйте локальные скиллы, папки которых содержат `bsp-`; после установки правил в проект их можно вручную скопировать в `.agents/skills/` (Cursor, Codex, OpenCode, Kilo Code), `.claude/skills/` (Claude Code) или `.ai-agent/skills/` (`other`).
 
 ### `1c-syntax` — синтаксическая справка платформы 1С
 
@@ -229,7 +230,7 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 
 ## OpenSpec
 
-Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.codex/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
+Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.agents/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
 
 ## Ссылки и благодарности
 

@@ -27,7 +27,7 @@ If the path is not provided — ask the user.
 
 ## Command
 
-`<skill-dir>` below is the directory of this skill: `content/skills/md-to-docx/` in the `1c-rules` source repo, or `<tool>/skills/md-to-docx/` after installation (e.g. `.cursor/skills/md-to-docx/`, `.claude/skills/md-to-docx/`).
+`<skill-dir>` below is the directory of this skill: `content/skills/md-to-docx/` in the `1c-rules` source repo, `.agents/skills/md-to-docx/` after installation for Cursor, Codex, OpenCode or Kilo Code, `.claude/skills/md-to-docx/` for Claude Code, or `.ai-agent/skills/md-to-docx/` for `other`.
 
 PowerShell (Windows, default for this project):
 
