@@ -563,9 +563,36 @@ function Invoke-FrontmatterOps {
     $drop = if ($Ops.drop) { @($Ops.drop) } else { @() }
     $rename = if ($Ops.rename) { $Ops.rename } else { @{} }
     $addIf = if ($Ops.addIf) { $Ops.addIf } else { @{} }
+    $mapArrayValues = if ($Ops.mapArrayValues) { $Ops.mapArrayValues } else { $null }
     $toolsToPermission = if ($Ops.toolsToPermission) { $Ops.toolsToPermission } else { $null }
 
-    # Phase 0: tools array -> permission object (OpenCode).
+    # Phase 0a: replace selected values in frontmatter arrays. A mapped value
+    # may expand to one or more target values; unmapped values are preserved.
+    # This is used by the Claude adapter to translate portable source aliases
+    # (`Shell`, `MCP`) into Claude Code's exact tool allowlist entries.
+    if ($mapArrayValues) {
+        foreach ($field in $mapArrayValues.Keys) {
+            if (-not $src.Contains($field)) { continue }
+            $valueMap = $mapArrayValues[$field]
+            if (-not ($valueMap -is [System.Collections.IDictionary])) { continue }
+
+            $mappedValues = @()
+            foreach ($sourceValue in @($src[$field])) {
+                $replacements =
+                    if ($valueMap.Contains([string]$sourceValue)) { @($valueMap[[string]$sourceValue]) }
+                    else { @($sourceValue) }
+
+                foreach ($replacement in $replacements) {
+                    if ($mappedValues -notcontains $replacement) {
+                        $mappedValues += $replacement
+                    }
+                }
+            }
+            $src[$field] = @($mappedValues)
+        }
+    }
+
+    # Phase 0b: tools array -> permission object (OpenCode).
     # Runs BEFORE keep/drop so it can still read the source `tools` list.
     # Each mapped source tool present in the list -> `grant` (allow);
     # every mapped permission key NOT granted -> `deny`, so a read-only agent

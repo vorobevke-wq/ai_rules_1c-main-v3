@@ -6,7 +6,12 @@
 # Schema: closed adapter schema described in AGENT-INSTALL.md (Lean placement)
 # and implemented by install.ps1.
 # Notes:
-#   - Rules are placed under .claude/rules/ (supported via automatic discovery).
+#   - Rules are placed under .claude/rules-1c/ — deliberately NOT
+#     .claude/rules/. Claude Code auto-loads unscoped Markdown files from the
+#     latter, while this ruleset expects AGENTS.md to route to them on demand.
+#   - Source agent tool aliases are translated to native Claude Code names.
+#     Both PowerShell and Bash are listed for portable shell access; MCP expands
+#     to the server-level allowlist patterns supported by Claude Code.
 #   - Slash-command frontmatter fields use hyphen-separated names natively.
 #   - Skills follow the Anthropic SKILL.md standard and are copied verbatim.
 #   - A minimal CLAUDE.md is generated as an entry point pointing to AGENTS.md.
@@ -19,7 +24,7 @@ detection:
   - exists: "CLAUDE.md"
 
 rules:
-  copyTo: ".claude/rules/{name}.md"
+  copyTo: ".claude/rules-1c/{name}.md"
   frontmatter:
     keep: [description, alwaysApply]
     drop: [globs, category]
@@ -27,10 +32,14 @@ rules:
 agents:
   copyTo: ".claude/agents/{name}.md"
   frontmatter:
-    keep: [name, description, tools, modelHint, isSubagent, allowParallel]
+    mapArrayValues:
+      tools:
+        Shell: [PowerShell, Bash]
+        MCP: [mcp__rlm-tools-bsl, mcp__1c-lsp-diagnostics, mcp__1c-syntax, mcp__1c-templates-mcp, mcp__1c-mcp-metacode, mcp__onec-buddy-mcp, mcp__1c-mcp-toolkit]
+    keep: [name, description, tools, modelHint]
     rename:
       modelHint: model
-    drop: [reasoningEffort]
+    drop: [reasoningEffort, isSubagent, allowParallel]
 
 commands:
   copyTo: ".claude/commands/{name}.md"
