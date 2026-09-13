@@ -62,10 +62,11 @@ available.
 
 OpenSpec slash commands (`/opsx:propose`, `/opsx:apply`, `/opsx:archive`,
 `/opsx:explore`) and the matching SKILLs are placed automatically by the
-`1c-rules` installer for every active tool — **no `npm` and no OpenSpec CLI
-required at install time**. The installer ships a snapshot of `openspec init`
-output under `content/openspec-bundle/<tool>/` and copies the per-tool files
-during phases 6c (`init` / `add`) and *OpenSpec artefacts (update)* (`update`).
+`1c-rules` installer for every active tool that has a bundled snapshot — **no
+`npm` and no OpenSpec CLI required at install time**. The installer ships a
+snapshot of `openspec init` output under `content/openspec-bundle/<tool>/` and
+copies the per-tool files during phases 6c (`init` / `add`) and *OpenSpec
+artefacts (update)* (`update`).
 The OpenSpec CLI version of the bundled snapshot is recorded in
 `.ai-rules.json` under `integrations.openspec.artifactsBundleVersion`.
 
@@ -76,11 +77,14 @@ After installation you should already see, depending on which tools are active:
 - Codex — only SKILLs under `.agents/skills/openspec-*/SKILL.md` (Codex has no project slash commands)
 - OpenCode — `.opencode/command/opsx-{apply,archive,explore,propose}.md`
 - Kilo Code — `.kilo/commands/opsx-{apply,archive,explore,propose}.md`
+- DeepSeek Harness — no bundled OpenSpec skill snapshot yet; the shared
+  `openspec/` workspace and its 1C integration rule are installed, and the
+  workflow is started with an ordinary Harness request
 
 …plus matching `openspec-{propose,apply-change,archive-change,explore}/SKILL.md`
 folders under `.agents/skills/` for Cursor, Codex, OpenCode and Kilo Code, or
-under `.claude/skills/` for Claude Code. Restart your IDE for the slash commands
-to take effect.
+under `.claude/skills/` for Claude Code. DeepSeek Harness is excluded from this
+bundle list. Restart your IDE for the bundled slash commands to take effect.
 
 ### Refreshing to a newer OpenSpec version (optional)
 

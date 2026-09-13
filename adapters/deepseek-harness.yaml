@@ -1,0 +1,63 @@
+# Adapter: DeepSeek Harness (`dsh`)
+#
+# Describes the project-local layout used by the official DeepSeek Harness
+# launched with `npx @deepseek-ai/dsh web`.
+#
+# Official discovery contracts:
+#   - workspace instructions are loaded from root/ancestor `AGENTS.md` files;
+#   - project skills are discovered from `<projectRoot>/.dsh/skills` before the
+#     shared `.agents/skills` compatibility root;
+#   - skill entries may be directory bundles (`<name>/SKILL.md`) or flat
+#     Markdown files (`<name>.md`) and require kebab-case `name` + `description`.
+#
+# This ruleset therefore uses:
+#   rules    -> .dsh/rules/   (on-demand files referenced by root AGENTS.md;
+#                              Harness does not auto-load a rules directory)
+#   agents   -> .dsh/agents/  (role prompts referenced by subagents.md; Harness
+#                              delegates through its subagent capability, whose
+#                              default model-facing tool is `subagent`)
+#   commands -> .dsh/skills/*.md (native user-invocable flat skills, so the
+#                                  existing `/doctor`, `/checkmcp`, etc. remain
+#                                  available through Harness skill invocation)
+#   skills   -> .dsh/skills/<name>/ (native project skill bundles)
+#
+# DeepSeek Harness currently has no project-scoped MCP configuration that is
+# loaded by a plain `dsh web` launch. MCP clients are profile/patch scoped and
+# may leak across workspaces. The project-local JSON below is therefore a
+# reference catalog only; the installer must not claim that it configures MCP.
+
+tool: deepseek-harness
+schemaVersion: 1
+
+detection:
+  - exists: ".dsh/"
+
+rules:
+  copyTo: ".dsh/rules/{name}.md"
+  frontmatter:
+    keep: [description, alwaysApply]
+    drop: [globs, category]
+
+agents:
+  copyTo: ".dsh/agents/{name}.md"
+  resolveModelTier: false
+  frontmatter:
+    keep: [name, description]
+    drop: [tools, modelHint, reasoningEffort, isSubagent, allowParallel]
+
+commands:
+  copyTo: ".dsh/skills/{name}.md"
+  frontmatter:
+    keep: [name, description]
+    drop: [argumentHint, allowedTools]
+
+skills:
+  copyTo: ".dsh/skills/{name}/"
+  mode: verbatim
+
+mcp:
+  source: "content/mcp-servers.json"
+  target: ".dsh/mcp-servers.json"
+  schema: catalog-only
+  format: json
+  catalogOnly: true

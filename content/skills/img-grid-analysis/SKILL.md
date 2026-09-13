@@ -20,7 +20,7 @@ img-grid-analysis <ImagePath> [-c COLS] [-o OUTPUT]
 
 ## Command
 
-`<skill-dir>` below is the directory of this skill: `content/skills/img-grid-analysis/` in the `1c-rules` source repo, `.agents/skills/img-grid-analysis/` after installation for Cursor, Codex, OpenCode or Kilo Code, `.claude/skills/img-grid-analysis/` for Claude Code, or `.ai-agent/skills/img-grid-analysis/` for `other`.
+`<skill-dir>` below is the directory of this skill: `content/skills/img-grid-analysis/` in the `1c-rules` source repo, `.agents/skills/img-grid-analysis/` after installation for Cursor, Codex, OpenCode or Kilo Code, `.claude/skills/img-grid-analysis/` for Claude Code, `.dsh/skills/img-grid-analysis/` for DeepSeek Harness, or `.ai-agent/skills/img-grid-analysis/` for `other`.
 
 ```bash
 python <skill-dir>/scripts/overlay-grid.py "<ImagePath>" [-c 50] [-o "<OutputPath>"]

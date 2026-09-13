@@ -13,13 +13,14 @@
 - **OpenAI Codex** (`.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `.codex/config.toml`; slash-команды ставятся в пользовательский `~/.codex/prompts/`)
 - **OpenCode** (`.opencode/rules/`, `.opencode/agent/`, `.opencode/command/`, `.agents/skills/`, корневой `opencode.json`)
 - **Kilo Code** (`.kilo/rules-1c/`, `.kilo/commands/`, `.kilo/agents/`, `.agents/skills/`, корневой `kilo.json`)
+- **DeepSeek Harness** (`deepseek-harness`; корневой `AGENTS.md`, `.dsh/rules/`, `.dsh/agents/`, `.dsh/skills/`, справочный `.dsh/mcp-servers.json`) — команды устанавливаются как нативные плоские skills и вызываются через `/doctor`, `/checkmcp` и т. п.; обычный `npx @deepseek-ai/dsh web` подхватывает их без изменения пользовательского `$DSH_HOME`
 - **Прочее (`other`, универсальный fallback)** (`.ai-agent/rules/`, `.ai-agent/agents/`, `.ai-agent/commands/`, `.ai-agent/skills/`, `.ai-agent/mcp.json`) — для любого ИИ-клиента, которого нет в списке выше (Aider, Cline, Continue, Cody и т.п.). Ничего не автодетектится — выбирается вручную при установке. На диск пишутся максимально портабельные правила: `AGENTS.md` в корне (де-факто стандарт для современных агентов), а on-demand-правила и описания субагентов — по нейтральным путям под `.ai-agent/` с минимальной frontmatter (`description` + `alwaysApply`).
 
-Один и тот же исходный набор правил из `content/` адаптируется под выбранный инструмент. Совместимые клиенты используют `.agents/skills/`, а остальные артефакты остаются в нативном каталоге клиента.
+Один и тот же исходный набор правил из `content/` адаптируется под выбранный инструмент. Cursor, Codex, OpenCode и Kilo Code используют совместимый каталог `.agents/skills/`; DeepSeek Harness — более приоритетный нативный `.dsh/skills/`; остальные артефакты остаются в каталоге клиента.
 
 ## Как попросить агента поставить правила
 
-Установка спроектирована как протокол, который выполняет сам ИИ-агент. Откройте проект в любимом ИИ-агенте (Cursor / Claude Code / Codex / OpenCode / Kilo Code) и отправьте сообщение:
+Установка спроектирована как протокол, который выполняет сам ИИ-агент. Откройте проект в любимом ИИ-агенте (Cursor / Claude Code / Codex / OpenCode / Kilo Code / DeepSeek Harness) и отправьте сообщение:
 
 > Установи правила из `https://github.com/vorobevke-wq/ai_rules_1c-main-v3` по `AGENT-INSTALL.md`.
 
@@ -42,6 +43,17 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 .\install.ps1 init -Source https://github.com/vorobevke-wq/ai_rules_1c-main-v3
 ```
 
+Для нативного DeepSeek Harness установите адаптер и запускайте Web UI из корня того же проекта:
+
+```powershell
+$project = 'D:\Projects\My1CProject'
+.\install.ps1 init -ProjectRoot $project -Source . -Tools deepseek-harness -NonInteractive -AssumeYes
+Set-Location -LiteralPath $project
+npx @deepseek-ai/dsh web
+```
+
+В открывшемся Web UI выберите этот же каталог как workspace.
+
 Команды: `init` / `update` / `add <tool>` / `remove [<tool>]` / `doctor` / `eject`.
 
 ## Что внутри
@@ -63,7 +75,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 ├── memory.md                # память проекта
 ├── install.ps1              # PowerShell-установщик
 ├── .dev.env.example         # шаблон параметров проекта
-├── adapters/                # адаптеры под инструменты (cursor, claude-code, codex, opencode, kilocode)
+├── adapters/                # адаптеры под инструменты (cursor, claude-code, codex, opencode, kilocode, deepseek-harness)
 ├── content/
 │   ├── rules/               # on-demand правила, подключаемые по задаче
 │   ├── agents/              # описания 13 специализированных субагентов
@@ -79,17 +91,17 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 Независимо от канала установки (агент или `install.ps1`) на диске будет:
 
-- `AGENTS.md`, `USER-RULES.md`, `memory.md` — **в корне проекта**. Это требование инструментов: Cursor, Claude Code, Codex, OpenCode, Kilo Code читают `AGENTS.md` именно из корня; перенос в `.cursor/`/`.claude/` отключит загрузку.
-- директория выбранного инструмента (`.cursor/`, `.claude/`, `.codex/`, `.opencode/` или `.kilo/`). Для Kilo Code MCP пишется в корневой `kilo.json` под ключом `mcp`; legacy `.kilocode/mcp.json` больше не используется и автоматически удаляется при `update`. On-demand правила остаются в каталоге выбранного инструмента и не дублируются в отдельный общий каталог;
-- `.agents/skills/` — проектные skills для Cursor, Codex, OpenCode и Kilo Code. При установке Claude Code вместо неё используется `.claude/skills/`; адаптер `other` сохраняет `.ai-agent/skills/`.
+- `AGENTS.md`, `USER-RULES.md`, `memory.md` — **в корне проекта**. Это требование инструментов: Cursor, Claude Code, Codex, OpenCode, Kilo Code и DeepSeek Harness читают `AGENTS.md` именно из корня; перенос в каталог клиента отключит загрузку.
+- директория выбранного инструмента (`.cursor/`, `.claude/`, `.codex/`, `.opencode/`, `.kilo/` или `.dsh/`). Для Kilo Code MCP пишется в корневой `kilo.json` под ключом `mcp`; legacy `.kilocode/mcp.json` больше не используется и автоматически удаляется при `update`. У DeepSeek Harness `.dsh/mcp-servers.json` — только справочный каталог: нативный Harness пока не загружает project-local MCP-конфигурацию при обычном запуске `dsh web`. On-demand правила остаются в каталоге выбранного инструмента и не дублируются в отдельный общий каталог;
+- каталог skills: `.agents/skills/` для Cursor, Codex, OpenCode и Kilo Code, `.claude/skills/` для Claude Code, `.dsh/skills/` для DeepSeek Harness, `.ai-agent/skills/` для `other`.
 - `openspec/` — OpenSpec-воркспейс (если ещё не было).
 - `.ai-rules.json` — манифест с перечнем размещённых файлов, активных инструментов, выбранным каноническим каталогом on-demand правил и версией.
 
-`AGENTS.md` ссылается на on-demand правила по пути одного канонического каталога (приоритет `cursor → claude-code → kilocode → opencode → codex → other`; `other` становится каноном только когда выбран без «реального» инструмента). При установке только под один инструмент появится его директория и корневые файлы; для Cursor, Codex, OpenCode и Kilo Code дополнительно создаётся общий стандартный каталог `.agents/skills/`, для Claude skills остаются внутри `.claude/skills/`.
+`AGENTS.md` ссылается на on-demand правила по пути одного канонического каталога (приоритет `cursor → claude-code → kilocode → opencode → codex → deepseek-harness → other`; `other` становится каноном только когда выбран без явно поддерживаемого инструмента). При установке только под DeepSeek Harness ссылки ведут в `.dsh/rules/`, `.dsh/agents/` и `.dsh/skills/`.
 
-Пути `content/rules/...`, `content/agents/...`, `content/commands/...`, `content/skills/...` и `content/mcp-servers.json` существуют только в исходном репозитории. В установленных правилах, субагентах, командах и Markdown-файлах навыков установщик заменяет их на реальные пути выбранного инструмента, включая `.agents/skills/` для совместимых клиентов.
+Пути `content/rules/...`, `content/agents/...`, `content/commands/...`, `content/skills/...` и `content/mcp-servers.json` существуют только в исходном репозитории. В установленных правилах, субагентах, командах и Markdown-файлах навыков установщик заменяет их на реальные пути выбранного инструмента, включая `.dsh/skills/` и `.dsh/mcp-servers.json` для DeepSeek Harness.
 
-Если активен ровно один инструмент, агент-установщик не задаёт уточняющих вопросов. PowerShell-fallback дополнительно поддерживает флаги `-Tools cursor,claude-code`, `-NonInteractive`, `-AssumeYes`. Полный протокол и описание манифеста — в [`AGENT-INSTALL.md`](AGENT-INSTALL.md).
+Если активен ровно один инструмент, агент-установщик не задаёт уточняющих вопросов. PowerShell-fallback дополнительно поддерживает флаги `-Tools cursor,claude-code` или `-Tools deepseek-harness`, `-NonInteractive`, `-AssumeYes`. Полный протокол и описание манифеста — в [`AGENT-INSTALL.md`](AGENT-INSTALL.md).
 
 ## Свод on-demand правил (`content/rules/`)
 
@@ -128,7 +140,7 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 
 ## SKILL-пакеты (`content/skills/`)
 
-Скиллы — это самодостаточные подключаемые модули с собственной документацией и (опционально) скриптами/инструментами. Cursor, Codex, OpenCode и Kilo Code подхватывают их из `.agents/skills/`; Claude Code — из `.claude/skills/`; `other` — из `.ai-agent/skills/`. В поставке:
+Скиллы — это самодостаточные подключаемые модули с собственной документацией и (опционально) скриптами/инструментами. Cursor, Codex, OpenCode и Kilo Code подхватывают их из `.agents/skills/`; Claude Code — из `.claude/skills/`; DeepSeek Harness — из `.dsh/skills/`; `other` — из `.ai-agent/skills/`. В поставке:
 
 ### `1c-metadata-manage` — управление структурой метаданных 1С
 
@@ -165,6 +177,8 @@ git clone https://github.com/vorobevke-wq/ai_rules_1c-main-v3.git $env:TEMP\1c-r
 ## MCP-серверы экосистемы 1С
 
 Правила рассчитаны на работу с MCP-серверами, используемыми в этом фреймворке: `rlm-tools-bsl`, `1c-mcp-metacode`, `1c-lsp-diagnostics`, `1c-templates-mcp`, `1c-syntax`, `onec-buddy-mcp` и `1c-mcp-toolkit`. Все серверы опциональны, кроме отмеченных в каталоге: правила содержат graceful fallback, если конкретный MCP не поднят. Каталог адресов и идентификаторов — в `content/mcp-servers.json`. Единый источник правды по MCP-маршрутизации, fallback-порядку и таблицам инструментов — скилл `mcp-1c-tools` (`content/skills/mcp-1c-tools/SKILL.md`, разделы `docs/<server>.md`); плейбуки под типовые задачи — в `content/rules/tooling-playbooks.md`.
+
+Для DeepSeek Harness установщик переносит этот каталог в `.dsh/mcp-servers.json` только как справочник. Само подключение MCP выполняется через профиль / Cordis patch Harness; проектный адаптер намеренно не меняет глобальный `$DSH_HOME`.
 
 ### `1c-mcp-metacode` — граф метаданных и кода (Neo4j)
 
@@ -208,7 +222,7 @@ Fallback к графовому MCP и компактный способ иссл
 
 ### БСП-скиллы
 
-Для справки по БСП используйте локальные скиллы, папки которых содержат `bsp-`; после установки правил в проект их можно вручную скопировать в `.agents/skills/` (Cursor, Codex, OpenCode, Kilo Code), `.claude/skills/` (Claude Code) или `.ai-agent/skills/` (`other`).
+Для справки по БСП используйте локальные скиллы, папки которых содержат `bsp-`; после установки правил в проект их можно вручную скопировать в `.agents/skills/` (Cursor, Codex, OpenCode, Kilo Code), `.claude/skills/` (Claude Code), `.dsh/skills/` (DeepSeek Harness) или `.ai-agent/skills/` (`other`).
 
 ### `1c-syntax` — синтаксическая справка платформы 1С
 
@@ -230,7 +244,7 @@ HTTP MCP-шлюз [ROCTUP/1c-buddy](https://github.com/ROCTUP/1c-buddy) к се�
 
 ## OpenSpec
 
-Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.agents/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для адаптера `other` (универсальный fallback) тулз-нейтрального бандла нет — слэш-команды OpenSpec автоматически не разворачиваются; пользователь подключает их вручную, работая напрямую с `openspec/specs/` и `openspec/changes/`. Подробности — в [`openspec/README.md`](openspec/README.md).
+Установщик безусловно разворачивает OpenSpec-воркспейс (`openspec/`) с режимом «не перезаписывать существующее». Слэш-команды `/opsx:propose`, `/opsx:apply`, `/opsx:archive`, `/opsx:explore` разворачиваются автоматически для каждого активного инструмента из набора `cursor`, `claude-code`, `codex`, `opencode`, `kilocode` (бандлы — в `content/openspec-bundle/<tool>/`). Особенность Codex: его бандл содержит только SKILL-пакеты OpenSpec (`.agents/skills/openspec-*`), без слэш-команд — workflow вызывается через скиллы напрямую. Для DeepSeek Harness и `other` готового OpenSpec-бандла нет; сам workspace и правило `sdd-integrations.md` устанавливаются, а workflow запускается запросом агенту. Подробности — в [`openspec/README.md`](openspec/README.md).
 
 ## Ссылки и благодарности
 

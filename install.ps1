@@ -52,6 +52,9 @@
     .\install.ps1 init -Tools cursor,claude-code -NonInteractive
 
 .EXAMPLE
+    .\install.ps1 init -Tools deepseek-harness -NonInteractive -AssumeYes
+
+.EXAMPLE
     .\install.ps1 update -AssumeYes
 
 .EXAMPLE
@@ -92,7 +95,7 @@ $script:UserRulesFileName = 'USER-RULES.md'
 $script:MemoryFileName = 'memory.md'
 $script:DevEnvFileName = '.dev.env'
 $script:DevEnvExampleName = '.dev.env.example'
-$script:SupportedTools = @('cursor', 'claude-code', 'codex', 'opencode', 'kilocode', 'other')
+$script:SupportedTools = @('cursor', 'claude-code', 'codex', 'opencode', 'kilocode', 'deepseek-harness', 'other')
 $script:ManagedBlocks = @('core', 'user-defined', 'openspec')
 $script:LastChannel = 'powershell'
 $script:Utf8NoBom = New-Object System.Text.UTF8Encoding $false
@@ -1049,6 +1052,7 @@ function Get-ToolDetectionSignals {
         'codex'       = @((Test-Path (Join-Path $Root '.codex')))
         'opencode'    = @((Test-Path (Join-Path $Root '.opencode')), (Test-Path (Join-Path $Root 'opencode.json')))
         'kilocode'    = @((Test-Path (Join-Path $Root '.kilo')), (Test-Path (Join-Path $Root '.kilocode')))
+        'deepseek-harness' = @((Test-Path (Join-Path $Root '.dsh')))
         # 'other' is a manual-only fallback — never auto-detected.
         'other'       = @()
     }
@@ -1350,6 +1354,7 @@ function Invoke-OpenSpecArtifacts {
 
     $totalCopied = 0
     $totalKept = 0
+    $matchedBundles = 0
     foreach ($tool in $ActiveTools) {
         $layouts = Resolve-CanonicalArtifactLayouts -ActiveTools @($tool) -Adapters $Adapters
         if ($tool -eq 'kilocode') {
@@ -1357,6 +1362,7 @@ function Invoke-OpenSpecArtifacts {
         }
         $toolBundle = Join-Path $bundleRoot $tool
         if (-not (Test-Path $toolBundle)) { continue }
+        $matchedBundles++
         $toolBundleFull = (Resolve-Path $toolBundle).Path.TrimEnd('\', '/')
         $toolCopied = 0
         $toolKept = 0
@@ -1398,10 +1404,15 @@ function Invoke-OpenSpecArtifacts {
     if (-not $Manifest.integrations.Contains('openspec')) {
         $Manifest.integrations['openspec'] = [ordered]@{ detected = $false; files = @() }
     }
-    if ($bundleVersion) {
+    if ($matchedBundles -gt 0 -and $bundleVersion) {
         $Manifest.integrations['openspec']['artifactsBundleVersion'] = $bundleVersion
     }
-    Write-Info "  OpenSpec artefacts: $totalCopied placed, $totalKept kept (bundle v$bundleVersion)"
+    if ($matchedBundles -gt 0) {
+        Write-Info "  OpenSpec artefacts: $totalCopied placed, $totalKept kept (bundle v$bundleVersion)"
+    }
+    else {
+        Write-Info '  OpenSpec artefacts: skipped (no bundled snapshot for the active tool set)'
+    }
 }
 
 # ============================================================================
@@ -2016,7 +2027,16 @@ function Invoke-PlacePhase {
             $template = $adapter.agents.template
             foreach ($f in Get-ChildItem -File (Join-Path $SourceRoot 'content/agents') -Filter *.md) {
                 $parts = Split-FrontmatterAndBody (Read-TextFile $f.FullName)
-                $agentFm = Resolve-AgentModelTier -Frontmatter $parts.Frontmatter -Root $Root
+                $resolveModelTier = $true
+                if ($adapter.agents.Contains('resolveModelTier')) {
+                    $resolveModelTier = [bool]$adapter.agents.resolveModelTier
+                }
+                $agentFm = if ($resolveModelTier) {
+                    Resolve-AgentModelTier -Frontmatter $parts.Frontmatter -Root $Root
+                }
+                else {
+                    $parts.Frontmatter
+                }
                 $name = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
                 $target = Resolve-CopyToPath $copyTpl $name
                 Invoke-PlaceArtifactFile -Root $Root -SourcePath $f.FullName `
@@ -2094,7 +2114,7 @@ function Invoke-PlacePhase {
 # `other` is intentionally last: when combined with any "real" tool the real
 # tool's rules dir wins; `.ai-agent/rules/` becomes canonical only when
 # `other` is the only active tool.
-$script:RulesDirPriority = @('cursor', 'claude-code', 'kilocode', 'opencode', 'codex', 'other')
+$script:RulesDirPriority = @('cursor', 'claude-code', 'kilocode', 'opencode', 'codex', 'deepseek-harness', 'other')
 
 function Resolve-CanonicalRulesLayout {
     # Returns @{ Dir = <path>; Ext = <ext-without-dot> } for the highest-priority
@@ -2243,16 +2263,42 @@ function Invoke-McpPhase {
         [System.Collections.IDictionary]$Manifest
     )
     $servers = Read-McpServers -Root $SourceRoot
-
     $installedIds = @($servers | ForEach-Object { $_.id })
-    $Manifest.mcpServers = @($installedIds)
+    $configuredTargetCount = 0
+
+    # `mcpServers` records servers actually rendered into at least one native
+    # client config. A catalog-only adapter (DeepSeek Harness) keeps the source
+    # list reachable for rules/checks but does not configure MCP for `dsh web`.
+    $nativeMcpTools = @($ActiveTools | Where-Object {
+        $candidate = $Adapters[$_]
+        if (-not $candidate -or -not $candidate.mcp -or -not $candidate.mcp.target) { return $false }
+        return -not [bool]$candidate.mcp.catalogOnly
+    })
+    if ($nativeMcpTools.Count -gt 0) {
+        $Manifest.mcpServers = @($installedIds)
+    }
+    else {
+        # Init/update pass the complete active tool set. `add` passes only the
+        # new tool, so preserve MCP state owned by already-installed tools there.
+        $phaseSet = (@($ActiveTools | Sort-Object -Unique) -join "`n")
+        $manifestSet = (@($Manifest.tools | Sort-Object -Unique) -join "`n")
+        if ($phaseSet -eq $manifestSet) { $Manifest.mcpServers = @() }
+    }
 
     foreach ($tool in $ActiveTools) {
         $adapter = $Adapters[$tool]
         if (-not $adapter.mcp) { continue }
         $target = $adapter.mcp.target
         if (-not $target) { continue }
-        $content = New-McpConfig -ToolId $tool -Servers $servers
+        $catalogOnly = [bool]$adapter.mcp.catalogOnly
+        if ($catalogOnly) {
+            $catalogPath = Join-Path $SourceRoot 'content/mcp-servers.json'
+            $content = (Read-TextFile $catalogPath).TrimEnd()
+        }
+        else {
+            $content = New-McpConfig -ToolId $tool -Servers $servers
+            $configuredTargetCount++
+        }
         $absTarget = Join-Path $Root $target
 
         # `mcp.legacyTargets` (set in adapter yaml) — list of relative paths
@@ -2330,13 +2376,20 @@ function Invoke-McpPhase {
             source        = 'content/mcp-servers.json'
             installedHash = (Get-FileSha256 $absTarget)
         }
+        if ($catalogOnly) { $mcpEntry['catalogOnly'] = $true }
         # `merged` marks a SHARED config (opencode.json / kilo.json) that
         # carries user keys besides `mcp`. On `remove`, such a file must NOT be
         # deleted — only its top-level `mcp` key is stripped (see Invoke-Remove).
         if ($mergeRequested) { $mcpEntry['merged'] = $true }
         $Manifest.files[$target] = $mcpEntry
-        Write-Info "  [$tool] MCP config: $target"
+        if ($catalogOnly) {
+            Write-Info "  [$tool] MCP reference catalog: $target (not a Harness config)"
+        }
+        else {
+            Write-Info "  [$tool] MCP config: $target"
+        }
     }
+    return $configuredTargetCount
 }
 
 # ============================================================================
@@ -2813,7 +2866,16 @@ function Invoke-Init {
         $planDirs += "$t -> $primary/"
     }
     Write-Info ("Will write per-tool files into: " + ($planDirs -join ', '))
-    Write-Info "MCP servers will be added to each tool's MCP config."
+    $nativeMcpTools = @($activeTools | Where-Object {
+        $candidate = $adapters[$_]
+        $candidate -and $candidate.mcp -and $candidate.mcp.target -and -not [bool]$candidate.mcp.catalogOnly
+    })
+    if ($nativeMcpTools.Count -gt 0) {
+        Write-Info "MCP servers will be added to each supported tool's MCP config."
+    }
+    else {
+        Write-Info "No native project-local MCP target for the selected tool; only a reference catalog will be placed when declared by its adapter."
+    }
     if (-not $AssumeYes -and -not $NonInteractive) {
         if (-not (Read-YesNo 'Proceed with installation?' $true)) { return }
     }
@@ -2853,7 +2915,7 @@ function Invoke-Init {
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
 
     Write-Section 'Phase 8: MCP'
-    Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
+    $configuredMcpTargets = Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     Write-Section 'Phase 8b: AGENTS.md'
     Update-AgentsMd -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
@@ -2883,7 +2945,7 @@ function Invoke-Init {
         Write-Info "  OpenSpec$scaffoldedTag$bundleTag : $($os.files.Count) user file(s) in specs/changes"
     }
 
-    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $manifest.mcpServers.Count
+    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $configuredMcpTargets
 }
 
 # Tell the user to restart their AI client so it re-reads the freshly written
@@ -3055,7 +3117,7 @@ function Invoke-Update {
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
 
     Write-Section 'MCP (update)'
-    Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
+    $configuredMcpTargets = Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     Write-Section 'AGENTS.md (update)'
     Update-AgentsMd -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
@@ -3069,7 +3131,7 @@ function Invoke-Update {
 
     Write-Manifest -Root $Root -Manifest $manifest
     Write-Info 'Update complete.'
-    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $manifest.mcpServers.Count
+    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $configuredMcpTargets
 }
 
 function Invoke-Add {
@@ -3103,7 +3165,7 @@ function Invoke-Add {
     # Place .dev.env before MCP so project parameters exist before rendering
     # the newly-added tool's MCP config.
     Place-DevEnv -Root $Root -SourceRoot $sourceRoot -Manifest $manifest
-    Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
+    $configuredMcpTargets = Invoke-McpPhase -Root $Root -SourceRoot $sourceRoot -ActiveTools $activeTools -Adapters $adapters -Manifest $manifest
 
     # Merge foreign files for this tool into manifest
     foreach ($k in $foreign.Keys) { $manifest.foreignFiles[$k] = $foreign[$k] }
@@ -3123,7 +3185,7 @@ function Invoke-Add {
     $manifest.updatedAt = [datetime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
     Write-Manifest -Root $Root -Manifest $manifest
     Write-Info "Added rules for $NewTool."
-    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $manifest.mcpServers.Count
+    Write-RestartRecommendation -ActiveTools $activeTools -McpCount $configuredMcpTargets
 }
 
 # Strip ONLY the top-level `mcp` key from a SHARED tool config that the
@@ -3181,6 +3243,7 @@ function Invoke-Remove {
             'opencode'    { $toolPrefixes = @('.opencode/', 'opencode.json') }
             'kilocode'    { $toolPrefixes = @('.kilo/', '.kilocode/', 'kilo.json') }
             'cursor'      { $toolPrefixes = @('.cursor/') }
+            'deepseek-harness' { $toolPrefixes = @('.dsh/') }
             'other'       { $toolPrefixes = @('.ai-agent/') }
         }
         # `.agents/skills/` is shared by Cursor, Codex, OpenCode and Kilo Code.
@@ -3216,6 +3279,11 @@ function Invoke-Remove {
         }
         $manifest.tools = @($manifest.tools | Where-Object { $_ -ne $ScopeTool })
         if ($manifest.foreignFiles.Contains($ScopeTool)) { $manifest.foreignFiles.Remove($ScopeTool) }
+        $remainingMcpFiles = @($manifest.files.Keys | Where-Object {
+            $entry = $manifest.files[$_]
+            $entry -and $entry.source -eq 'content/mcp-servers.json' -and -not $entry.catalogOnly
+        })
+        if ($remainingMcpFiles.Count -eq 0) { $manifest.mcpServers = @() }
         # Rebuild AGENTS.md without this tool's contributions (we just strip block if no tools left)
         if ($manifest.tools.Count -eq 0) {
             # Delete AGENTS.md if no non-managed content
@@ -3247,6 +3315,7 @@ function Invoke-Remove {
         $cleanupDirs = @('.ai-rules', '.agents')
         foreach ($t in $manifest.tools) {
             if ($t -eq 'other') { $cleanupDirs += '.ai-agent' }
+            elseif ($t -eq 'deepseek-harness') { $cleanupDirs += '.dsh' }
             else { $cleanupDirs += ".$t" }
         }
         foreach ($rel in $cleanupDirs) {

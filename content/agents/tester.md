@@ -38,7 +38,7 @@ Before testing, ensure:
 
 ## Deployment Process
 
-All deployment is performed via the slash command `/deploy-and-test` (source: `content/commands/deploy-and-test.md`; installed to the active tool's commands directory). Do **not** duplicate the PowerShell commands here — the slash command is the single source of truth and supports both the `ibcmd` and Designer code paths.
+All deployment is performed via `/deploy-and-test` (source: `content/commands/deploy-and-test.md`; installed to the active tool's command location or native command-skill location). Do **not** duplicate the PowerShell commands here — that playbook is the single source of truth and supports both the `ibcmd` and Designer code paths.
 
 **Tool selection (decided by the slash command):**
 

@@ -1,4 +1,5 @@
 ---
+name: updaterules
 description: Update the 1c-rules ruleset from GitHub (https://github.com/vorobevke-wq/ai_rules_1c-main-v3)
 ---
 
@@ -6,7 +7,7 @@ description: Update the 1c-rules ruleset from GitHub (https://github.com/vorobev
 
 Source: `https://github.com/vorobevke-wq/ai_rules_1c-main-v3`.
 
-Action: update managed files in the current installation to the latest repository version (on-demand rules, subagent descriptions, slash commands, SKILL packages, MCP config, OpenSpec bundle, rendered `AGENTS.md`). Preserve:
+Action: update managed files in the current installation to the latest repository version (on-demand rules, subagent descriptions, slash commands / command skills, SKILL packages, native MCP configs or reference catalogs, OpenSpec bundle, rendered `AGENTS.md`). Preserve:
 
 - `USER-RULES.md` and `memory.md` — one-time templates, never overwritten;
 - contents of `openspec/specs/` and `openspec/changes/` — copied in skip-if-exists mode;

@@ -158,7 +158,7 @@ Guessing values is still PROHIBITED. When an in-scope operation truly needs a mi
 
 ### Path convention — source vs. installed copies
 
-Throughout the source repository, this ruleset uses readable paths such as `` `content/rules/<name>.md` ``, `` `content/agents/<name>.md` ``, and `` `content/skills/<name>/SKILL.md` ``. During installation, every managed text artefact rewrites those references to the owning tool's adapter paths (`.cursor/`, `.claude/`, `.codex/`, `.opencode/`, `.kilo/`, or `.ai-agent/`); the shared project-root `AGENTS.md` uses the canonical active-tool layout. Non-Markdown skill assets remain unchanged.
+Throughout the source repository, this ruleset uses readable paths such as `` `content/rules/<name>.md` ``, `` `content/agents/<name>.md` ``, and `` `content/skills/<name>/SKILL.md` ``. During installation, every managed text artefact rewrites those references to the owning tool's adapter paths (`.cursor/`, `.claude/`, `.codex/`, `.opencode/`, `.kilo/`, `.dsh/`, or `.ai-agent/`); the shared project-root `AGENTS.md` uses the canonical active-tool layout. Non-Markdown skill assets remain unchanged.
 
 Individual rule and subagent files therefore do **not** repeat the disclaimer "or its installed copy in the canonical rules directory" — this convention applies globally.
 

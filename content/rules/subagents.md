@@ -28,6 +28,12 @@ category: workflow
 | `1c-code-reviewer` | `content/agents/code-reviewer.md` |
 | `1c-doc-writer` | `content/agents/doc-writer.md` |
 
+**DeepSeek Harness:** the installed `.dsh/agents/*.md` files are role prompts,
+not entries in the Harness skill registry. Read the matching prompt before
+delegation and pass that role to the native subagent capability (the default
+model-facing tool is `subagent`). User-invocable and reusable skills remain
+separate under `.dsh/skills/`.
+
 **Delegate when:**
 
 - the work is large enough to justify the subagent launch overhead;
@@ -56,7 +62,7 @@ category: workflow
 
 ## Model-tier routing
 
-Subagent source files do **not** hard-code model names. Each agent declares an abstract tier in its frontmatter — `modelTier: coding` or `modelTier: light` — and the installer resolves the tier into a concrete model from `.dev.env` (`SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT`, both Defaulted: empty = the AI client's default model; see `content/rules/dev-standards-core.md §1 → "Subagent model parameters"`). Model names live only in project settings, never in rules or agent prompts.
+Subagent source files do **not** hard-code model names. Each agent declares an abstract tier in its frontmatter — `modelTier: coding` or `modelTier: light` — and adapters with a native model field resolve the tier into a concrete model from `.dev.env` (`SUBAGENT_MODEL_CODING` / `SUBAGENT_MODEL_LIGHT`, both Defaulted: empty = the AI client's default model; see `content/rules/dev-standards-core.md §1 → "Subagent model parameters"`). Model names live only in project settings, never in rules or agent prompts. The DeepSeek Harness adapter installs reference prompts rather than model-selecting agent definitions, so it strips the tier and leaves model choice to the active Harness profile / invocation.
 
 The two tiers:
 

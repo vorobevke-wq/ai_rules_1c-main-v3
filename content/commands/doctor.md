@@ -1,4 +1,5 @@
 ---
+name: doctor
 description: Diagnose whether 1c-rules is installed, connected, configured, and usable by the current agent
 ---
 
@@ -23,11 +24,11 @@ After the table, list only actionable fixes. Do not include secret values from `
 
 ## Check 1. Current agent and rules loading
 
-1. Identify the current AI tool when possible: Cursor, Claude Code, Codex, OpenCode, Kilo Code, or `other`.
+1. Identify the current AI tool when possible: Cursor, Claude Code, Codex, OpenCode, Kilo Code, DeepSeek Harness, or `other`.
 2. Check that `AGENTS.md` exists at the project root and is readable.
 3. Check that `USER-RULES.md` and `memory.md` exist at the project root.
 4. If `.ai-rules.json` exists, read it and verify:
-   - `activeTools` contains the current tool, or explain why the current tool is still supported through `other`;
+   - `tools` contains the current tool, or explain why the current tool is still supported through `other`;
    - managed files listed in the manifest still exist;
    - the canonical rules directory referenced by the manifest exists.
 5. If `.ai-rules.json` is missing:
@@ -39,6 +40,7 @@ After the table, list only actionable fixes. Do not include secret values from `
    - Codex: `.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `.codex/config.toml` when installed;
    - OpenCode: `.opencode/command/`, `.opencode/agent/`, `.opencode/rules/`, `.agents/skills/`, and `opencode.json` at the **project root** (top-level `mcp` key) when installed — MCP lives in the root `opencode.json`, **not** `.opencode/opencode.json` (OpenCode does not read a config file under `.opencode/`); a leftover `.opencode/opencode.json` from older installs is **legacy** and the `update` flow removes it;
    - Kilo Code: `.kilo/rules-1c/`, `.kilo/commands/`, `.kilo/agents/`, `.agents/skills/`, and `kilo.json` at the **project root** (top-level `mcp` key) when installed; a leftover `.kilocode/mcp.json` from older installs is **legacy** — current Kilo CLI / Kilo Code v7.x+ no longer reads it and the `update` flow removes it;
+   - DeepSeek Harness: `.dsh/rules/`, `.dsh/agents/`, `.dsh/skills/`, and the reference-only `.dsh/mcp-servers.json`; reusable skills use `<name>/SKILL.md`, while command playbooks are flat `<name>.md` skills. Do not report the MCP catalog as configured — plain `dsh web` does not load a project-local MCP config;
    - other: `.ai-agent/rules/`, `.ai-agent/agents/`, `.ai-agent/commands/`, `.ai-agent/skills/`, `.ai-agent/mcp.json`.
 
 Pass criterion: the root always-on files exist, and either the installed tool layout is present or the repository is clearly the `1c-rules` source repository being edited directly.
@@ -49,15 +51,15 @@ Check that these source files or their installed copies exist:
 
 - `content/rules/*.md` or the active tool rules directory;
 - `content/agents/*.md` or the active tool agents directory;
-- `content/commands/*.md` or the active tool commands directory;
+- `content/commands/*.md`, the active tool commands directory, or DeepSeek Harness's flat command skills;
 - `content/skills/*/SKILL.md` or the active tool skills directory;
-- `content/mcp-servers.json` or the active tool MCP config;
+- `content/mcp-servers.json`, the active tool MCP config, or DeepSeek Harness's reference-only `.dsh/mcp-servers.json`;
 - `.dev.env.example`;
 - `openspec/README.md`, `openspec/specs/README.md`, `openspec/changes/README.md`.
 
 Also check:
 
-- all command files have frontmatter with `description`;
+- all command files have frontmatter with `name` and `description`;
 - all skill entry files have frontmatter with `name` and `description`;
 - the subagent count matches the catalog in `content/rules/subagents.md`;
 - every on-demand rule referenced from `AGENTS.md → Additional rules` exists;
@@ -103,7 +105,7 @@ Check MCP at two levels:
    - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;
    - `ask_1c_ai`, `explain_1c_syntax`, `check_1c_code`, `modify_1c_code`, `search_1c_documentation`, `search_its`, `fetch_its`, `diff_1c_documentation_versions` for `onec-buddy-mcp`;
    - `execute_query`, `execute_code`, `get_metadata`, `get_event_log`, `get_object_by_link`, `get_link_of_object`, `find_references_to_object`, `get_access_rights`, `get_bsl_syntax_help` for `1c-mcp-toolkit` (`get_screenshot`, `restart_1c_session`, `close_1c_session`, `submit_for_deanonymization` when exposed by the active Toolkit mode).
-2. **Transport fallback** — when tools are missing but MCP config lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action.
+2. **Transport fallback** — when tools are missing but the MCP config or reference catalog lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action. For DeepSeek Harness, explicitly report that `.dsh/mcp-servers.json` does not attach the client and that a Harness profile / Cordis patch is still required.
 
 Pass criterion: required MCP tools for the expected 1C workflow are visible in the current session. HTTP-only availability is **WARN** because the agent still cannot call the tools until the client reconnects.
 
@@ -114,7 +116,7 @@ Evaluate whether the installed rules match the current repository and current ag
 1. If the repository contains 1C source files or metadata XML, confirm the 1C ruleset is appropriate.
 2. If the repository is only the `1c-rules` source repository, report that BSL validators are not applicable to docs-only edits unless BSL examples are changed.
 3. Confirm that `AGENTS.md` points to source or installed on-demand rules that the current agent can read.
-4. Confirm that command names in `content/commands/` are available in the active tool's command location after installation.
+4. Confirm that command names in `content/commands/` are available in the active tool's command location after installation, or as flat native skills under `.dsh/skills/` for DeepSeek Harness.
 5. Confirm that `caveman` is dev-only: enabled for implementation / debugging / deployment, off for review / analysis / documentation.
 
 Pass criterion: the current agent has the always-on rules, can reach on-demand rules or their source copies, and the rule triggers match the current task type.
@@ -132,7 +134,7 @@ Scope:
 5. **Anchor convention.** Every section reference of the form `<file>.md §N` and `<file>.md §N → "Title"` resolves: `§N` corresponds to a `## N. ...` heading in the target file; `§N → "Title"` corresponds to a `### Title` (or any `###`/`####` whose stripped title matches) inside that `## N.` section. References that mix old styles (`§3 Queries` without quotes, `§3 "Queries"` without arrow, `§3.6 Queries`) are reported as **stale**.
 6. **Markdown link integrity.** Standard `[text](path)` and `[text](path#anchor)` links resolve to existing files; anchors normalize (lowercase, spaces → `-`, punctuation stripped) and must match a heading in the target file.
 7. **Script path integrity.** PowerShell examples in skill docs reference scripts that exist under the source skill folder or the active tool's installed skill folder. Examples must not point to a non-existent root-level `skills/` directory unless that directory is part of the installed layout.
-8. **Adapter-layout consistency.** Paths mentioned in `README.md`, `AGENT-INSTALL.md`, `openspec/README.md`, command docs, and skill docs match `adapters/*.yaml`. Check Codex, Kilo Code, OpenCode, and `other` explicitly because their command / skill / MCP locations differ from the common `.cursor` / `.claude` layout.
+8. **Adapter-layout consistency.** Paths mentioned in `README.md`, `AGENT-INSTALL.md`, `openspec/README.md`, command docs, and skill docs match `adapters/*.yaml`. Check Codex, Kilo Code, OpenCode, DeepSeek Harness, and `other` explicitly because their command / skill / MCP locations differ from the common `.cursor` / `.claude` layout.
 9. **Policy drift.** Flag duplicate or conflicting rule wording for the same behavior, especially `.dev.env`, `infobasesettings.md` migration, MCP fallback order, and docs-fix vs BSL validation.
 10. **Convention checks.** Topics declared as a single source of truth (`.dev.env`, `mcp-1c-tools` skill, `dev-standards-core.md §2 → "Forbidden Calls and Constructs"`, `dev-standards-architecture.md §3 → "Queries"`, `coding-standards.md` as the index of detail files, etc.) are claimed by **exactly one** file; the same topic is not declared authoritative in two different places. Flag any duplicate authoritative claims.
 
@@ -155,4 +157,4 @@ For **Not ready**, provide the shortest safe repair path, for example:
 3. Fix Markdown integrity findings from Check 7.
 4. Generate or refresh `openspec/project.md`.
 5. Start/reconnect MCP servers with `/checkmcp`.
-6. Restart the AI client so MCP tools and rules are reloaded.
+6. Restart the AI client when a native MCP config changed so tools and rules are reloaded; for DeepSeek Harness, attach missing MCP clients through its profile / Cordis patch mechanism instead.
