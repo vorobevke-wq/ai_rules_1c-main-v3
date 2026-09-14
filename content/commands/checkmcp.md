@@ -5,7 +5,7 @@ description: Check availability of 1C MCP servers and install/start the missing 
 
 # /checkmcp — check and install 1C MCP servers
 
-This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "headers": { ... }, "enabled": true }` when headers are needed — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file). For DeepSeek Harness, `.dsh/mcp-servers.json` is a reference copy of the catalog, not a config loaded by `dsh web`; MCP clients must be attached through the Harness profile / Cordis patch mechanism.
+This command checks that all MCP servers from the project catalog (`content/mcp-servers.json`; after 1c-rules installation, rendered into the active tool config such as `.cursor/mcp.json` / `.mcp.json` / `kilo.json` / `opencode.json` / `.codex/config.toml`) are actually available in the current session, and helps start or install missing ones. For Kilo Code the rendered file uses the top-level `mcp` key with per-server `{ "type": "remote", "url": "...", "headers": { ... }, "enabled": true }` when headers are needed — **not** the legacy `.kilocode/mcp.json` with `mcpServers` (current Kilo CLI / Kilo Code v7.x+ does not read that file). For DeepSeek Harness, the installer renders the active `.dsh/mcp.cordis.yml` patch.
 
 The source of truth for legacy 1C MCP Docker images, ports, and environment variables is [docs.onerpa.ru/mcp-servery-1c](https://docs.onerpa.ru/mcp-servery-1c) and [vibecoding1c.ru/mcp_server](https://vibecoding1c.ru/mcp_server). For `rlm-tools-bsl`, use the upstream repository: <https://github.com/Dach-Coin/rlm-tools-bsl>. For `1c-lsp-mcp-skill`, use the upstream repository: <https://github.com/fserg/1c-lsp-mcp-skill>. For `1c-syntax`, use the upstream repository: <https://github.com/Starik2005/1c-syntax-mcp>. For `onec-buddy-mcp`, use the upstream repository: <https://github.com/ROCTUP/1c-buddy>. For `1c-mcp-toolkit`, use the upstream repository: <https://github.com/ROCTUP/1c-mcp-toolkit>.
 
@@ -29,7 +29,7 @@ The source of truth for legacy 1C MCP Docker images, ports, and environment vari
 
 ### Step 1. Determine the server set
 
-1. If the project has `.ai-rules.json`, take the catalog from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]`). For DeepSeek Harness, read the reference catalog from `.dsh/mcp-servers.json`, but treat every server as unconfigured until its tools are visible or its client is attached through the Harness profile / Cordis patch mechanism. For the local `1c-syntax` server the rendered Codex block is the bare-key table `[mcp_servers.1c-syntax]` shown below. A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-lsp-diagnostics`, `onec-syntax`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
+1. If the project has `.ai-rules.json`, take the server set from the active tool config referenced by the manifest (`.cursor/mcp.json` / `.mcp.json` / `kilo.json` under the `mcp` key / `opencode.json` under the `mcp` key / `.codex/config.toml` under `[mcp_servers."<id>"]` / `.dsh/mcp.cordis.yml`). For the local `1c-syntax` server the rendered Codex block is the bare-key table `[mcp_servers.1c-syntax]` shown below. A leftover `.kilocode/mcp.json` is **legacy** — ignore it; current Kilo CLI / Kilo Code (v7.x+) does not read it. In `opencode.json` the server keys are letter-normalized to `onec-...` (e.g. `onec-lsp-diagnostics`, `onec-syntax`) because OpenCode names tools `<server-key>_<tool>` and providers like Moonshot/Kimi reject digit-leading function names — match them to the canonical `1c-...` ids by the bare tool names below, not by the prefix.
 2. Otherwise use `content/mcp-servers.json` from the rules repository.
 3. If neither source exists, use the table above as the default set.
 
@@ -69,7 +69,7 @@ foreach ($s in $servers) {
 
 Any HTTP response (even `405`/`400`/`406`) means an MCP endpoint is listening on the port — status **HTTP_OK**. Full timeout / `Connection refused` means **HTTP_DOWN**.
 
-For `1c-syntax` (local stdio server), there is no HTTP endpoint to probe. If its tools are missing, check that the active native MCP config or DeepSeek Harness profile patch contains the expected local command and that both paths exist:
+For `1c-syntax` (local stdio server), there is no HTTP endpoint to probe. If its tools are missing, check that the active native MCP config contains the expected local command and that both paths exist:
 
 ```powershell
 $python = 'C:/Users/Lenovo PC/1c-syntax-mcp-master/venv/Scripts/python.exe'
@@ -149,7 +149,7 @@ Possible outcomes:
 - Local data paths for servers that need them:
   - `1c-syntax` — local server path (`C:/Users/Lenovo PC/1c-syntax-mcp-master/server.py`), virtual-environment Python path (`C:/Users/Lenovo PC/1c-syntax-mcp-master/venv/Scripts/python.exe`), installed 1C platform containing `shcntx_ru.hbk`, and 7z for first-run extraction.
   - `rlm-tools-bsl` — 1C source directory (CF / EDT / MDO / extension source) or a registered project name; no shared `LICENSE_KEY` is required.
-  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the generated `x-project-id` header placeholder replaced with the real project id in the active MCP client config or Harness profile patch for `1c-lsp-diagnostics`; no shared `LICENSE_KEY` is required.
+  - `1c-lsp-mcp-skill` — JVM, `bsl-language-server` JAR path, configured project in `lsp-skill-server`, and the generated `x-project-id` placeholder replaced manually with the real project id in the active MCP config; no shared `LICENSE_KEY` is required.
   - `1c-mcp-metacode` — configuration report text file directory plus optional configuration-code dump directory, mounted into `/app/data/metadata` and `/app/data/code`.
   - `onec-buddy-mcp` — 1C.ai token and a running 1C Buddy service, if it will be used.
   - `1c-mcp-toolkit` — `MCP_Toolkit.epf` opened in the target infobase, embedded-server mode or proxy mode running on port `6003`, and TOON response format enabled.
@@ -189,7 +189,8 @@ chmod +x simple-install-from-pip.sh
 # 1. Install Java/JVM and download bsl-language-server JAR.
 # 2. Start lsp-skill-server and configure the JAR path.
 # 3. Add the 1C project in the web UI and enable MCP.
-# 4. Replace the generated <project-id> placeholder in the active MCP client config:
+# 4. Replace the generated <project-id> placeholder in the active MCP client config.
+#    For DeepSeek Harness, edit .dsh/mcp.cordis.yml directly.
 #    "1c-lsp-diagnostics": { "type": "http", "url": "http://127.0.0.1:9011/mcp", "headers": { "x-project-id": "<project-id>" } }
 
 # 1c-mcp-metacode — separate Neo4j + application Compose setup, see docs
@@ -223,8 +224,8 @@ Exact current commands for each server are on the server-specific documentation 
 
 1. Wait 5-15 seconds (Docker containers and native services need warm-up; indexed servers may need tens of minutes or hours on first indexing. For Docker, monitor `docker logs -f <name>`; for `rlm-tools-bsl`, use `rlm_index(action="info", project="...")` or the service log).
 2. Repeat Step 3 (HTTP check); all statuses should become **HTTP_OK**.
-3. If the server is absent from a native active-tool MCP config, add the entry (1c-rules should already have rendered it after installation). For DeepSeek Harness, attach it through a profile / Cordis patch; never treat `.dsh/mcp-servers.json` as an active config.
-4. Restart the client (Cursor / Claude Code / Codex / OpenCode / Kilo Code), or restart the Harness process after changing its profile patch, so it reinitializes the MCP session.
+3. If the server is absent from a native active-tool MCP config, add the entry (1c-rules should already have rendered it after installation). For DeepSeek Harness, rerun `install.ps1 update` if `.dsh/mcp.cordis.yml` is missing, then restart with `npx @deepseek-ai/dsh web --patch .dsh/mcp.cordis.yml`.
+4. Restart the client (Cursor / Claude Code / Codex / OpenCode / Kilo Code), or restart the Harness process after changing `.dsh/mcp.cordis.yml`, so it reinitializes the MCP session.
 5. Run `/checkmcp` again; Step 2 statuses should become **TOOLS_OK**.
 
 ## Final report

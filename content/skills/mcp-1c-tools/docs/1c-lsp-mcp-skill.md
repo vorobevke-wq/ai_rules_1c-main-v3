@@ -12,7 +12,7 @@ Upstream: <https://github.com/fserg/1c-lsp-mcp-skill>.
 ## Connection and paths
 
 - Every MCP call requires the HTTP header `x-project-id` with the project id from `lsp-skill-server`.
-- `content/mcp-servers.json` stores this header as the `<project-id>` placeholder. Native-config adapters render that placeholder into their active MCP client config, where it must be replaced with the real project id from `lsp-skill-server`. DeepSeek Harness receives only a reference copy under `.dsh/`; set the real header in its profile / Cordis patch instead.
+- `content/mcp-servers.json` stores this header as the `<project-id>` placeholder. Native-config adapters render that placeholder into their active MCP client config, where it must be replaced with the real project id from `lsp-skill-server`. For DeepSeek Harness, edit the generated `.dsh/mcp.cordis.yml` directly; no `.dev.env` variable is used.
 - All `file_path` arguments are paths to `.bsl` files **relative to `project_root_path`**, not absolute filesystem paths and not raw BSL text.
 - Preserve Cyrillic directory names exactly.
 - LSP coordinates are zero-based: `line` starts at `0`, `character` starts at `0`.

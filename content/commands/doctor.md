@@ -40,7 +40,7 @@ After the table, list only actionable fixes. Do not include secret values from `
    - Codex: `.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `.codex/config.toml` when installed;
    - OpenCode: `.opencode/command/`, `.opencode/agent/`, `.opencode/rules/`, `.agents/skills/`, and `opencode.json` at the **project root** (top-level `mcp` key) when installed — MCP lives in the root `opencode.json`, **not** `.opencode/opencode.json` (OpenCode does not read a config file under `.opencode/`); a leftover `.opencode/opencode.json` from older installs is **legacy** and the `update` flow removes it;
    - Kilo Code: `.kilo/rules-1c/`, `.kilo/commands/`, `.kilo/agents/`, `.agents/skills/`, and `kilo.json` at the **project root** (top-level `mcp` key) when installed; a leftover `.kilocode/mcp.json` from older installs is **legacy** — current Kilo CLI / Kilo Code v7.x+ no longer reads it and the `update` flow removes it;
-   - DeepSeek Harness: `.dsh/rules/`, `.dsh/agents/`, `.dsh/skills/`, and the reference-only `.dsh/mcp-servers.json`; reusable skills use `<name>/SKILL.md`, while command playbooks are flat `<name>.md` skills. Do not report the MCP catalog as configured — plain `dsh web` does not load a project-local MCP config;
+   - DeepSeek Harness: `.dsh/rules/`, `.dsh/agents/`, `.dsh/skills/`, and the active `.dsh/mcp.cordis.yml`; reusable skills use `<name>/SKILL.md`, while command playbooks are flat `<name>.md` skills. Verify that Harness was started with `--patch .dsh/mcp.cordis.yml`;
    - other: `.ai-agent/rules/`, `.ai-agent/agents/`, `.ai-agent/commands/`, `.ai-agent/skills/`, `.ai-agent/mcp.json`.
 
 Pass criterion: the root always-on files exist, and either the installed tool layout is present or the repository is clearly the `1c-rules` source repository being edited directly.
@@ -53,7 +53,7 @@ Check that these source files or their installed copies exist:
 - `content/agents/*.md` or the active tool agents directory;
 - `content/commands/*.md`, the active tool commands directory, or DeepSeek Harness's flat command skills;
 - `content/skills/*/SKILL.md` or the active tool skills directory;
-- `content/mcp-servers.json`, the active tool MCP config, or DeepSeek Harness's reference-only `.dsh/mcp-servers.json`;
+- `content/mcp-servers.json` or the active tool MCP config, including `.dsh/mcp.cordis.yml` for DeepSeek Harness;
 - `.dev.env.example`;
 - `openspec/README.md`, `openspec/specs/README.md`, `openspec/changes/README.md`.
 
@@ -105,7 +105,7 @@ Check MCP at two levels:
    - `search_metadata`, `search_metadata_by_description`, `search_code` for `1c-mcp-metacode`;
    - `ask_1c_ai`, `explain_1c_syntax`, `check_1c_code`, `modify_1c_code`, `search_1c_documentation`, `search_its`, `fetch_its`, `diff_1c_documentation_versions` for `onec-buddy-mcp`;
    - `execute_query`, `execute_code`, `get_metadata`, `get_event_log`, `get_object_by_link`, `get_link_of_object`, `find_references_to_object`, `get_access_rights`, `get_bsl_syntax_help` for `1c-mcp-toolkit` (`get_screenshot`, `restart_1c_session`, `close_1c_session`, `submit_for_deanonymization` when exposed by the active Toolkit mode).
-2. **Transport fallback** — when tools are missing but the MCP config or reference catalog lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action. For DeepSeek Harness, explicitly report that `.dsh/mcp-servers.json` does not attach the client and that a Harness profile / Cordis patch is still required.
+2. **Transport fallback** — when tools are missing but the MCP config lists the server, run the `/checkmcp` algorithm: HTTP endpoint check, Docker state, and exact next action. For DeepSeek Harness, verify that the process was started with `--patch .dsh/mcp.cordis.yml`.
 
 Pass criterion: required MCP tools for the expected 1C workflow are visible in the current session. HTTP-only availability is **WARN** because the agent still cannot call the tools until the client reconnects.
 
@@ -157,4 +157,4 @@ For **Not ready**, provide the shortest safe repair path, for example:
 3. Fix Markdown integrity findings from Check 7.
 4. Generate or refresh `openspec/project.md`.
 5. Start/reconnect MCP servers with `/checkmcp`.
-6. Restart the AI client when a native MCP config changed so tools and rules are reloaded; for DeepSeek Harness, attach missing MCP clients through its profile / Cordis patch mechanism instead.
+6. Restart the AI client when a native MCP config changed so tools and rules are reloaded; for DeepSeek Harness, restart with `npx @deepseek-ai/dsh web --patch .dsh/mcp.cordis.yml`.

@@ -21,10 +21,9 @@
 #                                  available through Harness skill invocation)
 #   skills   -> .dsh/skills/<name>/ (native project skill bundles)
 #
-# DeepSeek Harness currently has no project-scoped MCP configuration that is
-# loaded by a plain `dsh web` launch. MCP clients are profile/patch scoped and
-# may leak across workspaces. The project-local JSON below is therefore a
-# reference catalog only; the installer must not claim that it configures MCP.
+# DeepSeek Harness currently has no MCP configuration auto-discovered from the
+# selected workspace. The adapter therefore renders an official Cordis patch;
+# pass it to `dsh web` through the official `--patch` option.
 
 tool: deepseek-harness
 schemaVersion: 1
@@ -57,7 +56,6 @@ skills:
 
 mcp:
   source: "content/mcp-servers.json"
-  target: ".dsh/mcp-servers.json"
-  schema: catalog-only
-  format: json
-  catalogOnly: true
+  target: ".dsh/mcp.cordis.yml"
+  schema: cordis-patch
+  format: yaml
