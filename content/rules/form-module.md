@@ -30,4 +30,4 @@ Patterns, pitfalls, and platform-version mapping (8.3.18+ `Асинх` / `Жда
 
 ## Module Structure
 
-The 5-region template for form modules (`ОбработчикиСобытийФормы`, `ОбработчикиСобытийЭлементовШапкиФормы`, `ОбработчикиСобытийЭлементовТаблицыФормыИмяТаблицы`, `ОбработчикиКомандФормы`, `СлужебныеПроцедурыИФункции`) — see `module-structure.md → Form Module`. All 5 regions are mandatory even when empty.
+The 5-region template for form modules (`ОбработчикиСобытийФормы`, `ОбработчикиСобытийЭлементовШапкиФормы`, `ОбработчикиСобытийЭлементовТаблицыФормыИмяТаблицы`, `ОбработчикиКомандФормы`, `СлужебныеПроцедурыИФункции`) — see `module-structure.md → Form Module`. Create only regions that contain code; omit unused regions.

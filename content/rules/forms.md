@@ -15,7 +15,7 @@ This file is the **router** for managed-form work. Load it first, then load only
 | Create or structurally modify `Form.xml` | `forms-add.md`, `metadata-xml-workarounds.md` |
 | Add or rename form event handlers | `forms-events-add.md`, `form-module.md` |
 | Edit `Form.Module.bsl` logic | `form-module.md` |
-| Set up module regions in a new form module | `module-structure.md → Form Module` (5 mandatory regions) |
+| Set up module regions in a new form module | `module-structure.md → Form Module` and `module-structure.md → Global Rules` |
 | Server-side form-module code (reserved names) | `form-reserved-names.md` |
 | Client-server architecture (directives, round trips) | `dev-standards-architecture.md §3 → "Client-Server Interaction"`, `anti-patterns.md → "Excessive Client-Server Calls"`, `anti-patterns.md → "Using &НаСервере Instead of &НаСервереБезКонтекста"` |
 | Client-side async code (`Асинх` / `Ждать`) | `async-methods.md` |

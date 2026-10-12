@@ -1,5 +1,5 @@
 ---
-description: Canonical region templates for common modules, object / manager modules, and form modules. Single source of truth for `#Область` names, preprocessor directives, and mandatory regions. Load before creating a new module or restructuring an existing one.
+description: Canonical region templates for common modules, object / manager modules, and form modules. Single source of truth for `#Область` names, preprocessor directives, and rules for including regions. Load before creating a new module or restructuring an existing one.
 alwaysApply: false
 category: development
 ---
@@ -76,10 +76,22 @@ The outer `#Если Сервер Или ТолстыйКлиентОбычно�
 #КонецОбласти
 ```
 
-All 5 form-module regions are **mandatory**, even when empty. For every form tabular section create a separate region `ОбработчикиСобытийЭлементовТаблицыФормы<ИмяТаблицы>` (replace `<ИмяТаблицы>` with the actual tabular-section name).
+The template above defines canonical region names and their relative order;
+it is not mandatory boilerplate.
+
+Create only regions containing actual code. Do not generate empty regions
+for completeness or possible future use.
+
+Create `ОбработчикиСобытийЭлементовТаблицыФормы<ИмяТаблицы>` only when
+the corresponding form table exists and has handlers. Replace `<ИмяТаблицы>`
+with the actual table name; never generate a placeholder region.
 
 ## Global Rules
 
 - Regions inside procedures / functions are **forbidden**.
 - Pseudo-regions via comments are **forbidden** — use only `#Область` / `#КонецОбласти`.
-- Do not rename, drop, or reorder the canonical regions; if a section is empty, leave it empty.
+- Use canonical region names and preserve their prescribed relative order.
+  Unused regions may be omitted.
+- When creating modules or adding regions, do not generate empty scaffolding.
+- Remove regions made empty by the current change. Do not remove unrelated
+  pre-existing empty regions unless cleanup is explicitly in scope.

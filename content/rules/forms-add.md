@@ -18,7 +18,7 @@ Do not duplicate that sequence here.
 - **Form XML validation is mandatory** after any XML edit — use `form-validate` from `1c-metadata-manage`. A form that parses in your editor is not a form that loads in Designer.
 - **Form-element naming.** Elements added to a typical form must carry the `{PREFIX}` prefix from `.dev.env`. Elements inside a newly created form (object already prefixed) do **not** repeat the prefix on every element — see `dev-standards-core.md §4`.
 - **Common pitfalls** are catalogued in `metadata-xml-workarounds.md` — read it before hand-editing the XML.
-- **Region structure of the form module** — `module-structure.md → Form Module` (5 mandatory regions).
+- **Region structure of the form module** — `module-structure.md → Form Module` and `module-structure.md → Global Rules`.
 - **Form-presentation rules** (programmatic typical-form modification, element placement, fill checking, form commands) — `dev-standards-forms.md`.
 
 ## Companion rules
